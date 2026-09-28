@@ -1,0 +1,11 @@
+{
+  "name": "oceanbound",
+  "version": "1.0.0",
+  "description": "Oceanbound: a cozy 3D fishing and island adventure with live multiplayer for everyone who opens the site.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "^8.18.0" },
+  "license": "UNLICENSED",
+  "private": true
+}
