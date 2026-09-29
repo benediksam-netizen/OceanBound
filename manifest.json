@@ -1,0 +1,15 @@
+{
+ "name": "Oceanbound",
+ "short_name": "Oceanbound",
+ "start_url": ".",
+ "display": "fullscreen",
+ "background_color": "#1c7cc8",
+ "theme_color": "#1c7cc8",
+ "icons": [
+  {
+   "src": "icon.png",
+   "sizes": "256x256",
+   "type": "image/png"
+  }
+ ]
+}
