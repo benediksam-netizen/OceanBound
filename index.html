@@ -1,7 +1,7 @@
 <title>Oceanbound</title>
 <meta name="description" content="Oceanbound: a cozy 3D fishing and island adventure you can play with friends in your browser.">
 <meta property="og:title" content="Oceanbound – Fishing &amp; Island Adventure">
-<meta property="og:description" content="Catch 300+ fish, sail to 8 biomes, fight legendary bosses and play with friends.">
+<meta property="og:description" content="Catch 300+ fish, sail to 9 regions, explore the Snowy Seas, fight legendary bosses and play with friends.">
 <meta property="og:image" content="og-image.jpg">
 <link rel="icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -409,6 +409,20 @@ body.touch .bbTop{justify-content:flex-start;font-size:16px;}
 .emoteRow button{font:800 12.5px var(--body);background:#f3dcb0;border:2px solid #7a5227;border-radius:999px;padding:3px 9px;cursor:pointer;color:var(--ink);}
 .plRow .rsub b{color:var(--ink);}
 body.touch #chatFeed{top:calc(120px + env(safe-area-inset-top,0px));width:min(300px,60vw);}
+#snowQ{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(90,60,30,.25);}
+.snowL{color:#2f6fb0!important;}
+.snowMap{max-width:none;}
+.snowCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px;}
+.snowCard{background:#fdf8ec;border-radius:10px;box-shadow:0 0 0 2px #15305e;overflow:hidden;display:flex;flex-direction:column;}
+.snowCard.locked{box-shadow:0 0 0 2px #8a94a4;opacity:.85;}
+.snowCard .scH{background:#15305e;color:#fff;font-weight:900;font-size:14px;padding:6px 10px;letter-spacing:.3px;}
+.snowCard.locked .scH{background:#6a7486;}
+.snowCard .scT{width:100%;height:auto;display:block;}
+.snowCard .scB{padding:6px 10px 10px;font-size:12.5px;line-height:1.35;}
+.snowCard .scB p{margin:0 0 5px;}
+.snowCard .scS{color:#2f6fb0;font-weight:800;}
+.snowCard .scF{color:#5a4632;}
+.snowActs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;}
 </style>
 
 <canvas id="c" tabindex="0"></canvas>
@@ -435,6 +449,7 @@ body.touch #chatFeed{top:calc(120px + env(safe-area-inset-top,0px));width:min(30
     <div id="qTitle" class="qtitle"></div>
     <div id="qText" class="qtext"></div>
     <div id="qProg" class="qprog" hidden></div>
+    <div id="snowQ" hidden><div class="qlabel snowL">❄ Snowy Seas</div><div id="sqTitle" class="qtitle"></div><div id="sqText" class="qtext"></div></div>
   </div>
 
   <div id="topRight">
@@ -584,7 +599,7 @@ const RARITY={
   legendary:{label:'Legendary',color:'#e8961a',w:0.5,rank:4},
   mythic:{label:'Mythic',color:'#e0407a',w:0,rank:5}
 };
-const ZONES={shore:'Starting Island shore',open:'Open sea',shallows:'Coral Shallows',reef:'Sunny Shores reef',frozen:'Frozen Bay',volcano:'Volcano Isles',dino:'Dino Reef',ruins:'Ancient Ruins',blossom:'Blossom Islands',deep:'Mystic Deep'};
+const ZONES={shore:'Starting Island shore',open:'Open sea',shallows:'Coral Shallows',reef:'Sunny Shores reef',frozen:'Snowy Seas',volcano:'Volcano Isles',dino:'Dino Reef',ruins:'Ancient Ruins',blossom:'Blossom Islands',deep:'Mystic Deep',glacier:'Glacier Bay',icefield:'Iceberg Fields',seacave:'Sea Caves lagoon',peaklake:'Peak Lake',arch:'Ice Arch',springs:'Hot Springs',outpost:'Abandoned Outpost',caveb1:'B1 Ice Cave',caveb2:'B2 Crystal Caverns',caveb3:'B3 Sunken Ruins',caveb4:'B4 Deep Sea Caves'};
 const FISH_DB=[
  {id:'sardine',name:'Sardine',latin:'Sardina pilchardus',zones:['shore','open'],rarity:'common',minCm:12,maxCm:22,wK:11,depth:'0–5 m',bait:['worm','shrimp'],hook:'Size 12–10',reel:1000,difficulty:1,behavior:'calm',value:6,cook:'Fried Sardines',time:'Any',weather:'Any',shape:'slim',col:{top:'#4f86b8',belly:'#e3edf2',acc:'#2c5c8c',fin:'#7fa9c9'},pattern:'spotline',desc:'Schools in the shade under the dock. The first fish most islanders ever land.'},
  {id:'mullet',name:'Striped Mullet',latin:'Mugil cephalus',zones:['shore','open'],rarity:'common',minCm:25,maxCm:50,wK:10,depth:'0–3 m',bait:['worm'],hook:'Size 8–6',reel:2000,difficulty:1.5,behavior:'diver',value:9,cook:'Grilled Fish',time:'Day',weather:'Any',shape:'normal',col:{top:'#71889a',belly:'#e1e7eb',acc:'#4f6273',fin:'#8a9daa'},pattern:'stripes',desc:'A grey grazer that cruises the shallows in loose groups. Pulls low and steady.'},
@@ -643,7 +658,7 @@ const FISH_DB=[
   F('reefshark','Blacktip Reef Shark','Carcharhinus melanopterus',['reef'],'epic',100,180,6,S,4.6,'diver',220,'Any','Any','long',['#8f9aa3','#eef2f4','#1d1d1d','#6f7a83'],'plain','Patrols the reef edge. Needs a heavy hook and strong line.','Not for eating');
   F('roosterfish','Roosterfish','Nematistius pectoralis',['reef'],'epic',60,140,11,S,4.4,'darter',160,'Day','Sunny','deep',['#aab4bc','#f2f4f6','#1d1d1d','#6a7078'],'bars','Raises a crest like a rooster when it charges bait.');
   F('sailfish','Sailfish','Istiophorus platypterus',['reef'],'legendary',150,300,1.2,S,5,'jumper',400,'Day','Sunny','long',['#2f5f9f','#dfe8f2','#1a2a5a','#3f6fd6'],'dots','The fastest fish in the sea. Leaps, runs and dances on its tail.');
-  // Frozen Bay
+  // the Snowy Seas
   F('arcticcod','Arctic Cod','Boreogadus saida',['frozen'],'common',15,35,9,WS,1.4,'calm',14,'Any','Any','normal',['#8a9a8a','#e8ecea','#5a6a5a','#7a8a7a'],'spots','Happy in water that would freeze most fish solid.','Arctic Cod Soup');
   F('salmon','Atlantic Salmon','Salmo salar',['frozen'],'uncommon',50,100,11,S,3,'jumper',48,'Evening','Rain','normal',['#7a90a8','#f2f0ec','#3a4a5a','#8aa0b8'],'spots','Leaps waterfalls to reach its river. Bites best in the rain.','Grilled Salmon');
   F('char','Arctic Char','Salvelinus alpinus',['frozen'],'uncommon',30,70,10,WS,2.4,'diver',36,'Any','Fog','normal',['#5a7a6a','#f09a6a','#e8c8a8','#e07a4a'],'dots','A flame-bellied cousin of the salmon. Comes close in the fog.','Grilled Salmon');
@@ -766,7 +781,7 @@ const FISH_DB=[
   R('ribboneel','Ribbon Eel','Rhinomuraena quaesita','reef','r',65,130,'s','c','A','A','eel','#2f5fd6,#4f8fe6,#f2cf3f,#f2cf3f','plain',0,"Electric blue with a yellow mouth and frilly nostrils.",'Not for eating',0.3);
   R('cuttlefish','Broadclub Cuttlefish','Sepia latimanus','reef','u',25,50,'s','c','D','A','squid','#b8a080,#f0e4d0,#6a5040,#d8c0a0','spots',0,"Hypnotizes crabs with waves of colour rippling across its skin.",'Fried Squid',15);
   R('bluering','Blue-ringed Octopus','Hapalochlaena lunulata','reef','r',12,20,'s','c','N','A','squid','#e0c060,#f4e0a0,#2f6fd6,#e0c060','dots',0,"Tiny, beautiful and one of the most venomous animals in the sea. Look, do not touch.",'Not for eating');
-  // ---------- Frozen Bay ----------
+  // ---------- the Snowy Seas ----------
   R('snowcrab','Snow Crab','Chionoecetes opilio','frozen','u',10,17,'s','c','A','A','crab','#d88a5a,#f4e0c8,#e0703a,#c87a4a','plain',0,"Long spindly legs full of sweet meat. Loves the coldest water.",'Snow Crab Platter',200);
   R('kingcrab','Red King Crab','Paralithodes camtschaticus','frozen','r',15,28,'sq','c','N','A','crab','#c8402a,#f0c0a0,#a02a1a,#b8402a','dots',0,"A spiky monster with legs nearly two metres across.",'Snow Crab Platter',250);
   R('haddock','Haddock','Melanogrammus aeglefinus','frozen','c',35,70,'ws','c','A','A','normal','#6a6a70,#eeeeee,#1d1d1d,#5a5a60','spotline',0,"Has a dark thumbprint behind its gills. The fish in fish and chips.",'Arctic Cod Soup');
@@ -952,6 +967,93 @@ const FISH_DB=[
   R('megalodon','Megalodon','Otodus megalodon','deep','m',1400,1800,'g','d','A','A','shark','#4a5260,#e8ecf0,#1d2430,#4a5260','plain',2,"The largest predatory fish that ever lived. Its teeth are the size of your hand.",'Not for eating',1.6);
 })();
 for(const [id,dz] of [['swordfish',1],['oarfish',1],['greenlandshark',1],['lanternfish',1],['halibut',1],['conger',1]]){const f=FISH_DB.find(x=>x.id===id);if(f)f.dz=dz;}
+// ---- Snowy Seas species: Glacier Bay, Iceberg Fields, the Sea Caves and their boss ----
+(function(){
+  const RAR={c:'common',u:'uncommon',r:'rare',e:'epic',l:'legendary',m:'mythic'},BH={c:'calm',d:'diver',t:'darter',j:'jumper'};
+  const BT={w:'worm',s:'shrimp',q:'squid',b:'bread',g:'glow'},TM={A:'Any',D:'Day',N:'Night',E:'Evening'},WT={A:'Any',S:'Sunny',C:'Cloudy',R:'Rain',F:'Fog',T:'Storm'};
+  const WK={slim:9,normal:12,deep:20,round:30,long:2.2,shark:8,eel:1.3,squid:10,crab:50,angler:25,ray:6};
+  const DEP={glacier:'2–40 m',icefield:'5–70 m',seacave:'3–90 m',peaklake:'1–12 m',arch:'3–45 m',springs:'1–15 m',outpost:'2–30 m',caveb1:'0–50 m',caveb2:'50–100 m',caveb3:'100–200 m',caveb4:'200+ m'};
+  const RV={c:9,u:20,r:52,e:140,l:480,m:2000},RD={c:[1,1.8],u:[1.8,2.8],r:[2.8,3.8],e:[4,4.8],l:[4.8,5],m:[5,5]};
+  const hsh=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))%9973;return h/9973;};
+  const hookFor=cm=>cm<=30?'Size 12–10':cm<=55?'Size 8–6':cm<=90?'Size 4–1':cm<=150?'Size 1/0–2/0':cm<=350?'Size 6/0':cm<=550?'Size 10/0':'Size 16/0';
+  const R=(id,name,latin,zones,r,minCm,maxCm,bait,beh,time,weather,shape,col,pattern,dz,desc,cook,wK)=>{const ex=FISH_DB.find(f=>f.id===id);if(ex){for(const zz of zones.split(' '))if(!ex.zones.includes(zz))ex.zones.push(zz);return;}
+    const rar=RAR[r],z=zones.split(' '),k=wK||WK[shape]||12,kg=k*Math.pow(maxCm/100,3),c=col.split(',');
+    const dr=RD[r],diff=Math.round((dr[0]+(dr[1]-dr[0])*hsh(id))*10)/10;
+    FISH_DB.push({id,name,latin,zones:z,rarity:rar,minCm,maxCm,wK:k,depth:dz===2?'150–900 m':dz===1?'20–300 m':DEP[z[0]],
+      bait:bait.split('').map(b=>BT[b]),hook:hookFor(maxCm),reel:kg<4?1000:kg<8?2000:kg<14?4000:kg<25?5000:kg<45?8000:kg<90?10000:12000,
+      difficulty:diff,behavior:BH[beh],value:Math.round(RV[r]*(0.75+Math.min(maxCm,600)/260)),cook:cook||'Grilled Fish',time:TM[time],weather:WT[weather],
+      shape,col:{top:c[0],belly:c[1],acc:c[2],fin:c[3]},pattern,desc,dz,p4:true,snow:true});};
+  // ---------- Glacier Bay ----------
+  R('icecod','Ice Cod','Arctogadus glacialis','glacier','c',20,45,'ws','c','A','A','normal','#8a9aa8,#eef2f6,#4a5a6a,#9aaab8','spots',0,"Hides in the cracks under sea ice where nothing else can reach it.",'Arctic Cod Soup');
+  R('antsilverfish','Antarctic Silverfish','Pleuragramma antarcticum','glacier','c',10,25,'w','t','A','A','slim','#b8c8d8,#f6f8fa,#7a8a9a,#c8d4e0','plain',0,"Glitters like tinsel. Whales and seals eat them by the million.");
+  R('mackicefish','Mackerel Icefish','Champsocephalus gunnari','glacier','u',25,60,'s','d','D','A','long','#c8d8e4,#f4f8fc,#6a8aa0,#b0c4d4','bars',0,"Clear, colourless blood lets it live in water colder than ice.",'Grilled Fish',3);
+  R('starryflounder','Starry Flounder','Platichthys stellatus','glacier','u',30,70,'ws','c','A','A','deep','#6a6a50,#f0ece0,#f2a83a,#5a5a40','bars',0,"Its fins are striped orange and black like a tiger lily.");
+  R('auroratrout','Aurora Trout','Salvelinus fontinalis timagamiensis','glacier','r',30,65,'s','j','N','A','normal','#6a7aa0,#f4c0a0,#8fe8c0,#e07a5a','dots',0,"Almost vanished from the world. It only rises when the aurora lights the sky.",'Grilled Salmon');
+  R('sleepershark','Pacific Sleeper Shark','Somniosus pacificus','glacier','e',250,440,'q','d','N','A','shark','#4a5260,#8a929e,#2a303a,#3a424e','plain',1,"A slow, silent giant that hunts sleeping seals.",'Not for eating');
+  // ---------- Iceberg Fields ----------
+  R('arcticflounder','Arctic Flounder','Liopsetta glacialis','icefield','c',15,35,'w','c','A','A','deep','#6a6250,#f0ece0,#3a3428,#5a5242','spots',0,"Lies flat under drifting ice, waiting for tiny shrimp to fall.");
+  R('polarsculpin','Polar Sculpin','Cottunculus microps','icefield','u',15,30,'s','c','A','F','round','#b8a0a8,#f0e0e4,#7a5a64,#c8b0b8','spots',0,"A pink blob of a fish that looks like it is always frowning.");
+  R('northernwolffish','Northern Wolffish','Anarhichas denticulatus','icefield','r',80,180,'q','d','N','A','long','#4a5a6a,#9aa4ae,#2a3440,#3a4a5a','plain',0,"Bites through clam shells and ice-cold crab armour alike.",'Grilled Fish',3);
+  R('icebergsalmon','Iceberg Salmon','Oncorhynchus glacialis','icefield','e',80,150,'sq','j','E','T','normal','#4a6a9a,#eef6fc,#8fd8ff,#4a6a9a','glow',0,"Leaps between drifting icebergs in storms. Its scales shine like fresh ice.",'Grilled Salmon',11);
+  R('frostfinhalibut','Frostfin Halibut','Hippoglossus boreas','icefield','l',180,320,'q','d','A','T','deep','#e8f0f8,#ffffff,#8fc8f0,#c8dcee','patch',1,"A pale giant flatfish said to guard the Iceberg Fields. Only storms bring it up.",'Not for eating');
+  // ---------- Sea Caves ----------
+  R('glacierlantern','Glacier Lanternfish','Benthosema glaciale','seacave','c',4,10,'wg','t','N','A','slim','#3a4a6a,#aab8d0,#8fe8ff,#3a4a6a','glow',0,"Tiny lights along its belly hide its shadow from hunters below.");
+  R('arcticsnailfish','Arctic Snailfish','Liparis tunicatus','seacave','c',8,20,'w','c','A','A','round','#c8a898,#f2e4dc,#8a6a5a,#d8b8a8','plain',0,"Soft as jelly and able to make its own antifreeze.");
+  R('paleeelpout','Pale Eelpout','Lycodes pallidus','seacave','u',20,40,'s','c','A','A','eel','#c8c0b0,#f0ece4,#8a8070,#b8b0a0','bars',0,"Wriggles through the cave floor in the pitch dark.",'Grilled Fish',2);
+  R('cavecrab','Glowshell Crab','Paralomis lux','seacave','u',10,20,'sg','c','N','A','crab','#6a4aa0,#d8c8f0,#8fe8ff,#5a3a90','glow',0,"Its purple shell sparkles with glowing blue spots in the caves.",'Snow Crab Platter',220);
+  R('ghostshark','Ghost Shark','Hydrolagus affinis','seacave','r',60,130,'qg','c','N','A','long','#b8bcd0,#eef0f8,#6a6e88,#a8acc4','plain',1,"Not really a shark. Huge glassy eyes for seeing in the dark.",'Not for eating',2.5);
+  R('crystalangler','Crystal Anglerfish','Oneirodes glacialis','seacave','e',30,70,'g','d','N','A','angler','#2a2e4a,#6a6e98,#8fe8ff,#3a3e5a','glow',2,"Dangles an icy blue light to lure prey into its crystal teeth.",'Not for eating');
+  // ---------- Peak Lake (Frozen Peaks) ----------
+  R('icechar','Ice Char','Salvelinus glacialis','peaklake','c',25,55,'ws','d','A','A','normal','#5a7a8a,#f4c0a0,#e8f0f4,#e07a5a','dots',0,"A cold-lake char with a sunset-orange belly.",'Grilled Salmon');
+  R('glaciertrout','Glacier Trout','Salmo glacialis','peaklake','u',30,70,'ws','j','D','A','normal','#6a8aa8,#eef4f8,#8fd8ff,#6a8aa8','spots',0,"Lives in meltwater lakes high up the Frozen Peaks.",'Grilled Salmon');
+  R('peakeel','Peak Eel','Anguilla montana','peaklake','r',50,110,'w','d','N','F','eel','#4a5a6a,#aab8c4,#8fe8ff,#3a4a5a','bars',0,"Slides out from under the lake ice on foggy nights.",'Grilled Fish',2);
+  // ---------- Glacier Bay ----------
+  R('glaciertuna','Glacier Tuna','Thunnus glacialis','glacier','r',120,250,'q','d','D','A','normal','#2a4a7a,#eef2f8,#8fd8ff,#3a5a8a','plain',0,"A torpedo of muscle that races along the glacier walls.",'Grilled Fish',16);
+  R('iceling','Ice Ling','Molva glacialis','glacier','u',60,140,'sq','d','A','A','long','#8a8a6a,#e8e8d8,#5a5a3a,#7a7a5a','spotline',0,"A long, gulping hunter of the cold bay floor.",'Arctic Cod Soup',3);
+  R('frostmarlin','Frost Marlin','Makaira glacies','glacier','e',250,420,'q','j','D','S','long','#6a9ad8,#f4f8fc,#bfe8ff,#4a7ab8','stripes',0,"Its bill is coated in ice. It leaps highest on clear sunny days.",'Not for eating',1.6);
+  R('snowflakesalmon','Snowflake Salmon','Oncorhynchus nivalis','glacier','u',45,90,'s','j','E','A','normal','#6a8ab0,#f4f8fc,#ffffff,#8aa8c8','dots',0,"Covered in white spots like falling snow.",'Grilled Salmon');
+  // ---------- Ice Arch ----------
+  R('snowsnapper','Snow Snapper','Lutjanus nivis','arch','u',30,70,'ws','t','D','A','normal','#f0d8d8,#ffffff,#e07a8a,#f0b0b8','plain',0,"A pale pink snapper that shelters in the shadow of the arch.");
+  R('crystalfish','Crystal Fish','Crystallichthys lucens','arch','r',15,35,'gs','t','N','A','slim','#c8f0ff,#ffffff,#8fe8ff,#a8d8f0','glow',0,"See-through like glass. It glows brightest under the aurora.");
+  R('archray','Arch Ray','Mobula glacialis','arch','r',100,250,'s','c','A','A','ray','#4a6a8a,#eef4f8,#bfe8ff,#3a5a7a','spots',0,"Glides under the Ice Arch like a kite in the wind.",'Not for eating');
+  // ---------- Hot Springs ----------
+  R('hotspringtrout','Hot Spring Trout','Oncorhynchus thermalis','springs','u',25,55,'w','t','A','A','normal','#c87a5a,#f8e0d0,#ffb07a,#c86a4a','spots',0,"Loves the warm water that trickles from the springs into the sea.",'Grilled Salmon');
+  R('steameel','Steam Eel','Anguilla vapora','springs','r',50,100,'s','d','N','A','eel','#8a5a4a,#f0c8b0,#ffd0a0,#7a4a3a','bars',0,"Leaves a trail of bubbles as it swims through warm vents.",'Grilled Fish',2);
+  R('onsencrab','Onsen Crab','Eriocheir thermae','springs','c',10,20,'s','c','A','A','crab','#e05a3a,#f8d0b0,#ff8a5a,#c84a2a','plain',0,"Soaks in the hot springs all day, just like the villagers.",'Snow Crab Platter',200);
+  // ---------- Abandoned Outpost ----------
+  R('ghostfish','Ghostfish','Lycodichthys phantasma','outpost','u',30,60,'s','c','N','F','slim','#dce4ec,#f8fafc,#aab8c8,#c8d4e0','plain',0,"Pale and quiet. The expedition logs call it 'the ghost of the wreck'.");
+  R('iceperch','Ice Perch','Perca glacialis','outpost','c',20,40,'w','t','D','A','normal','#7a8a6a,#eef0e0,#3a4a2a,#6a7a5a','bars',0,"A tough little perch that hides between old dock posts.");
+  R('rustedbarracuda','Rusted Barracuda','Sphyraena ferrugo','outpost','r',80,160,'q','d','A','A','long','#8a5a3a,#e8d0b8,#c86a2a,#7a4a2a','patch',0,"Rust-coloured and fierce. It hunts around the shipwreck.",'Grilled Fish',2);
+  // ---------- Iceberg Fields ----------
+  R('iceshark','Ice Shark','Somniosus nivalis','icefield','e',250,450,'q','d','A','A','shark','#c8d8e8,#f4f8fc,#6a8aa8,#a8bcd0','plain',0,"A pale shark that shadows drifting icebergs.",'Not for eating');
+  R('polarhalibut','Polar Halibut','Hippoglossus polaris','icefield','r',90,220,'sq','c','A','A','deep','#5a6a7a,#f4f4f0,#2a3a4a,#4a5a6a','spots',0,"A huge flatfish that lies under the ice floes.");
+  R('frostjelly','Frost Jellyfish','Aurelia glacialis','icefield','u',20,50,'g','c','N','A','round','#c8e8ff,#ffffff,#8fe8ff,#e0c0ff','glow',0,"Not really a fish, but it drifts into every net and glows like a lamp.",'Not for eating',3);
+  R('greatarctic','Great Arctic Grouper','Epinephelus borealis','icefield','e',150,260,'q','d','A','S','deep','#4a5a4a,#d8dcc8,#2a3a2a,#3a4a3a','spots',0,"The largest fish of the open fields. Bites on calm clear days.",'Grilled Fish');
+  // ---------- B1 · Ice Cave Entrance ----------
+  R('frostminnow','Frost Minnow','Phoxinus glacialis','caveb1','c',5,12,'w','t','A','A','slim','#a8c8e0,#f4f8fc,#6a8aa8,#a8c8e0','plain',0,"Darts between icicles in the cave pools.");
+  R('cavechar','Cave Char','Salvelinus spelaeus','caveb1','u',25,50,'ws','d','A','A','normal','#8a9aaa,#f0d8c8,#e8f0f4,#e08a6a','dots',0,"A char that followed the meltwater underground long ago.",'Grilled Salmon');
+  R('blindicefish','Blind Icefish','Typhlichthys glacialis','caveb1','r',30,60,'s','c','A','A','long','#e8f0f8,#ffffff,#c8d8e8,#dce8f4','plain',0,"Has no eyes at all. It feels its way through the dark.",'Grilled Fish',3);
+  // ---------- B2 · Crystal Caverns ----------
+  R('crystaltetra','Crystal Tetra','Paracheirodon crystallus','caveb2','c',3,8,'wg','t','A','A','slim','#6ac8ff,#e8f8ff,#ff5a8a,#6ac8ff','glow',0,"Tiny neon fish that swarm around the glowing crystals.");
+  R('amethysteel','Amethyst Eel','Muraena amethystina','caveb2','u',60,120,'sg','d','A','A','eel','#6a3aa0,#d8c0f0,#c08aff,#5a2a90','glow',0,"Purple as the crystals it lives among.",'Grilled Fish',2);
+  R('geodecrab','Geode Crab','Lithodes geodes','caveb2','u',12,25,'s','c','A','A','crab','#6a6a7a,#d8c8f0,#b07aff,#5a5a6a','dots',0,"Its shell looks like a rock, but inside it sparkles purple.",'Snow Crab Platter',150);
+  R('prismkoi','Prism Koi','Cyprinus prisma','caveb2','r',40,80,'bg','c','A','A','normal','#f4f0ff,#ffffff,#8fe8ff,#ff8ad0','patch',0,"Its scales split crystal light into rainbows.");
+  // ---------- B3 · Sunken Ruins ----------
+  R('stonegar','Stone Gar','Lepisosteus lapis','caveb3','u',60,130,'s','d','A','A','long','#8a8a7a,#d8d4c4,#4a4a3a,#7a7a6a','spots',0,"Armoured scales as hard as the old temple stones.",'Grilled Fish',2);
+  R('relicpike','Relic Pike','Esox antiquus','caveb3','r',70,140,'q','j','A','A','long','#4a6a5a,#d8e0c8,#c8b060,#3a5a4a','spotline',0,"Guards the sunken gates. Gold-flecked fins, very bad temper.",'Grilled Fish',2.2);
+  R('coelacanth','Coelacanth','Latimeria chalumnae','caveb3','e',120,200,'q','d','N','A','deep','#3a4a6a,#8a9ab8,#e8f0f8,#2a3a5a','spots',0,"A living fossil, older than the dinosaurs. Thought extinct until 1938.",'Not for eating',12);
+  R('ruinguardian','Ruin Guardian','Epinephelus antiquus','caveb3','e',150,250,'q','c','A','A','deep','#6a7a6a,#c8c0a0,#f2cf3f,#5a6a5a','bars',0,"A giant grouper with carvings grown into its scales.",'Not for eating');
+  // ---------- B4 · Deep Sea Caves ----------
+  R('gulper','Abyssal Gulper','Eurypharynx pelecanoides','caveb4','r',50,100,'g','d','A','A','eel','#1a1e2a,#3a3e5a,#8fe8ff,#1a1e2a','glow',0,"A mouth with a fish attached. It can swallow prey bigger than itself.",'Not for eating',1.5);
+  R('viperfish','Frost Viperfish','Chauliodus glacialis','caveb4','r',20,35,'g','t','A','A','long','#2a3a5a,#6a7a9a,#8fe8ff,#2a3a5a','glow',0,"Fangs so long they don't fit in its mouth.",'Not for eating',2);
+  R('barreleye','Barreleye','Macropinna microstoma','caveb4','e',10,18,'g','c','A','A','round','#3a4a6a,#8a9ab8,#6fe8a0,#3a4a6a','glow',0,"Its head is see-through, and its green eyes look up through it.",'Not for eating');
+  R('glacierdragon','Glacier Dragonfish','Idiacanthus rex','caveb4','l',150,300,'g','d','N','A','eel','#0a0e1a,#2a2e4a,#c08aff,#0a0e1a','glow',0,"A legend of the deepest caves, lit by violet stars along its body.",'Not for eating',1.4);
+  // ---------- boss of the Deep Sea Caves ----------
+  R('frostleviathan','Frost Leviathan','Leviathan glacialis','caveb4','m',700,1000,'g','d','A','A','eel','#c8e4f8,#ffffff,#8fe8ff,#6aa8d8','glow',1,"A serpent of living ice that sleeps in the abyss lake of the Deep Sea Caves. Its breath freezes the water solid.",'Not for eating',0.6);
+  {const ac=FISH_DB.find(f=>f.id==='arcticcod');if(ac&&!ac.zones.includes('glacier'))ac.zones.push('glacier');}
+  for(const id of ['auroratrout','crystalfish'])(FISH_DB.find(f=>f.id===id)||{}).aurora=true;
+})();
+
 const FISH=Object.fromEntries(FISH_DB.map(f=>[f.id,f]));
 const GEAR={
   rod:{
@@ -1066,7 +1168,8 @@ const BUFFS={
   strength:{name:'Strong',desc:'Fish pull 25% weaker',col:'#e0503f'},
   reel:{name:'Quick Reel',desc:'Reel in 30% faster',col:'#2f86dc'},
   stamina:{name:'Energized',desc:'Reeling tires you 40% less',col:'#d99a12'},
-  value:{name:'Market Star',desc:'Fish sell for 25% more',col:'#a052dc'}
+  value:{name:'Market Star',desc:'Fish sell for 25% more',col:'#a052dc'},
+  warm:{name:'Toasty',desc:'Ice cannot hurt your boat and cold-water rare fish bite more',col:'#ff8a4a'}
 };
 const RECIPES=[
   {id:'grilled',name:'Grilled Fish',method:'Grill',fish:{n:1,any:true},crops:{},hp:25,sta:25,buff:null,base:14,cols:['#b8743f','#e0a060','#5cbf46'],desc:'Any fish, a hot grill and a squeeze of lime.'},
@@ -1096,7 +1199,7 @@ const STAR_MULT=[1,1.3,1.7];
 // boats and their upgrades (Phase 3)
 const BOATS={
   skiff:{name:'Little Skiff',tier:2,price:0,len:5.8,wid:2.24,speed:13,boost:19,accel:7.5,turn:1,hull:100,fuel:100,cooler:0,desc:"Marlo's old skiff. Quick and nimble, but fragile in storms and useless in ice."},
-  fisher:{name:'Fishing Boat',tier:3,price:900,len:7.6,wid:2.9,speed:14,boost:20.5,accel:6.8,turn:0.86,hull:190,fuel:170,cooler:10,cabin:true,desc:'A sturdy cabin boat. Shrugs off big waves and can push through the ice of Frozen Bay.'},
+  fisher:{name:'Fishing Boat',tier:3,price:900,len:7.6,wid:2.9,speed:14,boost:20.5,accel:6.8,turn:0.86,hull:190,fuel:170,cooler:10,cabin:true,desc:'A sturdy cabin boat. Shrugs off big waves and can push through the ice of the Snowy Seas.'},
   utility:{name:'Utility Boat',tier:4,price:2600,len:9.4,wid:3.3,speed:15.5,boost:23,accel:6.2,turn:0.76,hull:300,fuel:260,cooler:25,cabin:true,crane:true,desc:'A big working boat with a crane, a cooler for 25 more fish and a heat-proof hull for the boiling waters of Volcano Isles.'},
   offshore:{name:'Offshore Cruiser',tier:5,price:6800,len:11.2,wid:3.8,speed:17,boost:26,accel:6,turn:0.7,hull:450,fuel:420,cooler:40,cabin:true,crane:true,fly:true,winch:true,p4:true,desc:'A long-range sportfisher with a flybridge and a deep-drop winch. Built to ride the monster swells of the Mystic Deep.'},
   mega:{name:'Mega Boat',tier:6,price:16000,len:14,wid:4.8,speed:17.5,boost:25,accel:5.2,turn:0.62,hull:700,fuel:700,cooler:80,cabin:true,crane:true,fly:true,winch:true,sonar:true,base:true,p4:true,desc:'A floating base with bunks, a galley, sonar, a winch and room for 80 fish. Sleep and cook anywhere on the ocean.'}
@@ -1284,7 +1387,7 @@ const SPOT={x:56,z:118,r:18,name:'Coral Shallows'};
 const COAST_ISLES=[[-63,18,7.5,2.6,3],[-47,63,5.5,1.9,1],[69,4,8,3.2,3],[58,-53,6,2.6,2],[-41,-68,7,3.0,2],[-13,90,5,1.8,1],[84,62,6,2.4,2],[-75,-30,5.5,2.2,2],[33,-74,5,2.0,1],[-80,52,4.5,1.7,1]];
 // Phase 3 islands you can sail to
 const SUNNY={x:185,z:95,r:26,name:'Sunny Shores'};
-const FROZEN={x:-160,z:-205,r:30,name:'Frozen Bay'};
+const FROZEN={x:-160,z:-205,r:30,name:'Snowy Seas'};
 const BERGS=(()=>{const r=mulberry32(31),o=[];for(let i=0;i<16;i++){const a=r()*TAU,d=FROZEN.r+8+r()*38;o.push([FROZEN.x+Math.cos(a)*d,FROZEN.z+Math.sin(a)*d,1.6+r()*3.2,1.4+r()*4]);}return o;})();
 // ---------------- Phase 4 biomes ----------------
 const VOLCANO={x:330,z:-215,r:34,name:'Volcano Isles'};
@@ -1308,10 +1411,158 @@ const RUIN_PILLARS=(()=>{const r=mulberry32(77),o=[];for(let i=0;i<26;i++){const
 const BLOSSOM_ISLES=[[-318,146,10],[-388,150,9],[-326,70,8]];
 const CRYSTALS=(()=>{const r=mulberry32(55),o=[];for(let i=0;i<60&&o.length<14;i++){const a=r()*TAU,d=r()*DEEP.r*0.85,x=DEEP.x+Math.cos(a)*d,z=DEEP.z+Math.sin(a)*d;
   if(nearBoss(x,z,30))continue;if(o.some(c=>Math.hypot(c[0]-x,c[1]-z)<16))continue;o.push([x,z,1.4+r()*1.3,6+r()*10]);}return o;})();
-const ISLES={sunny:{o:SUNNY,near:40,sub:'tropical reef fish'},frozen:{o:FROZEN,near:45,sub:'cold-water fish'},
+const ISLES={sunny:{o:SUNNY,near:40,sub:'tropical reef fish'},frozen:{o:FROZEN,near:45,sub:'Snow Village, glaciers, hot springs and cold-water fish'},
   volcano:{o:VOLCANO,near:48,sub:'lava, boiling water and fire-red fish'},dino:{o:DINO,near:46,sub:'living fossils and prehistoric giants'},
   ruins:{o:RUINS,near:62,sub:'a sunken temple and mysterious fish'},blossom:{o:BLOSSOM,near:56,sub:'koi, calm lagoons and cherry blossoms'},
   deep:{o:DEEP,near:0,sub:'the dark end of the ocean. Legends lurk below'}};
+// ---------------- Snowy Seas: eight places around Snow Village ----------------
+const PEAKS={x:-178,z:-252,r:26,name:'Frozen Peaks'};
+const GLACIER={x:-90,z:-292,r:30,name:'Glacier Bay'};
+const ARCH={x:-40,z:-188,r:13,name:'Ice Arch'};
+const SPRINGS={x:-252,z:-172,r:16,name:'Hot Springs'};
+const OUTPOST={x:-212,z:-116,r:17,name:'Abandoned Outpost'};
+const FIELD={x:-62,z:-118,r:40,name:'Iceberg Fields'};
+const SEACAVE={x:-5,z:-262,r:32,name:'Sea Caves'};
+const POLAR={x:-272,z:-318,r:9,name:'Polar Lights Viewpoint'};
+const LAKE={x:-192,z:-221,r:6.5,name:'Peak Lake'};
+const SNOWC={x:-125,z:-205};
+const SN_HOLE={v:false};
+const unit2=(x,z)=>{const l=Math.hypot(x,z)||1;return {x:x/l,z:z/l};};
+const VDIR=unit2(-FROZEN.x,-FROZEN.z),VPERP={x:-VDIR.z,z:VDIR.x};
+const VILLAGE={x:FROZEN.x+VDIR.x*19,z:FROZEN.z+VDIR.z*19};
+const vpt=(lx,lz)=>({x:VILLAGE.x+VPERP.x*lx+VDIR.x*lz,z:VILLAGE.z+VPERP.z*lx+VDIR.z*lz});
+const PIER_END=vpt(0,33);
+const G_OPEN=Math.atan2(-GLACIER.z,-GLACIER.x),C_OPEN=Math.atan2(-SEACAVE.z,-SEACAVE.x),C_BACK=C_OPEN+Math.PI;
+const WRECK={x:OUTPOST.x+22,z:OUTPOST.z+15};
+const FLOE={x:FIELD.x-24,z:FIELD.z+22,r:6.5};
+const ICEHOLE={x:FLOE.x+3,z:FLOE.z+1};
+const CRYST_ISLE={x:ARCH.x+27,z:ARCH.z+13};
+const POOLS=[[SPRINGS.x-4,SPRINGS.z+2,2.8],[SPRINGS.x+3.5,SPRINGS.z-3.5,2.3],[SPRINGS.x+5,SPRINGS.z+4.5,1.9]];
+const FIELD_BERGS=(()=>{const r=mulberry32(91),o=[];for(let i=0;i<40&&o.length<6;i++){const a=r()*TAU,d=8+r()*(FIELD.r-10),x=FIELD.x+Math.cos(a)*d,z=FIELD.z+Math.sin(a)*d;
+  if(o.some(b=>Math.hypot(b[0]-x,b[1]-z)<20)||Math.hypot(x-FLOE.x,z-FLOE.z)<16)continue;o.push([x,z,3.5+r()*2.5,6+r()*7]);}return o;})();
+const FIELD_DRIFT=(()=>{const r=mulberry32(92),o=[];for(let i=0;i<9;i++){const a=i/9*TAU+r()*0.4,d=10+r()*(FIELD.r-16);
+  o.push({i,cx:FIELD.x+Math.cos(a)*d,cz:FIELD.z+Math.sin(a)*d,orx:5+r()*9,orz:4+r()*8,w:(r()<0.5?-1:1)*(0.035+r()*0.03),ph:r()*TAU,s:2.2+r()*2.2,h:1.8+r()*2.6,x:0,z:0});}
+  o[2].npc=true;o[5].chest=true;o[7].chest=true;return o;})();
+// the trail from the village up to the summit: a straight climb, then a spiral around the peak
+const TRAIL=(()=>{const pts=[],S=0.17;const P0=vpt(0,-9),pe=unit2(VILLAGE.x-PEAKS.x,VILLAGE.z-PEAKS.z),E={x:PEAKS.x+pe.x*20,z:PEAKS.z+pe.z*20};
+  for(let t=0;t<=1;t+=0.05)pts.push({x:lerp(P0.x,E.x,t),z:lerp(P0.z,E.z,t)});
+  const a0=Math.atan2(E.z-PEAKS.z,E.x-PEAKS.x),turn=1.8*TAU;for(let k=1;k<=110;k++){const t=k/110,a=a0-t*turn,r=20-t*16.5;pts.push({x:PEAKS.x+Math.cos(a)*r,z:PEAKS.z+Math.sin(a)*r});}
+  let s=0;pts[0].h=1.6;for(let i=1;i<pts.length;i++){s+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].z-pts[i-1].z);pts[i].h=1.6+s*S;}return pts;})();
+const SUMMIT={x:TRAIL[TRAIL.length-1].x,z:TRAIL[TRAIL.length-1].z,h:TRAIL[TRAIL.length-1].h};
+const LAKE_PATH=(()=>{const a=TRAIL[4],u=unit2(a.x-LAKE.x,a.z-LAKE.z),b={x:LAKE.x+u.x*(LAKE.r+1.5),z:LAKE.z+u.z*(LAKE.r+1.5)},o=[];for(let t=0;t<=1.001;t+=0.05)o.push({x:lerp(a.x,b.x,t),z:lerp(a.z,b.z,t),h:lerp(a.h,1.2,t)});return o;})();
+const TRAIL_BB=(()=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of TRAIL.concat(LAKE_PATH)){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);}return {x0:x0-4,x1:x1+4,z0:z0-4,z1:z1+4};})();
+function trailAt(x,z){if(x<TRAIL_BB.x0||x>TRAIL_BB.x1||z<TRAIL_BB.z0||z>TRAIL_BB.z1)return null;let best=null,bd=2.4;
+  for(const P of [TRAIL,LAKE_PATH])for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i];if(Math.abs(x-a.x)>8&&Math.abs(x-b.x)>8)continue;if(Math.abs(z-a.z)>8&&Math.abs(z-b.z)>8)continue;
+    const dx=b.x-a.x,dz=b.z-a.z,t=clamp(((x-a.x)*dx+(z-a.z)*dz)/(dx*dx+dz*dz||1),0,1),d=Math.hypot(x-(a.x+dx*t),z-(a.z+dz*t));if(d<bd){bd=d;best=lerp(a.h,b.h,t);}}
+  return best;}
+// the eight numbered places on Old Sven's chart, plus the far viewpoint
+const SNOWLOC=[
+  {id:'village',n:1,name:'Snow Village',o:VILLAGE,desc:'The main settlement of the Snowy Seas. Shops, quests and hearty island life.',spots:['Main Dock','Market Street','Village Square','Lighthouse'],res:['frozenherb'],zone:'frozen'},
+  {id:'peaks',n:2,name:'Frozen Peaks',o:PEAKS,desc:'Towering mountains with breathtaking views and rare resources.',spots:['Mountain Path','Summit View','Ice Cave','Peak Lake'],res:['icecrystal','ancientstone','frozenherb'],zone:'peaklake'},
+  {id:'glacier',n:3,name:'Glacier Bay',o:GLACIER,desc:'Vast frozen waters filled with unique fish species.',spots:['Drifting Floes','Frozen Shore','Fishing Spot','Ice Floes'],res:['icechunk'],zone:'glacier'},
+  {id:'arch',n:4,name:'Ice Arch',o:ARCH,desc:'A stunning natural arch shaped by ancient ice.',spots:['Ice Arch View','Hidden Path','Crystal Isle','Ice Bridge'],res:['icecrystal'],zone:'arch'},
+  {id:'springs',n:5,name:'Hot Springs',o:SPRINGS,desc:'Natural hot springs hidden in the snow. A peaceful resting spot.',spots:['Hot Spring Village','Steamy Pools','Snowy Forest','Hidden Cave'],res:['thermalstone','rarealgae','frozenherb'],zone:'springs'},
+  {id:'outpost',n:6,name:'Abandoned Outpost',o:OUTPOST,desc:'The remains of an old expedition. Secrets still lie beneath the ice.',spots:['Ruins','Old Camp','Shipwreck','Secret Tunnel'],res:['rustyparts','mechparts','oldmaps'],zone:'outpost'},
+  {id:'field',n:7,name:'Iceberg Fields',o:FIELD,desc:'Dangerous drifting icebergs and strong currents.',spots:['Massive Icebergs','Open Sea','Ice Fishing Spot','Drifting Field'],res:['icechunk','coldcoral'],zone:'icefield'},
+  {id:'caves',n:8,name:'Sea Caves',o:SEACAVE,desc:'Mysterious caves both above and below the water.',spots:['Cave Entrance','Glowing Caverns','Underwater Ruins','Boss Lair'],res:['purplecrystal','ancientstone'],zone:'seacave'},
+  {id:'polar',n:'★',name:'Polar Lights Viewpoint',o:POLAR,desc:'A remote islet where the aurora shines brightest. Rare fish rise on aurora nights.',spots:['Viewing Deck'],res:['icecrystal'],zone:'frozen'}];
+// the cave system under the Sea Caves: four chambers far below, reached through the cave mouth
+const CAVES=[{x:1700,z:0,n:1,name:'B1 · Ice Cave Entrance',depth:'0–50 m',zone:'caveb1'},{x:1700,z:220,n:2,name:'B2 · Crystal Caverns',depth:'50–100 m',zone:'caveb2'},
+  {x:1700,z:440,n:3,name:'B3 · Sunken Ruins',depth:'100–200 m',zone:'caveb3'},{x:1700,z:660,n:4,name:'B4 · Deep Sea Caves',depth:'200+ m',zone:'caveb4'}];
+// walkable wooden decks: start point, direction, length, half width, deck height
+const SNOW_DECKS=[];
+{const dk=(p,u,len,hw,y)=>SNOW_DECKS.push({x:p.x,z:p.z,ux:u.x,uz:u.z,len,hw,y});
+  dk(vpt(0,8.5),VDIR,24.5,1.7,1.3);dk({x:PIER_END.x-VPERP.x*5.5,z:PIER_END.z-VPERP.z*5.5},VPERP,11,1.8,1.3);dk(vpt(-11,5),VDIR,12,1.2,1.3);
+  for(const I of [SPRINGS,OUTPOST,POLAR]){const h=unit2(-I.x,-I.z),rr=I===POLAR?I.r-2:I.r-3;dk({x:I.x+h.x*rr,z:I.z+h.z*rr},h,10,1.3,1.3);}
+  dk({x:SEACAVE.x+Math.cos(C_BACK)*9.5,z:SEACAVE.z+Math.sin(C_BACK)*9.5},{x:Math.cos(C_BACK),z:Math.sin(C_BACK)},8.5,2.4,1.3);
+  for(const u of [-16,16])dk({x:CAVES[0].x+u,z:CAVES[0].z+4.6},{x:0,z:-1},9.2,1.4,2.3);
+  dk({x:CAVES[1].x,z:CAVES[1].z+10},{x:0,z:-1},8,1.3,2.3);dk({x:CAVES[2].x-15.8,z:CAVES[2].z},{x:1,z:0},31.6,1.5,2.3);dk({x:CAVES[2].x,z:CAVES[2].z+10.4},{x:0,z:-1},20.8,1.5,2.3);
+  const b0={x:ARCH.x+ARCH.r+2.5,z:ARCH.z+2.5},b1={x:CRYST_ISLE.x-3,z:CRYST_ISLE.z-2},bl=Math.hypot(b1.x-b0.x,b1.z-b0.z);dk(b0,unit2(b1.x-b0.x,b1.z-b0.z),bl,1.1,2.2);}
+function deckY(x,z){for(const d of SNOW_DECKS){const dx=x-d.x,dz=z-d.z,t=dx*d.ux+dz*d.uz;if(t<0||t>d.len)continue;if(Math.abs(-dx*d.uz+dz*d.ux)<=d.hw)return d.y;}return null;}
+// where boats tie up when you go ashore
+const SHORES=(()=>{const o=[],add=(id,name,foot,dir,gap)=>o.push({id,name,foot,boat:{x:foot.x+dir.x*gap,z:foot.z+dir.z*gap},yaw:Math.atan2(-dir.z,dir.x)});
+  add('village','Snow Village',vpt(0,34.4),VDIR,3.9);
+  for(const [id,I,name] of [['springs',SPRINGS,'the Hot Springs'],['outpost',OUTPOST,'the Abandoned Outpost'],['polar',POLAR,'the Polar Lights Viewpoint']]){const d=SNOW_DECKS.find(k=>Math.abs(k.x-I.x)<I.r&&Math.abs(k.z-I.z)<I.r);
+    add(id,name,{x:d.x+d.ux*(d.len-0.3),z:d.z+d.uz*(d.len-0.3)},{x:d.ux,z:d.uz},3.9);}
+  add('caves','the Sea Caves landing',{x:SEACAVE.x+Math.cos(C_BACK)*9.8,z:SEACAVE.z+Math.sin(C_BACK)*9.8},{x:Math.cos(C_OPEN),z:Math.sin(C_OPEN)},3.9);
+  const fu=unit2(-FLOE.x+FIELD.x*0,-FLOE.z);add('floe','the ice fishing floe',{x:FLOE.x+fu.x*5.2,z:FLOE.z+fu.z*5.2},fu,5.5);
+  const cu=unit2(CRYST_ISLE.x-ARCH.x,CRYST_ISLE.z-ARCH.z+8);add('crystal','the Crystal Isle',{x:CRYST_ISLE.x+cu.x*3.6,z:CRYST_ISLE.z+cu.z*3.6},cu,6.5);return o;})();
+const CAVE_ENTRY=L=>({x:CAVES[L].x,z:CAVES[L].z+37}),CAVE_EXIT=L=>({x:CAVES[L].x,z:CAVES[L].z-39});
+const CAVE_B1_RIDGES=[[-40,12,-6,12],[6,-14,40,-14]];
+const CAVE_B2_CRYS=[[-18,4,2.4,14],[19,6,2.8,16],[-9,-22,2,11],[12,-24,2.2,12],[-27,-6,2,10],[28,-2,1.8,9],[-14,24,1.6,8],[15,22,1.8,9]];
+const CAVE_B3_PILLARS=(()=>{const o=[];for(let i=0;i<12;i++){const a=i/12*TAU+0.26;o.push([Math.cos(a)*22,Math.sin(a)*16,1.4]);}return o;})();
+function caveLevel(x,z){if(x<1600||x>1800)return -1;const L=Math.round(z/220);return L>=0&&L<4&&Math.abs(z-L*220)<62?L:-1;}
+function caveHeight(x,z){const L=caveLevel(x,z);if(L<0)return 22;const C=CAVES[L],u=x-C.x,v=z-C.z,d=Math.hypot(u,v),a=Math.atan2(v,u);
+  const R=33+3*Math.sin(3*a+L*1.7)+2.5*Math.cos(5*a+L),tun=Math.abs(u)<3.2&&Math.abs(v)<42;
+  if(d>R&&!tun)return 22;let h=2;
+  if(L===0){for(const s of CAVE_B1_RIDGES)if(segDist(u,v,s[0],s[1],s[2],s[3])<2.4)return 22;if(Math.abs(v)<2.6&&Math.abs(u)<R)h=-3;
+    for(const p of [[-22,-24,3.4],[22,22,3.2]])if(Math.hypot(u-p[0],v-p[1])<p[2])h=-2.5;}
+  else if(L===1){if((u/16)**2+((v+2)/11)**2<1)h=-3.5;for(const p of [[-25,18,4],[25,-20,4]])if(Math.hypot(u-p[0],v-p[1])<p[2])h=-2.5;
+    for(const c of CAVE_B2_CRYS)if(Math.hypot(u-c[0],v-c[1])<c[2])return c[3];}
+  else if(L===2){if(Math.abs(u)<15&&Math.abs(v)<10)h=-3.5;else if(Math.abs(u)>19&&Math.abs(u)<31&&Math.abs(v)<14)h=2.5;
+    for(const p of CAVE_B3_PILLARS)if(Math.hypot(u-p[0],v-p[1])<p[2])return 9;}
+  else{if((u/24)**2+((v+4)/17)**2<1)h=-6;}
+  return h;}
+const SNOW_AREAS=[[FROZEN,FROZEN.r+70],[PEAKS,PEAKS.r+40],[GLACIER,GLACIER.r+30],[ARCH,ARCH.r+34],[SPRINGS,SPRINGS.r+30],[OUTPOST,OUTPOST.r+36],[FIELD,FIELD.r+14],[SEACAVE,SEACAVE.r+22],[POLAR,POLAR.r+24]];
+function inSnowy(x,z){if(x>1500)return true;for(const [o,r] of SNOW_AREAS)if(Math.abs(x-o.x)<r&&Math.abs(z-o.z)<r&&Math.hypot(x-o.x,z-o.z)<r)return true;return false;}
+const SNOWZ=['frozen','glacier','icefield','seacave','peaklake','arch','springs','outpost','caveb1','caveb2','caveb3','caveb4'];
+function snowZone(x,z){const L=caveLevel(x,z);if(L>=0)return CAVES[L].zone;
+  if(Math.hypot(x-LAKE.x,z-LAKE.z)<LAKE.r+2)return 'peaklake';if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<26)return 'seacave';if(Math.hypot(x-GLACIER.x,z-GLACIER.z)<GLACIER.r+6)return 'glacier';
+  if(Math.hypot(x-ICEHOLE.x,z-ICEHOLE.z)<5||Math.hypot(x-FIELD.x,z-FIELD.z)<FIELD.r)return 'icefield';if(Math.hypot(x-ARCH.x,z-ARCH.z)<ARCH.r+18||Math.hypot(x-CRYST_ISLE.x,z-CRYST_ISLE.z)<14)return 'arch';
+  if(Math.hypot(x-SPRINGS.x,z-SPRINGS.z)<SPRINGS.r+20)return 'springs';if(Math.hypot(x-OUTPOST.x,z-OUTPOST.z)<OUTPOST.r+24||Math.hypot(x-WRECK.x,z-WRECK.z)<14)return 'outpost';
+  if(Math.hypot(x-FROZEN.x,z-FROZEN.z)<FROZEN.r+46||inSnowy(x,z))return 'frozen';return null;}
+function snowHeight(x,z,h){
+  if(x>1400)return caveHeight(x,z);
+  if(x>40||x<-320||z>-50||z<-350)return h;
+  // Snow Village: a flat snowy quay on the side facing home
+  {const d=Math.hypot(x-VILLAGE.x,z-VILLAGE.z);if(d<17){if(d<13.5)h=1.6;else if(h>1.6)h=lerp(1.6,h,(d-13.5)/3.5);}}
+  // Frozen Peaks rise behind the village
+  {const dx=x-PEAKS.x,dz=z-PEAKS.z;if(Math.abs(dx)<75&&Math.abs(dz)<75){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=PEAKS.r*(1+0.18*Math.sin(3*a+1)+0.1*Math.cos(5*a+0.4));
+    let hv;if(d<rr){const t=1-d/rr;hv=1.2+Math.pow(t,1.15)*30+Math.sin(dx*0.35+dz*0.2)*1.2*t+Math.abs(Math.sin(a*4))*3*t;}else hv=0.6-(d-rr)*0.35;h=Math.max(h,hv);
+    const sd=Math.hypot(x-SUMMIT.x,z-SUMMIT.z);if(sd<4.8)h=SUMMIT.h;}}
+  // the mountain lake at the foot of the peaks
+  {const d=Math.hypot(x-LAKE.x,z-LAKE.z);if(d<LAKE.r)h=-2.4;else if(d<LAKE.r+2.5)h=1.2;}
+  // the trail and the path down to the lake
+  {const t=trailAt(x,z);if(t!==null)h=t;}
+  // Glacier Bay: a ring of glacier walls with a channel facing home
+  {const dx=x-GLACIER.x,dz=z-GLACIER.z;if(Math.abs(dx)<GLACIER.r+34&&Math.abs(dz)<GLACIER.r+34){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),gap=Math.abs(angDiff(a,G_OPEN));
+    const r0=GLACIER.r+2*Math.sin(5*a),r1=GLACIER.r+14+3*Math.sin(3*a+1);let hv;
+    if(d<r0)hv=-3.2-Math.min(4,(r0-d)*0.12);else if(gap<0.5)hv=-3.6;else if(d<=r1)hv=5+Math.min(4,(d-r0)*0.45)+Math.sin(a*9)*1.1+(gap<0.75?-(0.75-gap)*10:0);else hv=0.6-(d-r1)*0.5;
+    h=Math.max(h,hv);}}
+  // Ice Arch: two ice islets, the arch itself is built on top of them
+  for(const sd of [-1,1]){const e=Math.hypot(x-(ARCH.x+sd*ARCH.r),z-ARCH.z);if(e<14)h=Math.max(h,e<6.5?0.9+Math.pow(1-e/6.5,0.6)*2.2:0.6-(e-6.5)*0.5);}
+  {const e=Math.hypot(x-CRYST_ISLE.x,z-CRYST_ISLE.z);if(e<12)h=Math.max(h,e<5.5?1.4+(1-e/5.5)*0.9:0.6-(e-5.5)*0.5);}
+  // Hot Springs island
+  {const dx=x-SPRINGS.x,dz=z-SPRINGS.z;if(Math.abs(dx)<SPRINGS.r+30&&Math.abs(dz)<SPRINGS.r+30){const e=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=SPRINGS.r*(1+0.14*Math.sin(3*a+2)+0.07*Math.cos(6*a));
+    let hv=e<rr?1.3+Math.min(1.6,Math.pow(1-e/rr,0.8)*2.4):0.6-(e-rr)*0.35;for(const p of POOLS)if(Math.hypot(x-p[0],z-p[1])<p[2]+1.6)hv=Math.min(hv,2.1);h=Math.max(h,hv);}}
+  // Abandoned Outpost island and the shallows around the wreck
+  {const dx=x-OUTPOST.x,dz=z-OUTPOST.z;if(Math.abs(dx)<OUTPOST.r+40&&Math.abs(dz)<OUTPOST.r+40){const e=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=OUTPOST.r*(1+0.16*Math.sin(4*a+1)+0.08*Math.cos(3*a));
+    h=Math.max(h,e<rr?1.2+Math.min(1.8,Math.pow(1-e/rr,0.9)*2.6):0.6-(e-rr)*0.3);const w=Math.hypot(x-WRECK.x,z-WRECK.z);if(w<11)h=Math.max(h,-1.9-w*0.08);}}
+  // Polar Lights Viewpoint islet
+  {const e=Math.hypot(x-POLAR.x,z-POLAR.z);if(e<POLAR.r+14)h=Math.max(h,e<POLAR.r?1.3+Math.min(1.2,(1-e/POLAR.r)*1.6):0.6-(e-POLAR.r)*0.4);}
+  // Iceberg Fields: towering static bergs and a flat ice floe with a fishing hut
+  {const dx=x-FIELD.x,dz=z-FIELD.z;if(Math.abs(dx)<FIELD.r+12&&Math.abs(dz)<FIELD.r+12){
+    for(const b of FIELD_BERGS){const e=Math.hypot(x-b[0],z-b[1]);if(e<b[2]+3){const a=Math.atan2(z-b[1],x-b[0]),rr=b[2]*(1+0.2*Math.sin(3*a+b[0]));if(e<rr)h=Math.max(h,0.8+b[3]*Math.pow(1-e/rr,0.35));}}
+    const f=Math.hypot(x-FLOE.x,z-FLOE.z);if(f<FLOE.r)h=Math.max(h,0.8);if(Math.hypot(x-ICEHOLE.x,z-ICEHOLE.z)<1.3&&SN_HOLE.v)h=-3;}}
+  // Sea Caves: a horseshoe of dark cliffs around a glowing lagoon
+  {const dx=x-SEACAVE.x,dz=z-SEACAVE.z;if(Math.abs(dx)<SEACAVE.r+30&&Math.abs(dz)<SEACAVE.r+30){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),gap=Math.abs(angDiff(a,C_OPEN));
+    const ri=17+Math.sin(a*4)*1.2,ro=SEACAVE.r*(1+0.1*Math.sin(3*a+0.5));let hv;
+    if(d<ri)hv=-4.5-Math.min(3,(ri-d)*0.2);else if(gap<0.5&&d<ro+6)hv=-4;else if(d<=ro){const m=1-Math.abs((d-(ri+ro)/2)/((ro-ri)/2));hv=6+m*8+Math.sin(a*7+d*0.3)*1.5-(gap<0.75?(0.75-gap)*14:0);}else hv=0.6-(d-ro)*0.45;
+    h=Math.max(h,hv);}}
+  return h;}
+// icebergs of the old the Snowy Seas no longer block the pier
+for(let i=BERGS.length-1;i>=0;i--){const b=BERGS[i];if(segDist(b[0],b[1],VILLAGE.x,VILLAGE.z,PIER_END.x+VDIR.x*8,PIER_END.z+VDIR.z*8)<b[2]+9||Math.hypot(b[0]-PEAKS.x,b[1]-PEAKS.z)<PEAKS.r+6)BERGS.splice(i,1);}
+// the Frost Leviathan sleeps in the abyss lake of the Deep Sea Caves; you fight it from the shore
+BOSSES.push({id:'frostleviathan',isle:'frozen',x:CAVES[3].x,z:CAVES[3].z-4,tier:0,foot:true,need:45,power:1.0,tough:0.26,reward:4000});
+// resources you can gather
+const RES={
+  icecrystal:{name:'Ice Crystal',col:'#8fe8ff',price:30,desc:'A clear crystal that never melts.'},ancientstone:{name:'Ancient Stone',col:'#b8a888',price:45,desc:'Carved stone from a forgotten age.'},
+  frozenherb:{name:'Frozen Herb',col:'#7ad0a0',price:20,desc:'A hardy herb that grows under the snow.'},thermalstone:{name:'Thermal Stone',col:'#ff8a4a',price:40,desc:'Stays warm for days. Loved by boat builders.'},
+  rarealgae:{name:'Rare Algae',col:'#4fd8b8',price:35,desc:'Glowing algae from the hot spring pools.'},rustyparts:{name:'Rusty Parts',col:'#a86a3a',price:25,desc:'Bolts and gears from the lost expedition.'},
+  oldmaps:{name:'Old Map',col:'#e8d8a8',price:80,desc:'An expedition chart with notes in the margins.'},mechparts:{name:'Mechanical Components',col:'#8a9aa8',price:55,desc:'Springs, pistons and a working compass.'},
+  icechunk:{name:'Large Ice Chunk',col:'#c8e6f6',price:20,desc:'Pure glacier ice, great for keeping fish fresh.'},coldcoral:{name:'Cold Current Coral',col:'#e07aa0',price:50,desc:'Coral that only grows in freezing currents.'},
+  purplecrystal:{name:'Purple Crystal',col:'#b07aff',price:70,desc:'A glowing crystal from the deep caves.'}};
+
 function p4Height(x,z,h){
   {const dx=x-VOLCANO.x,dz=z-VOLCANO.z;if(Math.abs(dx)<VOLCANO.r+70&&Math.abs(dz)<VOLCANO.r+70){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=VOLCANO.r*(1+0.12*Math.sin(3*a+0.5)+0.07*Math.cos(7*a));
     let hv;if(d<rr){const t=1-d/rr;hv=d<rr*0.15?18.5:1.2+Math.pow(t,1.35)*24+Math.sin(dx*0.6)*0.5+Math.cos(dz*0.5)*0.4;}else hv=0.6-(d-rr)*0.42;h=Math.max(h,hv);
@@ -1327,8 +1578,8 @@ function p4Height(x,z,h){
       if(e<rr)hv=Math.max(hv,e>rr*0.82?1.0:1.2+Math.pow(1-e/rr,0.9)*(cr>15?5:3)+Math.sin(x*0.4)*0.3);}
     h=Math.max(h,hv);}}
   {const dx=x-DEEP.x,dz=z-DEEP.z;if(Math.abs(dx)<DEEP.r&&Math.abs(dz)<DEEP.r){for(const c of CRYSTALS){const e=Math.hypot(x-c[0],z-c[1]);if(e<c[2])h=Math.max(h,c[3]);}}}
-  return h;}
-function isleStyleAt(x,z){for(const [k,v] of Object.entries(ISLES)){if(Math.hypot(x-v.o.x,z-v.o.z)<v.o.r+(k==='deep'?0:k==='blossom'?80:k==='ruins'?70:60))return k;}return null;}
+  return snowHeight(x,z,h);}
+function isleStyleAt(x,z){if(inSnowy(x,z))return 'frozen';for(const [k,v] of Object.entries(ISLES)){if(Math.hypot(x-v.o.x,z-v.o.z)<v.o.r+(k==='deep'?0:k==='blossom'?80:k==='ruins'?70:60))return k;}return null;}
 
 /* ---------- Phase 4 island builders: each island is its own group so it can be hidden when far away ---------- */
 const P4VIS=[];
@@ -1455,6 +1706,664 @@ const WorldFX4={t:0,
     if(dd<DEEP.r+20&&Math.random()<dt*(10+Env.night*20))Particles.spawn(cx+rand(-20,20),rand(0,1),cz+rand(-20,20),0,rand(0.4,1),0,Math.random()<0.5?'#8fe8ff':'#c08aff',0.12,3,-0.1);
   }
 };
+/* ---------- Snowy Seas builders ---------- */
+const SNOW_BUILT=new Set();
+const SNOWFX={smoke:[],steam:[],fire:[],jelly:[],signs:[]};
+const SC_={snow:['#f2f6fa','#e8eef6','#f8fbfd','#eef3f8'],ice:['#bcdcf0','#a8d0ea','#c8e6f6','#d8eefa'],iceSide:['#8cc0e4','#9fcbe8','#b8dcf2','#7ab4dc'],rock:['#8a96a4','#98a4b2','#7c8896'],dark:['#3a4450','#44505c','#2e3640'],
+  path:['#d8ccb4','#cfc2a8','#dcd2bc'],quay:['#e6eaee','#dfe4e8','#e9edf0']};
+const SNOW_BLD=[
+  {id:'market',name:'Fish Market',lx:0,lz:-10,w:7,d:5,h:3.2,roof:'#c8702a',sign:'fish'},
+  {id:'tackle',name:'Fishing Shop',lx:-9.5,lz:-3,w:5,d:4,roof:'#2f6fb0',sign:'hook'},
+  {id:'store',name:'General Store',lx:-8.5,lz:5,w:4.6,d:4,roof:'#3a8a4a',sign:'bag'},
+  {id:'kitchen',name:'Snow Kitchen',lx:9.5,lz:-3,w:5,d:4,roof:'#b8402a',sign:'fork'},
+  {id:'cabin',name:'Your Winter Cabin',lx:8.5,lz:5,w:4.4,d:4,roof:'#8a3aa0',sign:'house'},
+  {id:'warehouse',name:'Storage Warehouse',lx:-7,lz:-9,w:4.6,d:3.8,roof:'#6a7078',sign:'board'},
+  {id:'house2',name:'',lx:7,lz:-9,w:4.2,d:3.6,roof:'#b8402a'},
+  {id:'workshop',name:"Bjorn's Boat Workshop",lx:5.2,lz:11.5,w:3.8,d:3,h:2.4,roof:'#2f86dc',sign:'hook',face:{lx:0,lz:11.5}}];
+for(const b of SNOW_BLD){const p=vpt(b.lx,b.lz);b.x=p.x;b.z=p.z;const f=b.face?vpt(b.face.lx,b.face.lz):VILLAGE;b.ry=Math.atan2(f.x-p.x,f.z-p.z);b.door={x:p.x+Math.sin(b.ry)*(b.d/2+0.9),z:p.z+Math.cos(b.ry)*(b.d/2+0.9)};}
+// one palette for every snowy cell so neighbouring places blend together
+function snowLandCol(x,z,h,md,rng){
+  const L=caveLevel(x,z);if(L>=0){if(h>=8)return L===0?[pick(SC_.ice,rng),pick(SC_.iceSide,rng)]:L===1?[pick(['#3a3448','#443a58','#2e2a3c'],rng),pick(['#3a3448','#4a3a68'],rng)]:L===2?[pick(['#7a7662','#8a8672','#6a6652'],rng),'#5a5646']:[pick(['#1c2230','#222a3a','#181e2a'],rng),'#141a26'];
+    return L===0?[pick(['#d8eaf6','#cfe4f2','#e2f0fa'],rng),'#a8c8e0']:L===1?[pick(['#4a4458','#544c64','#403a4e'],rng),'#3a3448']:L===2?[rng()<0.2?'#9a9682':pick(['#b4ae96','#a8a28a','#bcb6a0'],rng),'#8a8672']:[pick(['#2a3242','#262e3c','#303848'],rng),'#1c2230'];}
+  const tr=trailAt(x,z);if(tr!==null&&h>=1.4)return [pick(SC_.path,rng),md>=1?pick(SC_.rock,rng):'#b8ac94'];
+  if(Math.hypot(x-VILLAGE.x,z-VILLAGE.z)<13.5)return [rng()<0.12?'#cfc8ba':pick(SC_.quay,rng),'#9aa0a6'];
+  const lk=Math.hypot(x-LAKE.x,z-LAKE.z);if(lk<LAKE.r+2.6)return [pick(['#d8e4ea','#e0eaf0'],rng),'#a8b8c4'];
+  if(POOLS.some(p=>Math.hypot(x-p[0],z-p[1])<p[2]+1.6))return [pick(['#a8a298','#98928a','#b8b2a6'],rng),'#8a8278'];
+  const ice=Math.hypot(x-GLACIER.x,z-GLACIER.z)<GLACIER.r+20||Math.hypot(x-ARCH.x-ARCH.r,z-ARCH.z)<8||Math.hypot(x-ARCH.x+ARCH.r,z-ARCH.z)<8||Math.hypot(x-CRYST_ISLE.x,z-CRYST_ISLE.z)<7||
+    Math.hypot(x-FLOE.x,z-FLOE.z)<FLOE.r+0.5||FIELD_BERGS.some(b=>Math.hypot(x-b[0],z-b[1])<b[2]*1.3)||BERGS.some(b=>Math.hypot(x-b[0],z-b[1])<b[2]+0.5);
+  if(ice)return [h>3&&md<1.5&&rng()<0.75?pick(SC_.snow,rng):pick(SC_.ice,rng),pick(SC_.iceSide,rng)];
+  if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<SEACAVE.r+10)return [h>11&&md<1.5?pick(SC_.snow,rng):pick(SC_.dark,rng),pick(SC_.dark,rng)];
+  if(Math.hypot(x-OUTPOST.x,z-OUTPOST.z)<OUTPOST.r+6&&rng()<0.18)return [pick(['#7a6a58','#5a6068','#6a6e74'],rng),'#8a7a6a'];
+  if(h<=1.3)return [pick(SC_.snow,rng),'#c8d4de'];if(md>=4.5)return [rng()<0.5?pick(SC_.snow,rng):pick(SC_.rock,rng),pick(SC_.rock,rng)];
+  return [h>20||rng()<0.92?pick(SC_.snow,rng):pick(SC_.rock,rng),md>=2?(rng()<0.35?pick(SC_.rock,rng):pick(['#c8d6e2','#d8e4ee','#bcd0e0'],rng)):pick(['#dfe8f0','#d2dee8'],rng)];}
+function snowBedCol(x,z,h,rng){const L=caveLevel(x,z);if(L>=0)return L===0?'#6a8aa8':L===1?pick(['#2a2a48','#34305a'],rng):L===2?'#4a5a5a':'#0e1420';
+  if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<18)return pick(['#243048','#2a3654','#20283c'],rng);if(Math.hypot(x-LAKE.x,z-LAKE.z)<LAKE.r)return '#5a7a8a';
+  if(Math.hypot(x-GLACIER.x,z-GLACIER.z)<GLACIER.r+30||Math.hypot(x-ARCH.x,z-ARCH.z)<40)return h>-3?'#8fb8d0':'#6f98b4';return h>-3?'#9fb4c4':'#7f94a4';}
+function snowCells(T,S,P,G,cx,cz,R,rng,extra={}){
+  const g0x=Math.floor((cx-R)/2),g1x=Math.floor((cx+R)/2),g0z=Math.floor((cz-R)/2),g1z=Math.floor((cz+R)/2);
+  for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const key=gx+','+gz;if(SNOW_BUILT.has(key))continue;SNOW_BUILT.add(key);
+    const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
+    if(h<0.5){if(h<-7.5)continue;const sc=snowBedCol(x,z,h,rng);S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07);S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05);
+      if(extra.bedProp)extra.bedProp(x,z,h);continue;}
+    let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
+    const [top,side]=snowLandCol(x,z,h,md,rng);
+    T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
+    if(extra.prop)extra.prop(x,z,h,md);else snowProp(P,G,x,z,h,md,rng);}}
+function snowProp(P,G,x,z,h,md,rng){if(md>=1.2||h<1.5||h>16)return;if(trailAt(x,z)!==null||Math.hypot(x-VILLAGE.x,z-VILLAGE.z)<15||deckY(x,z)!==null)return;
+  if(Math.hypot(x-GLACIER.x,z-GLACIER.z)<GLACIER.r+20||Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<SEACAVE.r+8||Math.hypot(x-FIELD.x,z-FIELD.z)<FIELD.r+4)return;
+  if(POOLS.some(p=>Math.hypot(x-p[0],z-p[1])<p[2]+3)||Math.hypot(x-LAKE.x,z-LAKE.z)<LAKE.r+3.5)return;if(Math.hypot(x-OUTPOST.x,z-OUTPOST.z)<11||Math.hypot(x-POLAR.x,z-POLAR.z)<6)return;
+  const r=rng();if(r<0.07)snowPine(P,x,h,z,0.7+rng()*0.5,rng);else if(r<0.085)frozenBush(P,x,h,z,rng);else if(r<0.095)P.box(x,h+0.3,z,0.9,0.6,0.8,pick(SC_.rock,rng),rng()*3);}
+function snowPine(P,x,y,z,s,rng){P.box(x,y+0.5*s,z,0.3*s,1*s,0.3*s,'#6b4424');
+  for(let k=0;k<4;k++){const w=(2.2-k*0.5)*s,yy=y+(1.1+k*0.75)*s;P.box(x,yy,z,w,0.55*s,w,['#2f6f4a','#2a6242','#357a52'][k%3],rng()*0.3);P.box(x,yy+0.3*s,z,w*0.8,0.14*s,w*0.8,'#f2f6fa',rng()*0.3);}
+  P.box(x,y+4.3*s,z,0.3*s,0.4*s,0.3*s,'#f2f6fa');CIRCCOL.push({x,z,r:0.6*s});TREES.push([x,z]);}
+function frozenBush(P,x,y,z,rng){for(let k=0;k<3;k++)P.box(x+rng()-0.5,y+0.3+k*0.1,z+rng()-0.5,0.8,0.6,0.8,pick(['#4a7a5a','#3f6a4e','#5a8a6a'],rng),rng()*3);P.box(x,y+0.72,z,0.9,0.18,0.9,'#f4f8fb',rng()*3);}
+function iceShard(P,G,x,y,z,h,rng,cols){const c=cols||['#8fd8ff','#bfe8ff','#6fc2ef','#a8c8ff'];P.box(x,y+h/2,z,0.5+h*0.08,h,0.5+h*0.08,pick(c,rng),rng()*3,rng()*0.3-0.15,rng()*0.3-0.15);
+  G.box(x,y+h*0.62,z,0.18,h*0.45,0.18,'#dff6ff',rng()*3);}
+function crate(P,x,y,z,ry,snow=true){P.box(x,y+0.35,z,0.8,0.7,0.8,'#8a6a42',ry);P.box(x,y+0.35,z,0.84,0.12,0.84,'#6a4a2a',ry);if(snow)P.box(x,y+0.73,z,0.84,0.08,0.84,'#f4f8fb',ry);}
+function barrel(P,x,y,z){P.box(x,y+0.45,z,0.66,0.9,0.66,'#7a4a26');P.box(x,y+0.3,z,0.7,0.08,0.7,'#3a3f46');P.box(x,y+0.66,z,0.7,0.08,0.7,'#3a3f46');P.box(x,y+0.93,z,0.62,0.06,0.62,'#f4f8fb');}
+// a snug timber cabin with a stepped snowy roof; ry turns it, its door faces local +z
+function cabin(P,G,x,y,z,ry,o={}){const w=o.w||5,d=o.d||4,wh=o.h||2.6,wall=o.wall||'#8a5a3a',roof=o.roof||'#b8402a',cs=Math.cos(ry),sn=Math.sin(ry);
+  const put=(B,ox,oy,oz,bw,bh,bd,c)=>B.box(x+ox*cs+oz*sn,y+oy,z-ox*sn+oz*cs,bw,bh,bd,c,ry);
+  put(P,0,-0.9,0,w+0.4,2.2,d+0.4,'#7a7f86');put(P,0,wh/2,0,w,wh,d,wall);
+  for(let k=0;k<3;k++)put(P,0,0.5+k*0.8,d/2+0.02,w,0.1,0.06,shade(wall,0.8));
+  for(const sx of [-w/2,w/2])for(const sz of [-d/2,d/2])put(P,sx,wh/2,sz,0.3,wh,0.3,shade(wall,0.7));
+  if(!o.broken){put(P,0,0.95,d/2+0.04,0.9,1.9,0.08,'#4a2e1a');for(const sx of [-1,1]){put(G,sx*w*0.3,1.5,d/2+0.05,0.7,0.6,0.05,'#ffcf7a');put(P,sx*w*0.3,1.12,d/2+0.12,0.9,0.1,0.18,'#f2f6fa');}
+    put(G,w/2+0.04,1.5,0,0.05,0.6,0.7,'#ffcf7a');put(G,-w/2-0.04,1.5,0,0.05,0.6,0.7,'#ffcf7a');}
+  else{put(P,0,0.95,d/2+0.04,0.9,1.9,0.08,'#1d1a18');put(P,-w*0.3,1.5,d/2+0.05,0.7,0.6,0.05,'#1d1a18');}
+  const steps=o.broken?2:5;for(let k=0;k<steps;k++){const t=1-k/5;put(P,0,wh+0.12+k*0.44,0,w+0.7,0.2,(d+0.9)*t,roof);put(P,0,wh+0.3+k*0.44,0,w+0.6,0.2,(d+0.8)*t-0.1,'#f4f8fb');}
+  if(o.broken){for(let k=0;k<4;k++)put(P,-w/2+0.6+k*1.2,wh+0.9,0,0.18,0.18,d*0.9,'#3a2a1e');return;}
+  if(o.sign){put(P,0,wh+0.05,d/2+0.5,1.3,0.9,0.12,'#7a4a22');SNOWFX.signs.push({kind:o.sign,x:x+(d/2+0.58)*sn,y:y+wh+0.05,z:z+(d/2+0.58)*cs,ry});}
+  put(P,0,wh+0.02,d/2+0.8,w+0.5,0.12,1.4,shade(roof,0.85));
+  put(P,w*0.28,wh+1.9,-d*0.18,0.55,1.4,0.55,'#7a7a80');put(P,w*0.28,wh+2.65,-d*0.18,0.7,0.14,0.7,'#f4f8fb');
+  SNOWFX.smoke.push({x:x+w*0.28*cs-d*0.18*sn,y:y+wh+2.8,z:z-w*0.28*sn-d*0.18*cs});CIRCCOL.push({x,z,r:Math.min(w,d)*0.62});
+  if(Math.max(w,d)>4.6){const e=(Math.max(w,d)-Math.min(w,d))/2;CIRCCOL.push({x:x+cs*e,z:z-sn*e,r:Math.min(w,d)*0.55},{x:x-cs*e,z:z+sn*e,r:Math.min(w,d)*0.55});}}
+function snowPerson(P,x,y,z,ry,coat){P.box(x,y+0.45,z,0.5,0.9,0.36,'#3a3f46',ry);P.box(x,y+1.3,z,0.72,0.9,0.46,coat,ry);P.box(x,y+2.0,z,0.5,0.5,0.46,'#f0c8a0',ry);
+  P.box(x,y+2.35,z,0.56,0.26,0.52,coat,ry);P.box(x,y+2.55,z,0.22,0.2,0.22,'#f4f8fb',ry);P.box(x,y+1.75,z,0.8,0.18,0.56,'#f4f8fb',ry);}
+function deckVisual(P,d,rng,o={}){const ya=Math.atan2(d.ux,d.uz),px=-d.uz,pz=d.ux,col=o.col||['#a36c3b','#94602f'];
+  for(let t=0.4,k=0;t<d.len;t+=0.8,k++){if(o.broken&&rng()<0.14)continue;const x=d.x+d.ux*t,z=d.z+d.uz*t;P.box(x,d.y,z,d.hw*2,0.16,0.72,col[k%2],ya,0,o.broken?(rng()-0.5)*0.12:0);
+    if(k%4===0&&!o.noPosts)for(const s of[-1,1])P.box(x+px*s*(d.hw-0.1),d.y-1.3,z+pz*s*(d.hw-0.1),0.26,2.8,0.26,'#5a3a22');
+    if(o.rail&&k%2===0)for(const s of[-1,1])P.box(x+px*s*(d.hw-0.05),d.y+0.5,z+pz*s*(d.hw-0.05),0.12,0.9,0.12,o.rail);}
+  if(o.snow)for(let t=1;t<d.len;t+=2.4)P.box(d.x+d.ux*t+px*(rng()-0.5)*d.hw,d.y+0.1,d.z+d.uz*t+pz*(rng()-0.5)*d.hw,0.9,0.06,0.7,'#f4f8fb',rng()*3);}
+function decksNear(P,G,cx,cz,R,rng,o){for(const d of SNOW_DECKS)if(Math.abs(d.x-cx)<R&&Math.abs(d.z-cz)<R)deckVisual(P,d,rng,o);}
+function lighthouse(P,G,x,h,z,c='#e0503f'){for(let k=0;k<6;k++)P.box(x,h+0.6+k*1.2,z,2.2-k*0.12,1.2,2.2-k*0.12,k%2?c:'#f4f8fb');
+  P.box(x,h+7.6,z,2.4,0.24,2.4,'#3a3f46');G.box(x,h+8.3,z,1.1,1.1,1.1,'#ffe8a0');P.box(x,h+9.1,z,1.8,0.5,1.8,c);P.box(x,h+9.5,z,0.9,0.4,0.9,'#f4f8fb');CIRCCOL.push({x,z,r:1.3});}
+
+function buildSnowVillage(T,S,P,G,rng){
+  snowCells(T,S,P,G,FROZEN.x,FROZEN.z,FROZEN.r+48,rng);
+  for(const b of BERGS)P.box(b[0],b[3]+0.95,b[1],b[2]*1.1,0.3,b[2]*1.1,'#ffffff');
+  const ya=Math.atan2(VDIR.x,VDIR.z);
+  decksNear(P,G,VILLAGE.x,VILLAGE.z,40,rng,{snow:true});
+  for(const s of[-5,5]){const p={x:PIER_END.x+VPERP.x*s,z:PIER_END.z+VPERP.z*s};lantern(P,G,p.x,1.38,p.z);}
+  for(let lz=12;lz<31;lz+=6){const p=vpt(1.5,lz);lantern(P,G,p.x,1.38,p.z);}
+  // buildings
+  for(const b of SNOW_BLD){const h=Math.max(1.6,qHeightAt(b.x,b.z));cabin(P,G,b.x,h,b.z,b.ry,{w:b.w,d:b.d,h:b.h,roof:b.roof,sign:b.sign});}
+  {const b=SNOW_BLD.find(k=>k.id==='market');for(let k=0;k<4;k++){const t=(k-1.5)*1.3,x=b.door.x+Math.cos(b.ry)*t,z=b.door.z-Math.sin(b.ry)*t;P.box(x,2.05,z,1.0,0.9,0.7,'#8a5a3a',b.ry);P.box(x,2.52,z,1.0,0.1,0.7,'#dfe8f0',b.ry);
+    P.box(x,2.62,z,0.5,0.12,0.2,['#8aa0b8','#e07a4a','#c8d8e8','#6a8a4a'][k],b.ry);}}
+  {const b=SNOW_BLD.find(k=>k.id==='workshop');const q=vpt(7.5,15);for(let k=0;k<5;k++)P.box(q.x+VDIR.x*k*0.9,0.4-k*0.25,q.z+VDIR.z*k*0.9,3.4,0.2,0.9,'#8a5a3a',ya,0.25);
+    const c=vpt(3,13.2);P.box(c.x,4,c.z,0.3,5,0.3,'#3a3f46');P.box(c.x+VDIR.x*1.3,6.4,c.z+VDIR.z*1.3,0.24,0.24,3,'#3a3f46',ya);P.box(c.x+VDIR.x*2.6,5.2,c.z+VDIR.z*2.6,0.06,2.2,0.06,'#2a2e33');crate(P,c.x+VPERP.x*1.2,1.6,c.z+VPERP.z*1.2,0.3);barrel(P,b.x-VPERP.x*2.4,1.6,b.z-VPERP.z*2.4);}
+  // lighthouse on the rocks beside the pier
+  {const p=vpt(10.5,13),h=Math.max(1,qHeightAt(p.x,p.z));lighthouse(P,G,p.x,h,p.z);SNOWFX.beacon={x:p.x,y:h+8.3,z:p.z};}
+  // the big village tree with lights, a bonfire and villagers in the square
+  {const x=VILLAGE.x,z=VILLAGE.z;snowPine(P,x,1.6,z,1.9,rng);G.box(x,1.6+8.6,z,0.6,0.6,0.6,'#ffe070');
+    for(let k=0;k<22;k++){const a=k*1.1,yy=1.6+2.2+k*0.24,rr=2.2-k*0.075;G.box(x+Math.cos(a)*rr,yy,z+Math.sin(a)*rr,0.18,0.18,0.18,['#ff5a5a','#ffd24a','#5ad0ff','#7aff8a'][k%4]);}
+    const f=vpt(0,5);for(let k=0;k<8;k++){const a=k/8*TAU;P.box(f.x+Math.cos(a)*0.9,1.75,f.z+Math.sin(a)*0.9,0.4,0.3,0.4,'#6a6e74');}CIRCCOL.push({x:f.x,z:f.z,r:1.1});
+    G.box(f.x,1.9,f.z,0.7,0.5,0.7,'#ff8a2a');G.box(f.x,2.3,f.z,0.4,0.4,0.4,'#ffcf3f');SNOWFX.fire.push({x:f.x,y:2.2,z:f.z});
+    for(const s of[-1,1]){const p=vpt(s*2.3,5.6);P.box(p.x,1.85,p.z,1.6,0.5,0.5,'#6b4424',Math.atan2(VPERP.x,VPERP.z)+Math.PI/2);}}
+  // quest board by the quay
+  {const p=vpt(4,7.5),r=Math.atan2(VILLAGE.x-p.x,VILLAGE.z-p.z);for(const s of[-0.8,0.8])P.box(p.x+Math.cos(r)*s,2.2,p.z-Math.sin(r)*s,0.16,1.4,0.16,'#5a3a22');P.box(p.x,2.9,p.z,2.0,1.2,0.14,'#8a5a3a',r);
+    for(let k=0;k<3;k++)P.box(p.x+Math.cos(r)*(-0.5+k*0.5)+Math.sin(r)*0.08,2.95,p.z-Math.sin(r)*(-0.5+k*0.5)+Math.cos(r)*0.08,0.36,0.46,0.06,'#f4ecd8',r);P.box(p.x,3.6,p.z,2.2,0.14,0.34,'#f4f8fb',r);
+    CIRCCOL.push({x:p.x,z:p.z,r:0.9});SNOWFX.board=p;}
+  // crates, barrels and nets along the quay
+  for(let k=0;k<6;k++){const p=vpt(-3+rng()*6*(k%2?1:-1)-2*(k%2),10+rng()*2);if(deckY(p.x,p.z)!==null)continue;rng()<0.5?crate(P,p.x,1.6,p.z,rng()*3):barrel(P,p.x,1.6,p.z);}
+  {const p=vpt(-4.5,11.2);for(let i=0;i<6;i++)for(let j=0;j<4;j++)P.box(p.x+VPERP.x*i*0.4,1.8+j*0.4,p.z+VPERP.z*i*0.4,0.05,0.42,0.05,'#c8b890');P.box(p.x+VPERP.x*1,3.4,p.z+VPERP.z*1,2.6,0.1,0.1,'#6b4424',ya+Math.PI/2);}
+  // a fishing boat tied up beside the pier head
+  {const db=buildBoat(BOATS.fisher);const p={x:PIER_END.x+VPERP.x*8.5,z:PIER_END.z+VPERP.z*8.5};db.g.position.set(p.x,0,p.z);db.g.rotation.y=ya;scene.add(db.g);SNOWFX.boat=db;}
+  // lanterns along the trail and a sign at the trailhead
+  for(let i=6;i<TRAIL.length;i+=6){const a=TRAIL[i],b=TRAIL[i-1],u=unit2(a.x-b.x,a.z-b.z),x=a.x-u.z*2.1,z=a.z+u.x*2.1,h=a.h;P.box(x,h+0.6,z,0.14,1.2,0.14,'#5a3a22');G.box(x,h+1.28,z,0.26,0.26,0.26,'#ffcf7a');}
+  {const a=TRAIL[2];P.box(a.x+2,2.6,a.z,0.16,2,0.16,'#5a3a22');P.box(a.x+2,3.4,a.z,1.6,0.6,0.12,'#8a5a3a',Math.atan2(VDIR.x,VDIR.z));}
+  // the peak lake: an icy rim and a little fishing jetty
+  for(let k=0;k<18;k++){const a=k/18*TAU;if(rng()<0.5)P.box(LAKE.x+Math.cos(a)*(LAKE.r-0.3),0.15,LAKE.z+Math.sin(a)*(LAKE.r-0.3),1.6,0.3,1.1,pick(SC_.ice,rng),a);}
+}
+function buildFrozenPeaks(T,S,P,G,rng){const I=PEAKS;
+  snowCells(T,S,P,G,I.x,I.z,I.r+46,rng);
+  // summit lodge, telescope and beacon at the top
+  {const {x,z,h}=SUMMIT;cabin(P,G,x-2.2,h,z-1.8,Math.atan2(VDIR.x,VDIR.z),{w:3.4,d:2.8,h:2.2,roof:'#e0503f'});
+    P.box(x+2,h+0.7,z+1.4,0.14,1.4,0.14,'#3a3f46');P.box(x+2,h+1.5,z+1.4,1.2,0.3,0.3,'#c8a040',0.8,0.3);P.box(x+2.5,h+1.62,z+1.2,0.36,0.36,0.36,'#2a2e33',0.8,0.3);
+    P.box(x+2.6,h+2.4,z-2.2,0.14,4.8,0.14,'#7a4a26');P.box(x+3.2,h+4.4,z-2.2,1.2,0.7,0.06,'#2f86dc');G.box(x+2.6,h+4.95,z-2.2,0.3,0.3,0.3,'#ffe070');SNOWFX.summit={x,y:h,z};
+    for(let k=0;k<8;k++){const a=k/8*TAU;P.box(x+Math.cos(a)*4.6,h+0.3,z+Math.sin(a)*4.6,0.18,0.6,0.18,'#6b4424');}}
+  // ice cave beside the trail
+  {const i=Math.floor(TRAIL.length*0.62),a=TRAIL[i],b=TRAIL[i-1],u=unit2(a.x-b.x,a.z-b.z),o=unit2(a.x-I.x,a.z-I.z);const x=a.x-o.x*3.2,z=a.z-o.z*3.2,h=a.h,ry=Math.atan2(o.x,o.z);
+    for(let k=0;k<=9;k++){const t=k/9*Math.PI,ox=Math.cos(t)*2.2,oy=Math.sin(t)*2.8;P.box(x+Math.cos(ry)*ox,h+oy,z-Math.sin(ry)*ox,0.9,0.9,1.4,pick(SC_.iceSide,rng),ry);}
+    G.box(x-o.x*0.4,h+1.1,z-o.z*0.4,2.6,2.0,0.3,'#2a7ac8',ry);for(let k=0;k<4;k++)iceShard(P,G,x+rand(-2,2),h,z+rand(-2,2),0.8+rng()*1.2,rng);SNOWFX.cave={x,z,h};}
+  // a frozen waterfall down the eastern face into the sea
+  {const a=Math.atan2(VDIR.z,VDIR.x)-1.25;for(let d=I.r*0.35;d<I.r*1.15;d+=0.9){const x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d,h=qHeightAt(x,z);
+    P.box(x,Math.max(0.2,h)+0.12,z,2.4,0.5,1.2,pick(['#bfe8ff','#a8dcf8','#d8f2ff'],rng),Math.PI/2-a);if(h<0.6)break;}}
+  // ice crystals poking out of the cliffs
+  for(let i=0;i<14;i++){const a=rng()*TAU,d=I.r*(0.3+rng()*0.6),x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d,h=qHeightAt(x,z);if(h<4||trailAt(x,z)!==null)continue;iceShard(P,G,x,h,z,1+rng()*2,rng);}
+}
+function buildGlacierBay(T,S,P,G,rng){const I=GLACIER;
+  snowCells(T,S,P,G,I.x,I.z,I.r+34,rng,{prop:(x,z,h)=>{if(h>7&&rng()<0.035)iceShard(P,G,x,h,z,1.5+rng()*3,rng);}});
+  for(let i=0;i<26;i++){const a=rng()*TAU,d=Math.sqrt(rng())*(I.r-4),x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d;if(Math.abs(angDiff(Math.atan2(z-I.z,x-I.x),G_OPEN))<0.35&&d>I.r*0.6)continue;
+    const w=1.6+rng()*3.4,dd=1.4+rng()*2.8,ry=rng()*3;P.box(x,0.12,z,w,0.5,dd,pick(['#f4f8fb','#e8f2fa'],rng),ry);P.box(x,-0.2,z,w*0.9,0.3,dd*0.9,'#a8d0ea',ry);
+    if(rng()<0.18){P.box(x,0.6,z,1.3,0.55,0.6,'#8a929c',ry);P.box(x+Math.cos(ry)*0.7,0.8,z-Math.sin(ry)*0.7,0.5,0.5,0.5,'#9aa2ac',ry);P.box(x+Math.cos(ry)*0.95,0.8,z-Math.sin(ry)*0.95,0.1,0.1,0.1,'#1d1d1d',ry);}}
+  for(let i=0;i<14;i++){const a=rng()*TAU;if(Math.abs(angDiff(a,G_OPEN))<0.8)continue;const d=I.r+6+rng()*8,x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d,h=qHeightAt(x,z);if(h<3)continue;
+    const hh=3+rng()*6;P.box(x,h+hh/2,z,1.6+rng(),hh,1.6+rng(),pick(SC_.ice,rng),rng()*3);P.box(x,h+hh+0.1,z,1.2,0.3,1.2,'#f8fbfd');}
+  // submerged ice formations and cold coral under the bay
+  for(let i=0;i<16;i++){const a=rng()*TAU,d=rng()*(I.r-3),x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d,h=qHeightAt(x,z);P.box(x,h+0.8,z,0.8,1.6,0.8,pick(['#8fd8ff','#e07aa0','#bfe8ff'],rng),rng()*3);}
+}
+function buildIceArch(T,S,P,G,rng){const I=ARCH;
+  snowCells(T,S,P,G,I.x+6,I.z+5,I.r+28,rng,{prop:(x,z,h)=>{if(Math.hypot(x-CRYST_ISLE.x,z-CRYST_ISLE.z)<5&&rng()<0.3&&deckY(x,z)===null)iceShard(P,G,x,h,z,1+rng()*2.2,rng,['#8fd8ff','#c08aff','#6fc2ef']);}});
+  for(let k=0;k<=46;k++){const t=k/46*Math.PI,x=I.x+Math.cos(t)*I.r,y=1.5+Math.sin(t)*15,th=4.2-Math.sin(t)*1.6;
+    P.box(x,y,I.z,th,th*0.9,5,pick(SC_.ice,rng),0,0,t);if(Math.sin(t)>0.25)P.box(x-Math.cos(t)*th*0.52,y-Math.sin(t)*th*0.52,I.z,th*0.5,0.4,4.2,pick(SC_.iceSide,rng),0,0,t);
+    if(Math.sin(t)>0.3)P.box(x+Math.cos(t)*th*0.5,y+Math.sin(t)*th*0.5,I.z,th*0.9,0.35,5.2,'#f8fbfd',0,0,t);if(k%5===2)G.box(x-Math.cos(t)*th*0.55,y-Math.sin(t)*th*0.55-0.2,I.z+2.55,0.3,0.3,0.1,'#bfeaff');
+    if(k%3===0&&Math.sin(t)>0.4)P.box(x-Math.cos(t)*th*0.6,y-Math.sin(t)*th*0.6-0.8,I.z+(rng()-0.5)*3,0.25,1.4,0.25,'#d8f2ff');}
+  for(const sd of[-1,1])for(let k=0;k<3;k++)iceShard(P,G,I.x+sd*(I.r+rand(-2,2)),2.4,I.z+rand(-3,3),1.5+rng()*2,rng);
+  decksNear(P,G,(I.x+CRYST_ISLE.x)/2,(I.z+CRYST_ISLE.z)/2,20,rng,{col:['#d8eefa','#c8e6f6'],rail:'#a8d0ea',noPosts:true});
+  // hidden beach on the west islet
+  for(let k=0;k<6;k++){const x=I.x-I.r-2+rand(-2,2),z=I.z+4+rand(-1,2),h=Math.max(0.9,qHeightAt(x,z));P.box(x,h+0.05,z,1.4,0.1,1.2,'#e8dcc0',rng()*3);}
+}
+function buildHotSprings(T,S,P,G,rng){const I=SPRINGS;
+  snowCells(T,S,P,G,I.x,I.z,I.r+28,rng);
+  for(const [px,pz,pr] of POOLS){const h=2.1;for(let k=0;k<14;k++){const a=k/14*TAU;P.box(px+Math.cos(a)*pr,h+0.18,pz+Math.sin(a)*pr,1,0.5,1,pick(['#8a8f96','#9aa0a6','#7a7f86'],rng),a);}
+    P.box(px,h+0.1,pz,pr*1.75,0.12,pr*1.75,'#4fc8c8');G.box(px,h+0.14,pz,pr*0.9,0.04,pr*0.9,'#8ff0e8');SNOWFX.steam.push({x:px,y:h+0.3,z:pz,r:pr});
+    for(let k=0;k<3;k++){const a=rng()*TAU;G.box(px+Math.cos(a)*(pr+0.9),h+0.4,pz+Math.sin(a)*(pr+0.9),0.3,0.1,0.3,'#ff7a3a',a);}}
+  const hd=unit2(-I.x,-I.z),ry=Math.atan2(hd.x,hd.z);
+  {const x=I.x+hd.x*6.5,z=I.z+hd.z*6.5+3,h=Math.max(1.6,qHeightAt(x,z));cabin(P,G,x,h,z,ry,{w:5,d:3.6,roof:'#b8402a',wall:'#a0704a',sign:'house'});SNOWFX.bath={x:x+hd.x*2.8,z:z+hd.z*2.8};}
+  for(const [ox,oz,roof] of [[-2,-9,'#2f6fb0'],[7,-6,'#3a8a4a']]){const x=I.x+ox,z=I.z+oz,h=Math.max(1.6,qHeightAt(x,z));cabin(P,G,x,h,z,Math.atan2(I.x-x,I.z-z),{w:3.6,d:3,h:2.2,roof});}
+  for(let k=0;k<12;k++){const a=k/12*TAU,x=I.x+Math.cos(a)*9.5,z=I.z+Math.sin(a)*9.5,h=Math.max(1.3,qHeightAt(x,z));if(k%3===0){P.box(x,h+0.9,z,0.12,1.8,0.12,'#5a3a22');G.box(x,h+1.9,z,0.4,0.5,0.4,'#ff9a5a');}}
+  for(const [px,pz,pr] of POOLS){const a=Math.atan2(I.z-pz,I.x-px);for(let t=pr+0.8;t<pr+5;t+=0.8){const x=px+Math.cos(a)*t,z=pz+Math.sin(a)*t,h=Math.max(1.5,qHeightAt(x,z));P.box(x,h+0.06,z,1.2,0.12,0.7,'#a36c3b',Math.PI/2-a);}}
+  // rare glowing plants and warm geothermal rocks
+  for(let i=0;i<10;i++){const a=rng()*TAU,d=rng()*I.r*0.8,x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d,h=qHeightAt(x,z);if(h<1.4||POOLS.some(p=>Math.hypot(x-p[0],z-p[1])<p[2]+1))continue;
+    if(i%2){P.box(x,h+0.25,z,0.14,0.5,0.14,'#3a8a5a');G.box(x,h+0.55,z,0.3,0.2,0.3,'#6fe8c0');}else{P.box(x,h+0.3,z,1,0.6,0.9,'#7a4a3a',rng()*3);G.box(x,h+0.62,z,0.7,0.05,0.12,'#ff7a3a',rng()*3);}}
+  decksNear(P,G,I.x,I.z,I.r+8,rng,{snow:true});
+  {const a=Math.atan2(I.z,I.x),x=I.x+Math.cos(a)*(I.r-3),z=I.z+Math.sin(a)*(I.r-3),h=Math.max(1,qHeightAt(x,z));
+    for(let k=0;k<7;k++){const t=k/6*Math.PI;P.box(x-Math.sin(a)*Math.cos(t)*1.8,h+Math.sin(t)*2.2,z+Math.cos(a)*Math.cos(t)*1.8,1,1,1.2,pick(SC_.rock,rng),-a);}
+    P.box(x,h+1,z,2.4,2,0.4,'#1d2430',-a+Math.PI/2);G.box(x,h+0.8,z,1.2,1.2,0.3,'#5a9ad8',-a+Math.PI/2);SNOWFX.springCave={x,z};}
+}
+function buildOutpost(T,S,P,G,rng){const I=OUTPOST;
+  snowCells(T,S,P,G,I.x+6,I.z+5,I.r+34,rng);
+  const at=(a,d)=>{const x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d;return [x,Math.max(1.3,qHeightAt(x,z)),z];};
+  for(const [a,d,r] of [[0.3,6,0.4],[2.1,7,2.2],[4.2,5,-1]]){const [x,h,z]=at(a,d);cabin(P,G,x,h,z,r,{w:4,d:3.4,h:2.2,roof:'#5a4a3e',wall:'#6a5040',broken:true});CIRCCOL.push({x,z,r:1.9});}
+  for(const [a,d] of [[1.2,9],[5.2,9.5]]){const [x,h,z]=at(a,d);for(const s of[-1,1])P.box(x+s*0.7,h+0.8,z,0.16,2,2.6,'#c8b890',0,0,s*0.6);P.box(x,h+1.6,z,0.2,0.2,2.8,'#5a3a22');P.box(x,h+1.72,z,1.2,0.14,2.4,'#f4f8fb');CIRCCOL.push({x,z,r:1.2});}
+  for(let k=0;k<8;k++){const [x,h,z]=at(rng()*TAU,3+rng()*7);if(deckY(x,z)!==null)continue;rng()<0.6?crate(P,x,h,z,rng()*3):barrel(P,x,h,z);}
+  // tilted radio mast with a torn flag
+  {const [x,h,z]=at(3.2,3);P.box(x,h+3.2,z,0.22,6.4,0.22,'#6a6e74',0,0,0.18);for(let k=1;k<5;k++)P.box(x-0.18*k,h+k*1.2,z,1.2-k*0.15,0.1,0.1,'#6a6e74',0,0,0.18);
+    P.box(x-1.3,h+5.6,z,0.9,0.5,0.06,'#c8402a',0,0,0.18);G.box(x-1.2,h+6.4,z,0.18,0.18,0.18,'#ff5a4a');CIRCCOL.push({x,z,r:0.5});}
+  // old crane by the shore and a destroyed watchtower
+  {const [x,h,z]=at(0.9,12);P.box(x,h+3,z,0.4,6,0.4,'#b88a2a');P.box(x+1.8,h+6,z+0.4,4.2,0.3,0.3,'#b88a2a',0.2);P.box(x+3.6,h+4.8,z+0.8,0.05,2.4,0.05,'#2a2e33');P.box(x+3.6,h+3.5,z+0.8,0.4,0.3,0.2,'#3a3f46');
+    P.box(x,h+6.3,z,1,0.2,1,'#f4f8fb');CIRCCOL.push({x,z,r:0.5});}
+  {const [x,h,z]=at(5.9,8);for(const [dx,dz,lean] of [[-1,-1,0.1],[1,-1,-0.08],[-1,1,0.18],[1,1,0]])P.box(x+dx,h+2.2,z+dz,0.22,lean?4.4:2.6,0.22,'#5a4030',0,lean,lean);
+    P.box(x,h+4.3,z,2.8,0.2,2.6,'#6a5040',0.3,0.25,0.12);P.box(x+0.8,h+4.8,z,0.2,0.8,2.4,'#5a4030',0.3,0.2);CIRCCOL.push({x,z,r:1.4});}
+  // frozen equipment: a sled and a generator crusted with icicles
+  {const [x,h,z]=at(4.9,4.5);P.box(x,h+0.25,z,2.2,0.12,0.9,'#8a5a3a',0.6);P.box(x,h+0.1,z,2.4,0.06,0.1,'#3a3f46',0.6);crate(P,x,h+0.3,z,0.6);
+    const [x2,h2,z2]=at(2.8,4);P.box(x2,h2+0.5,z2,1.4,1,1,'#5a7a5a',0.2);for(let k=0;k<5;k++)P.box(x2-0.6+k*0.3,h2+0.8,z2+0.52,0.08,0.5,0.08,'#d8f2ff');P.box(x2,h2+1.05,z2,1.5,0.1,1.1,'#f4f8fb',0.2);}
+  // the secret tunnel hatch, still glowing faintly
+  {const [x,h,z]=at(0.9,1.5);P.box(x,h+0.08,z,1.8,0.16,1.8,'#4a3a2a');P.box(x,h+0.18,z,1.4,0.08,1.4,'#3a2a1e');G.box(x,h+0.22,z,0.3,0.04,1.2,'#5ad0ff');SNOWFX.hatch={x,y:h,z};}
+  decksNear(P,G,I.x,I.z,I.r+8,rng,{broken:true});
+  // an ice-crusted shipwreck in the shallows
+  {const x=WRECK.x,z=WRECK.z,ya=0.7;const L=11;for(let k=0;k<=L;k++){const t=k/L-0.5,w=2.8*(1-Math.pow(Math.abs(t)*1.9,2)*0.6),ox=Math.sin(ya)*t*L,oz=Math.cos(ya)*t*L;
+      P.box(x+ox,-0.4+t*1.2,z+oz,w,1.6,1.1,k%2?'#4a3526':'#3e2c20',ya,0.1,0.35);if(k%3===0)P.box(x+ox,0.5+t*1.2,z+oz,w*0.9,0.12,1,'#f4f8fb',ya,0.1,0.35);}
+    P.box(x+0.6,2.4,z+0.4,0.3,5.4,0.3,'#3e2c20',0,0.2,0.5);P.box(x+1.4,4.2,z+0.6,2.4,0.18,0.18,'#3e2c20',ya,0.2,0.5);P.box(x+1.8,3.2,z+0.4,1.4,1.2,0.06,'#c8b890',ya,0.1,0.7);}
+}
+function buildIcebergFields(T,S,P,G,rng){const I=FIELD;
+  snowCells(T,S,P,G,I.x,I.z,I.r+10,rng,{prop:(x,z,h)=>{if(h>4&&rng()<0.05)iceShard(P,G,x,h,z,1+rng()*2,rng);}});
+  {const x=FLOE.x,z=FLOE.z;cabin(P,G,x-2,0.8,z-1.6,0.4,{w:2.6,d:2.2,h:2,roof:'#e0503f',wall:'#c89a4a'});crate(P,x-3.8,0.8,z+1.2,0.2);
+    P.box(ICEHOLE.x,0.84,ICEHOLE.z,2.4,0.08,2.4,'#dcecf8');for(let k=0;k<3;k++)P.box(ICEHOLE.x+1.6,1.3,ICEHOLE.z-0.8+k*0.8,0.08,1,0.08,'#8a5a2e');}
+}
+function buildSeaCaves(T,S,P,G,rng){const I=SEACAVE;
+  snowCells(T,S,P,G,I.x,I.z,I.r+28,rng,{bedProp:(x,z,h)=>{if(Math.hypot(x-I.x,z-I.z)<17&&rng()<0.08)G.box(x+rng()-0.5,h+0.3,z+rng()-0.5,0.3,0.6+rng(),0.3,pick(['#8fe8ff','#c08aff','#6fe0c0'],rng),rng()*3);},
+    prop:(x,z,h,md)=>{if(h>9&&md<1&&rng()<0.03)snowPine(P,x,h,z,0.6+rng()*0.3,rng);}});
+  const back=C_BACK;
+  {const x=I.x+Math.cos(back)*18.2,z=I.z+Math.sin(back)*18.2,ya=-back+Math.PI/2;const tx=-Math.sin(back),tz=Math.cos(back);
+    for(let k=0;k<=16;k++){const t=k/16*Math.PI,ox=Math.cos(t)*6,oy=Math.sin(t)*8.4;P.box(x+tx*ox,oy+0.6,z+tz*ox,1.8,1.8,3,pick(['#9fcbe8','#b8dcf2','#d8eefa'],rng),ya);if(k%2)iceShard(P,G,x+tx*ox*0.85,oy-0.6,z+tz*ox*0.85,1.2,rng);}
+    P.box(x+Math.cos(back)*1.4,4,z+Math.sin(back)*1.4,10.4,8.4,0.5,'#0a0e18',ya);G.box(x+Math.cos(back)*1.1,3,z+Math.sin(back)*1.1,7,5,0.2,'#2f7ad8',ya);G.box(x+Math.cos(back)*1.0,1.8,z+Math.sin(back)*1.0,4,2.4,0.2,'#8fe8ff',ya);
+    for(let k=0;k<8;k++)G.box(x+tx*rand(-3.4,3.4)+Math.cos(back)*0.6,rand(1.2,5),z+tz*rand(-3.4,3.4)+Math.sin(back)*0.6,0.2,0.5,0.2,pick(['#8fe8ff','#c08aff'],rng));
+    for(const s of[-1,1]){lantern(P,G,x+tx*s*3.2-Math.cos(back)*1.2,1.38,z+tz*s*3.2-Math.sin(back)*1.2);}SNOWFX.caveMouth={x,z};}
+  decksNear(P,G,I.x,I.z,20,rng,{});
+  for(let i=0;i<10;i++){const a=rng()*TAU;if(Math.abs(angDiff(a,C_OPEN))<0.6||Math.abs(angDiff(a,back))<0.35)continue;const d=13+rng()*3,x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d;let y=-1,w=1.4;
+    for(let k=0;k<3;k++){const sh=1+rng()*0.8;P.box(x,y+sh/2,z,w,sh,w,pick(['#7a5ad0','#5a7ad8','#8a6ae0'],rng),rng()*3);if(k===1)G.box(x,y+sh/2,z,w*0.5,sh*0.9,w*1.02,pick(['#8fe8ff','#c08aff'],rng));y+=sh;w*=0.75;}}
+  for(let i=0;i<22;i++){const a=rng()*TAU,d=Math.sqrt(rng())*14,x=I.x+Math.cos(a)*d,z=I.z+Math.sin(a)*d;G.box(x,0.12,z,0.6,0.26,0.6,pick(['#c08aff','#8fe8ff','#ff8ad0'],rng));G.box(x,-0.2,z,0.1,0.5,0.1,'#8fe8ff');}
+  {const a=C_OPEN-1.1,x=I.x+Math.cos(a)*(I.r-6),z=I.z+Math.sin(a)*(I.r-6),h=qHeightAt(x,z);if(h>3)lighthouse(P,G,x,h,z,'#2f6fb0');}
+}
+function buildPolar(T,S,P,G,rng){const I=POLAR;
+  snowCells(T,S,P,G,I.x,I.z,I.r+16,rng);decksNear(P,G,I.x,I.z,I.r+6,rng,{snow:true});
+  const h=qHeightAt(I.x,I.z);P.box(I.x,h+0.8,I.z,5,0.2,5,'#a36c3b');for(const [dx,dz] of [[-2.3,-2.3],[2.3,-2.3],[-2.3,2.3],[2.3,2.3]])P.box(I.x+dx,h+0.4,I.z+dz,0.2,0.8,0.2,'#6b4424');
+  for(let k=0;k<8;k++){const a=k/8*TAU;P.box(I.x+Math.cos(a)*2.4,h+1.4,I.z+Math.sin(a)*2.4,0.12,1,0.12,'#6b4424');}
+  P.box(I.x+1,h+1.6,I.z,0.14,1.4,0.14,'#3a3f46');P.box(I.x+1,h+2.4,I.z,1.3,0.32,0.32,'#c8a040',Math.PI/2,-0.5);P.box(I.x-1,h+1.1,I.z+1,1.8,0.2,0.6,'#8a5a3a');
+  lantern(P,G,I.x-2.3,h+0.9,I.z-2.3);iceShard(P,G,I.x-4,h,I.z+3,2.4,rng,['#8fe8a0','#8fe8ff','#c08aff']);CIRCCOL.push({x:I.x+1,z:I.z,r:0.4});}
+/* ---------- the cave levels ---------- */
+function buildCaveLevel(L,T,S,P,G,rng){const C=CAVES[L];
+  snowCells(T,S,P,G,C.x,C.z,46,rng,{prop:()=>{},bedProp:(x,z,h)=>{if(L>=1&&rng()<0.06)G.box(x,h+0.3,z,0.25,0.5,0.25,pick(L===3?['#6fe8d8','#8fe8ff']:['#8fe8ff','#c08aff'],rng),rng()*3);}});
+  const dark=L===0?'#8aa8c0':L===1?'#2e2a3c':L===2?'#5a5646':'#10141e';
+  for(let i=-4;i<4;i++)for(let j=-4;j<4;j++)P.box(C.x+i*12+6,22,C.z+j*12+6,12.2,1.6,12.2,dark);
+  for(let k=0;k<50;k++){const x=C.x+rand(-34,34),z=C.z+rand(-34,34),hh=1+rng()*4;P.box(x,21.2-hh/2,z,0.6+rng()*0.8,hh,0.6+rng()*0.8,L===0?pick(SC_.ice,rng):shade(dark,1.2),rng()*3);}
+  // way up and way down
+  {const e=CAVE_ENTRY(L);for(let k=0;k<6;k++)P.box(e.x,2+k*0.5,e.z+2+k*0.8,5,0.5,0.8,L===2?'#8a8672':'#6a6e74');G.box(e.x,11,e.z+5,4,10,0.3,L===0?'#bfe4ff':'#2a5a8a');
+    const x=CAVE_EXIT(L);P.box(x.x,1,x.z-1.5,5.6,2.5,0.4,'#05080e');for(let k=0;k<4;k++)P.box(x.x,1.9-k*0.4,x.z+0.5-k*0.7,4.6,0.3,0.7,'#4a4e56');
+    for(const s of[-1,1])lantern(P,G,x.x+s*2.8,2,x.z+1.2);}
+  if(L===0){// Ice Cave Entrance: frozen tunnels, expedition bridges, lanterns, frozen waterfalls, fishing pools
+    decksNear(P,G,C.x,C.z,30,rng,{rail:'#6b4424'});
+    for(const s of[-1,1]){const x=C.x+s*30,z=C.z;for(let y=2;y<21;y+=1.2)P.box(x+rand(-0.5,0.5),y,z+rand(-1.5,1.5),2.6,1.3,2.8,pick(['#bfe8ff','#a8dcf8','#d8f2ff'],rng));G.box(x-s*1.2,1,z,1.6,0.3,3.6,'#bfe8ff');}
+    for(const [u,v] of [[0,28],[-10,20],[10,6],[-20,-6],[-2,-22],[14,-26],[-26,18],[24,-4]])lantern(P,G,C.x+u,2,C.z+v);
+    for(const [u,v] of [[-4,24],[3,-28],[18,10]]){crate(P,C.x+u,2,C.z+v,rng()*3,false);barrel(P,C.x+u+1.2,2,C.z+v+0.5);}
+    for(let k=0;k<20;k++)iceShard(P,G,C.x+rand(-30,30),2,C.z+rand(-30,30),1+rng()*2.4,rng);}
+  else if(L===1){// Crystal Caverns: giant crystals, glowing mushrooms, underground lake
+    for(const [u,v,r,hh] of CAVE_B2_CRYS){const x=C.x+u,z=C.z+v;let y=2,w=r*2.2;for(let k=0;y<hh+6;k++){const sh=1.6+rng();P.box(x,y+sh/2,z,w,sh,w,pick(k%2?['#7a5ad0','#8a6ae0']:['#4a7ad8','#5a8ae8'],rng),k*0.4);
+        if(k%2)G.box(x,y+sh/2,z,w*0.5,sh*0.9,w*1.03,pick(['#8fe8ff','#c08aff'],rng),k*0.4);y+=sh;w*=0.86;}CIRCCOL.push({x,z,r:r+0.3});}
+    for(let k=0;k<22;k++){const u=rand(-30,30),v=rand(-28,28),x=C.x+u,z=C.z+v;if(caveHeight(x,z)!==2)continue;const hh=0.5+rng()*1.4;P.box(x,2+hh/2,z,0.18,hh,0.18,'#d8d0c0');G.box(x,2+hh+0.1,z,0.9,0.25,0.9,pick(['#6fe8c0','#8fe8ff','#c08aff','#ff8ad0'],rng));}
+    for(let k=0;k<30;k++){const a=rng()*TAU,x=C.x+Math.cos(a)*16.4,z=C.z-2+Math.sin(a)*11.4;G.box(x,0.2,z,0.3,0.1,0.3,'#8fe8ff');}
+    decksNear(P,G,C.x,C.z,14,rng,{rail:'#6b4424'});}
+  else if(L===2){// Sunken Ruins: pillars, gates, statues, treasure chamber, lore tablet
+    for(const [u,v,r] of CAVE_B3_PILLARS){const x=C.x+u,z=C.z+v;P.box(x,5.5,z,r*2,7,r*2,'#b4ae96');P.box(x,9.2,z,r*2+0.6,0.5,r*2+0.6,'#c8c2aa');G.box(x+r,5,z,0.06,2,0.3,'#6fe8d8');}
+    for(const v of [30,-31]){const z=C.z+v;for(const s of[-1,1])P.box(C.x+s*4,6,z,1.4,8,1.4,'#a8a28a');P.box(C.x,10.4,z,10,1.2,1.6,'#b4ae96');G.box(C.x,10.4,z+0.82,3,0.3,0.05,'#6fe8d8');}
+    for(const [u,v,ry] of [[-9,-5,0.4],[8,5,-2.6],[-4,7,3],[10,-6,-0.6]]){const x=C.x+u,z=C.z+v;P.box(x,-1.5,z,1.6,3,1.2,'#8a9a8a',ry);P.box(x,0.6,z,1.2,1.3,0.9,'#9aaa9a',ry);P.box(x,1.6,z,0.8,0.8,0.8,'#a8b8a8',ry);G.box(x,1.62,z,0.5,0.12,0.82,'#6fe8d8',ry);}
+    decksNear(P,G,C.x,C.z,18,rng,{col:['#8a8672','#9a9682'],noPosts:true});
+    {const x=C.x+28,z=C.z;for(let k=0;k<3;k++)P.box(x+1.5,2+k*1.6+0.8,z,0.6,1.6,7,'#a8a28a');G.box(x+1,5.4,z,0.1,0.3,5,'#ffd24a');SNOWFX.chest3={x:x-1,y:2,z};}
+    {const x=C.x-28,z=C.z;P.box(x,3.4,z,0.6,2.8,2.4,'#8a8672');for(let k=0;k<5;k++)G.box(x+0.32,2.4+k*0.45,z+(rng()-0.5)*1.4,0.04,0.2,0.8,'#6fe8d8');SNOWFX.tablet={x:x+1.4,z};}}
+  else{// Deep Sea Caves: darkness, bioluminescence, purple crystals, jellyfish and a giant skeleton
+    for(let k=0;k<60;k++){const a=rng()*TAU,d=26+rng()*6,x=C.x+Math.cos(a)*d,z=C.z+Math.sin(a)*d;G.box(x,2+rng()*12,z,0.2,0.2,0.2,pick(['#6fe8f8','#8fe8ff','#6fe8c0'],rng));}
+    for(let i=0;i<9;i++){const a=rng()*TAU,x=C.x+Math.cos(a)*27,z=C.z-4+Math.sin(a)*20;if(caveHeight(x,z)!==2)continue;let y=2,w=1.8;for(let k=0;k<4;k++){const sh=1.2+rng();P.box(x,y+sh/2,z,w,sh,w,pick(['#5a3aa0','#6a4ab8'],rng),k);if(k%2)G.box(x,y+sh/2,z,w*0.5,sh*0.9,w*1.02,'#c08aff',k);y+=sh;w*=0.78;}CIRCCOL.push({x,z,r:1});}
+    // the ancient sea-creature skeleton lying along the east shore
+    {const x0=C.x+18,z0=C.z+8;for(let k=0;k<16;k++){const x=x0-Math.sin(k*0.18)*3,z=z0-k*2.1,y=2.6+Math.sin(k*0.4)*0.3;P.box(x,y,z,1.1,1.1,1.8,'#e8e0cc');
+        if(k>1&&k<13)for(const sd of[-1,1])for(let j=0;j<=6;j++){const th=j/6*Math.PI*0.55,rx=x+sd*Math.sin(th)*(4-k*0.15),ry=y+Math.cos(th)*(5.5-k*0.25);P.box(rx,ry,z,0.5,0.6,0.5,j%2?'#e8e0cc':'#d8d0bc');}}
+      const sx=x0+0.5,sz=z0+4;P.box(sx,3.4,sz,3.4,2.6,4.4,'#e8e0cc');P.box(sx,2.4,sz+2.6,2.6,1,2.4,'#d8d0bc');for(const sd of[-1,1]){P.box(sx+sd*1.2,3.8,sz+1.2,0.8,0.9,1,'#10141e');G.box(sx+sd*1.2,3.8,sz+1.7,0.3,0.3,0.1,'#6fe8f8');}
+      CIRCCOL.push({x:sx,z:sz,r:2.4});for(let k=0;k<16;k+=3)CIRCCOL.push({x:x0,z:z0-k*2.1,r:1.2});}}
+}
+function buildSnowySeas(){const rng=mulberry32(707);
+  const mk=(key,o,R,fn)=>{const T=new Batch(0.5),S=new Batch(0.5),P=new Batch(0.35),Gb=new Batch(0.2);fn(T,S,P,Gb,rng);const grp=new THREE.Group();
+    if(T.parts.length)grp.add(T.mesh());if(S.parts.length)grp.add(S.mesh(MAT.bed,false));if(P.parts.length)grp.add(P.mesh());
+    if(Gb.parts.length){const gm=Gb.mesh(MAT.glow,false);gm.receiveShadow=false;grp.add(gm);}scene.add(grp);P4VIS.push({g:grp,x:o.x,z:o.z,r:R,key});return grp;};
+  mk('snowvillage',FROZEN,90,buildSnowVillage);mk('peaks',PEAKS,PEAKS.r+46,buildFrozenPeaks);mk('glacier',GLACIER,GLACIER.r+34,buildGlacierBay);
+  mk('arch',ARCH,ARCH.r+30,buildIceArch);mk('springs',SPRINGS,SPRINGS.r+28,buildHotSprings);mk('outpost',OUTPOST,OUTPOST.r+34,buildOutpost);
+  mk('field',FIELD,FIELD.r+10,buildIcebergFields);mk('seacaves',SEACAVE,SEACAVE.r+28,buildSeaCaves);mk('polar',POLAR,POLAR.r+16,buildPolar);
+  for(let L=0;L<4;L++)mk('cave'+L,CAVES[L],-400,(T,S,P,G,r)=>buildCaveLevel(L,T,S,P,G,r));
+  for(const s of SNOWFX.signs){const m=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.62),new THREE.MeshStandardMaterial({map:signTexture(s.kind),roughness:0.9}));
+    m.position.set(s.x,s.y,s.z);m.rotation.y=s.ry;scene.add(m);s.m=m;}
+  Snowy.init();}
+
+/* ---------- Snowy Seas: quests, weather, aurora, drifting ice, caves and everything you can do there ---------- */
+const SQUESTS=[
+  {id:'cold',title:'Welcome to the Cold',text:'Catch 3 Arctic Cod anywhere in the Snowy Seas. Try the Snow Village fishing dock.',need:3,on:(t,d)=>t==='catch'&&d.id==='arcticcod'&&SNOWZ.includes(d.zone),at:()=>vpt(-12.5,14),rw:{coins:200}},
+  {id:'supplies',title:'Frozen Supplies',text:'Collect 5 Ice Crystals. They sparkle along the Frozen Peaks trail and on the Crystal Isle by the Ice Arch.',need:5,on:(t,d)=>t==='res'&&d==='icecrystal',at:()=>TRAIL[40],rw:{coins:250,pearls:1}},
+  {id:'glacier',title:'Glacier Bay',text:'Sail north-east through the channel into Glacier Bay and catch a fish there.',on:(t,d)=>t==='catch'&&d.zone==='glacier',at:()=>GLACIER,rw:{coins:300}},
+  {id:'springs',title:'Hot Water, Cold World',text:'Find the Hot Springs to the west and take a warm soak.',on:t=>t==='soak',at:()=>SPRINGS,rw:{coins:200,res:{thermalstone:1}}},
+  {id:'peaks',title:'Top of the World',text:'Walk up the trail behind Snow Village to the summit of the Frozen Peaks.',on:t=>t==='summit',at:()=>SUMMIT,rw:{pearls:2}},
+  {id:'arch',title:'Through the Arch',text:'Drive your boat right under the Ice Arch, east of the village.',on:t=>t==='arch',at:()=>ARCH,rw:{coins:300}},
+  {id:'outpost',title:'Lost Expedition',text:'Go ashore at the Abandoned Outpost and search the old camp for clues.',on:t=>t==='journal',at:()=>OUTPOST,rw:{pearls:2}},
+  {id:'giant',title:'Frozen Giant',text:'Catch a fish of 60 kg or more in the Iceberg Fields. Mind the drifting ice!',on:(t,d)=>t==='catch'&&d.zone==='icefield'&&d.kg>=60,at:()=>FIELD,rw:{coins:600,pearls:2}},
+  {id:'below',title:'Below the Ice',text:'Sail into the Sea Caves lagoon, land at the cave mouth and step inside.',on:(t,d)=>t==='cave'&&d===0,at:()=>SEACAVE,rw:{coins:400}},
+  {id:'crystal',title:'Crystal Caverns',text:'Go down to B2 and catch a fish in the Crystal Caverns.',on:(t,d)=>t==='catch'&&d.zone==='caveb2',at:()=>CAVE_EXIT(0),rw:{coins:500,res:{purplecrystal:1}}},
+  {id:'ruins',title:'Ancient Waters',text:'Get Diving Gear from Bjorn at the Snow Village workshop, dive to B3 and read the ancient tablet.',on:t=>t==='tablet',at:()=>G.flags.sn_diving?CAVE_EXIT(1):SNOW_BLD.find(b=>b.id==='workshop'),rw:{pearls:3}},
+  {id:'abyss',title:'Into the Abyss',text:'Descend to B4, the Deep Sea Caves.',on:(t,d)=>t==='cave'&&d===3,at:()=>CAVE_EXIT(2),rw:{coins:800}},
+  {id:'legend',title:'Frozen Legend',text:'Cast a Legend Lure into the whirlpool of the Deep Sea Caves and defeat the Frost Leviathan.',on:(t,d)=>t==='boss'&&d==='frostleviathan',at:()=>BOSSES.find(b=>b.id==='frostleviathan'),rw:{coins:5000,pearls:10}},
+  {id:'done',title:'Hero of the Snowy Seas',text:'Every quest is done. Keep exploring, fishing and gathering!',at:()=>null}];
+const SnowQ={
+  i(){return Math.min(G.stats.sqI||0,SQUESTS.length-1);},cur(){return SQUESTS[this.i()];},idx(id){return SQUESTS.findIndex(q=>q.id===id);},done(id){return this.i()>this.idx(id);},
+  event(t,d){if(!G.flags.frozen)return;const q=this.cur();if(!q.on||!q.on(t,d))return;if(q.need){G.stats.sqN=(G.stats.sqN||0)+1;if(G.stats.sqN<q.need){this.hud(true);Save.write();return;}}this.advance();},
+  advance(){const q=this.cur();const r=q.rw||{};if(r.coins){G.coins+=r.coins;UI.coins();}if(r.pearls)Pearls.add(r.pearls,q.title);if(r.res)for(const [k,n] of Object.entries(r.res))G.res[k]=(G.res[k]||0)+n;
+    G.stats.sqI=this.i()+1;G.stats.sqN=0;Level.add(60);UI.banner('Snowy Seas quest complete!',q.title+(r.coins?' · +'+r.coins+' coins':''));Audio.fanfare(2);this.hud(true);Save.write();},
+  hud(force){const el=$('#snowQ');if(!el)return;const show=Snowy.region&&G.flags.frozen;el.hidden=!show;if(!show)return;const q=this.cur();
+    const t=q.title+(q.need?` (${G.stats.sqN||0}/${q.need})`:'');if(force||el._t!==t){el._t=t;$('#sqTitle').textContent=t;$('#sqText').textContent=q.text;}}};
+const Snowy={t:0,aur:null,drift:[],chunks:[],nodes:[],jellies:[],bumpT:0,curMsgT:0,region:false,inCave:false,level:-1,snowK:0,stepT:0,crackT:3,dripT:2,blizMsg:false,
+  init(){
+    // aurora curtains high in the sky, they follow the camera like the stars
+    const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false,uniforms:{uT:{value:0},uA:{value:0}},
+      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader:`uniform float uT;uniform float uA;varying vec2 vUv;
+        float h(float x){return fract(sin(x*127.1)*43758.5453);}
+        float n(float x){float i=floor(x),f=fract(x);return mix(h(i),h(i+1.0),f*f*(3.0-2.0*f));}
+        void main(){float x=vUv.x*40.0;float rays=0.55+0.45*n(x*3.1+uT*0.6)*n(x*0.7-uT*0.25);
+          float fold=0.6+0.4*sin(vUv.x*18.0+uT*0.5+sin(vUv.x*7.0-uT*0.3)*2.0);float v=vUv.y;float base=smoothstep(0.0,0.12,v)*pow(1.0-v,1.6);
+          vec3 col=mix(vec3(0.15,1.0,0.55),vec3(0.35,0.85,1.0),smoothstep(0.15,0.55,v));col=mix(col,vec3(0.75,0.35,1.0),smoothstep(0.55,1.0,v));
+          float edge=smoothstep(0.0,0.08,vUv.x)*smoothstep(1.0,0.92,vUv.x);gl_FragColor=vec4(col*rays*fold*base*edge*uA*1.6,1.0);}`});
+    const grp=new THREE.Group();
+    for(const [yaw,dist,base,H,ph] of [[-0.35,470,150,190,0],[0.3,520,180,230,2.1],[1.1,500,140,170,4.2]]){const g=new THREE.PlaneGeometry(1,1,90,1),p=g.attributes.position;
+      for(let i=0;i<p.count;i++){const u=p.getX(i)+0.5,v=p.getY(i)+0.5;p.setXYZ(i,(u-0.5)*820,base+v*H+Math.sin(u*3+ph)*25,-dist+Math.sin(u*5.2+ph)*70+Math.sin(u*13+ph)*14);}
+      g.computeBoundingSphere();const m=new THREE.Mesh(g,mat);m.rotation.y=yaw;m.frustumCulled=false;m.renderOrder=-1;grp.add(m);}
+    grp.visible=false;scene.add(grp);this.aur=grp;this.aurMat=mat;
+    // snowfall: an instanced cloud of flakes around the camera
+    {const N=1600,g=new THREE.BoxGeometry(0.11,0.11,0.11),m=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9,depthWrite:false});
+      this.flakes={N,mesh:new THREE.InstancedMesh(g,m,N),pos:new Float32Array(N*3),ph:new Float32Array(N),m4:new THREE.Matrix4()};this.flakes.mesh.frustumCulled=false;this.flakes.mesh.count=0;scene.add(this.flakes.mesh);
+      for(let i=0;i<N;i++){this.flakes.pos[i*3]=rand(-24,24);this.flakes.pos[i*3+1]=rand(-6,18);this.flakes.pos[i*3+2]=rand(-24,24);this.flakes.ph[i]=Math.random()*TAU;}}
+    const rng=mulberry32(93);
+    // drifting icebergs, some carrying a chest or a stranded explorer
+    for(const b of FIELD_DRIFT){const B=new Batch(0.4);let y=-1.5,w=b.s*2;
+      for(let k=0;y<b.h;k++){const sh=0.9+rng()*0.7;B.box(rng()-0.5,y+sh/2,rng()-0.5,w,sh,w*(0.8+rng()*0.4),pick(SC_.ice,rng),rng()*3);B.box(0,y+sh/2,0,w*1.02,sh*0.4,w*0.6,pick(SC_.iceSide,rng),rng()*3);y+=sh;w*=0.78;}
+      B.box(0,y+0.1,0,w*1.2,0.3,w*1.2,'#f8fbfd');B.box(0,-0.1,0,b.s*2.6,0.3,b.s*2.4,'#a8d0ea',0.4);b.top=y+0.25;
+      const m=B.mesh();scene.add(m);const d={b,m};
+      if(b.npc){const P=new Batch(0.1);snowPerson(P,0,0,0,0,'#e0a23f');P.box(0.6,1.4,0.2,0.1,1.8,0.1,'#6b4424');P.box(0.9,2.2,0.2,0.7,0.5,0.05,'#e0503f');d.extra=P.mesh();d.extra.position.y=b.top;m.add(d.extra);}
+      if(b.chest){const P=new Batch(0.1);P.box(0,0.35,0,1.1,0.7,0.8,'#8a5a2e');P.box(0,0.72,0,1.14,0.14,0.84,'#ffd24a');P.box(0,0.45,0.41,0.2,0.24,0.04,'#ffd24a');d.extra=P.mesh();d.extra.position.y=b.top;m.add(d.extra);}
+      this.drift.push(d);}
+    this.place(0);
+    // small ice pieces that bob around and get shoved by boats
+    const addChunk=(x,z)=>{const B=new Batch(0.3),s=0.9+rng()*1.3;B.box(0,0,0,s*1.6,0.5,s*1.3,pick(['#f4f8fb','#e8f2fa'],rng),rng()*3);B.box(0,-0.3,0,s*1.4,0.3,s*1.1,'#a8d0ea');
+      const m=B.mesh();scene.add(m);this.chunks.push({m,x,z,hx:x,hz:z,vx:0,vz:0,r:s*0.9,ph:rng()*TAU,ry:rng()*3});};
+    for(let i=0;i<12;i++){const a=rng()*TAU,d=rng()*(GLACIER.r-6);addChunk(GLACIER.x+Math.cos(a)*d,GLACIER.z+Math.sin(a)*d);}
+    for(let i=0;i<10;i++){const a=rng()*TAU,d=8+rng()*(FIELD.r-10);const x=FIELD.x+Math.cos(a)*d,z=FIELD.z+Math.sin(a)*d;if(qHeightAt(x,z)<0.3)addChunk(x,z);}
+    for(let i=0;i<8;i++){const a=rng()*1.6-0.8,d=40+rng()*16,x=FROZEN.x+Math.cos(Math.atan2(VDIR.z,VDIR.x)+a)*d,z=FROZEN.z+Math.sin(Math.atan2(VDIR.z,VDIR.x)+a)*d;if(qHeightAt(x,z)<0.3&&deckY(x,z)===null)addChunk(x,z);}
+    // gatherable resources
+    this.buildNodes(rng);
+    // glowing jellyfish drifting over the abyss lake
+    for(let i=0;i<14;i++){const B=new Batch(0.1),c=pick(['#c08aff','#8fe8ff','#ff8ad0','#6fe8c0'],rng);B.box(0,0,0,0.9,0.5,0.9,c);B.box(0,-0.45,0,0.7,0.2,0.7,c);for(let k=0;k<4;k++)B.box((k%2-0.5)*0.4,-0.9,((k>>1)-0.5)*0.4,0.08,0.8,0.08,'#dff6ff');
+      const m=B.mesh(MAT.glow,false);scene.add(m);const C=CAVES[3];this.jellies.push({m,x:C.x+rand(-18,18),z:C.z-4+rand(-12,12),y:rand(1.5,6),ph:rng()*TAU});}
+    // the lid of ice over the fishing hole on the floe
+    {const B=new Batch(0.3);B.box(0,0,0,2,0.5,2,'#dcecf8');B.box(0,0.27,0,1.2,0.05,1.2,'#bfe0f4');this.lid=B.mesh();this.lid.position.set(ICEHOLE.x,0.55,ICEHOLE.z);scene.add(this.lid);
+      const H=new Batch(0.3);for(let k=0;k<8;k++){const a=k/8*TAU;H.box(Math.cos(a)*1.25,0.6,Math.sin(a)*1.25,0.7,0.4,0.7,'#dcecf8',a);}this.holeRim=H.mesh();this.holeRim.position.set(ICEHOLE.x,0,ICEHOLE.z);this.holeRim.visible=false;scene.add(this.holeRim);}
+    // Quest events also feed the Snowy Seas quest chain
+    const qe=Quest.event.bind(Quest);Quest.event=(t,d)=>{qe(t,d);try{SnowQ.event(t,d);}catch(e){}};
+    {const t0=talk;talk=n=>n.d.snow?Snowy.talk(n):t0(n);}
+    this.sync();},
+  sync(){SN_HOLE.v=!!G.flags.sn_hole;if(this.lid){this.lid.visible=!SN_HOLE.v;this.holeRim.visible=SN_HOLE.v;}if(!G.res)G.res={};if(!G.stats.resDay)G.stats.resDay={};},
+  buildNodes(rng){const N=this.nodes,add=(type,x,z,boat)=>N.push({id:type+N.length,type,x,z,boat:!!boat});
+    for(const k of [26,44,62,80,98,116])add('icecrystal',TRAIL[k].x+2.4*Math.cos(k),TRAIL[k].z+2.4*Math.sin(k));
+    for(const k of [14,36,70,104])add('frozenherb',TRAIL[k].x-2*Math.sin(k),TRAIL[k].z+2*Math.cos(k));
+    add('ancientstone',SUMMIT.x-3,SUMMIT.z+2.5);if(SNOWFX.cave)add('ancientstone',SNOWFX.cave.x,SNOWFX.cave.z);
+    for(let k=0;k<3;k++){const a=k*2.1+0.5;add('icecrystal',CRYST_ISLE.x+Math.cos(a)*2.6,CRYST_ISLE.z+Math.sin(a)*2.6);}
+    add('frozenherb',LAKE.x+LAKE.r+1.4,LAKE.z);add('icecrystal',POLAR.x-3,POLAR.z-2);
+    for(const [px,pz,pr] of POOLS){const a=Math.atan2(SPRINGS.z-pz,SPRINGS.x-px)+1.6;add('thermalstone',px+Math.cos(a)*(pr+1.2),pz+Math.sin(a)*(pr+1.2));}
+    add('rarealgae',POOLS[0][0]-POOLS[0][2]-0.9,POOLS[0][1]);add('rarealgae',POOLS[2][0]+POOLS[2][2]+0.9,POOLS[2][1]);add('frozenherb',SPRINGS.x-7,SPRINGS.z-6);add('frozenherb',SPRINGS.x+2,SPRINGS.z+9);
+    const oa=(a,d)=>[OUTPOST.x+Math.cos(a)*d,OUTPOST.z+Math.sin(a)*d];
+    for(const a of [0.9,2.6,4.6]){const p=oa(a,8);add('rustyparts',p[0],p[1]);}for(const a of [1.7,5.6]){const p=oa(a,5.5);add('mechparts',p[0],p[1]);}{const p=oa(2.1,5.6);add('oldmaps',p[0],p[1]);}
+    for(let k=0;k<5;k++){const a=k*1.3+0.3,d=12+(k%3)*8;add('icechunk',FIELD.x+Math.cos(a)*d,FIELD.z+Math.sin(a)*d,1);}
+    for(let k=0;k<4;k++){const a=k*1.7+1,d=16+(k%2)*10;add('coldcoral',FIELD.x+Math.cos(a)*d,FIELD.z+Math.sin(a)*d,1);}
+    for(let k=0;k<3;k++){const a=k*2+0.4,d=10+k*5;add('icechunk',GLACIER.x+Math.cos(a)*d,GLACIER.z+Math.sin(a)*d,1);}
+    {const C=CAVES[1];for(const [u,v] of [[-12,20],[12,18],[-26,-2],[26,4],[-6,-26],[8,-18]])add(Math.abs(u)>20?'icecrystal':'purplecrystal',C.x+u,C.z+v);}
+    {const C=CAVES[2];for(const [u,v] of [[-24,10],[24,-10],[22,11]])add('ancientstone',C.x+u,C.z+v);}
+    {const C=CAVES[3];for(const [u,v] of [[-26,14],[-12,20],[6,22]])add('purplecrystal',C.x+u,C.z+v);}
+    for(const n of N){const B=new Batch(0.12),G2=new Batch(0.1),R=RES[n.type];n.y=n.boat?0:groundAt(n.x,n.z);
+      if(n.type==='icecrystal'||n.type==='purplecrystal'){for(let k=0;k<4;k++){const a=k*1.6,hh=0.6+rng()*0.9;B.box(Math.cos(a)*0.3,hh/2,Math.sin(a)*0.3,0.3,hh,0.3,R.col,a,(rng()-0.5)*0.6,(rng()-0.5)*0.6);}G2.box(0,0.5,0,0.2,0.7,0.2,'#ffffff');}
+      else if(n.type==='frozenherb'||n.type==='rarealgae'){for(let k=0;k<5;k++){const a=k*1.25;B.box(Math.cos(a)*0.2,0.25,Math.sin(a)*0.2,0.12,0.5,0.12,'#3a7a4a',a,0.3);G2.box(Math.cos(a)*0.28,0.52,Math.sin(a)*0.28,0.16,0.16,0.16,R.col);}}
+      else if(n.type==='icechunk'){B.box(0,0.1,0,1.8,0.8,1.4,R.col,rng()*3);B.box(0,0.55,0,1.3,0.3,1,'#ffffff');G2.box(0,0.72,0,0.3,0.2,0.3,'#bfeaff');}
+      else if(n.type==='coldcoral'){for(let k=0;k<5;k++){const hh=0.4+rng()*0.6;B.box((rng()-0.5)*0.8,hh/2-0.2,(rng()-0.5)*0.8,0.18,hh,0.18,R.col,rng()*3,0.3);}G2.box(0,0.35,0,0.2,0.2,0.2,'#ffb0d0');B.box(0,-0.2,0,1.4,0.3,1.4,'#6a8aa0');}
+      else if(n.type==='oldmaps'){B.box(0,0.35,0,0.8,0.7,0.8,'#8a6a42');B.box(0,0.78,0,0.7,0.14,0.14,R.col,0.4);G2.box(0,0.9,0,0.12,0.12,0.12,'#ffd24a');}
+      else if(n.type==='rustyparts'||n.type==='mechparts'){for(let k=0;k<5;k++)B.box((rng()-0.5)*0.8,0.1+k*0.08,(rng()-0.5)*0.8,0.3+rng()*0.3,0.14,0.3,k%2?R.col:'#5a5a60',rng()*3);G2.box(0,0.45,0,0.12,0.12,0.12,'#ffd24a');}
+      else{B.box(0,0.3,0,0.8,0.6,0.7,R.col,rng()*3);G2.box(0,0.62,0,0.5,0.06,0.2,n.type==='thermalstone'?'#ff7a3a':'#6fe8d8',rng()*3);}
+      const g=new THREE.Group();g.add(B.mesh());const gm=G2.mesh(MAT.glow,false);g.add(gm);g.position.set(n.x,n.y,n.z);scene.add(g);n.g=g;n.glow=gm;}},
+  taken(n){return G.stats.resDay&&G.stats.resDay[n.id]===G.day;},
+  place(t){for(const {b,m} of this.drift){const a=b.ph+t*b.w;b.x=b.cx+Math.cos(a)*b.orx;b.z=b.cz+Math.sin(a)*b.orz;m.position.set(b.x,Math.sin(t*0.6+b.ph)*0.15,b.z);m.rotation.y=a*0.3;}},
+  pos(){return G.mode==='boat'?Boat.pos:Player.pos;},
+  found(id){return !!G.flags['sn_'+id];},
+  aurora(){if(!Env.P||Env.night<0.5)return false;const p=this.pos(),polar=Math.hypot(p.x-POLAR.x,p.z-POLAR.z)<70;return polar||((this.snowK>0.2)&&['sunny','cloudy'].includes(Env.P.key));},
+  wxLabel(){if(this.inCave)return 'Underground';if(this.snowK<0.35||!Env.P)return null;if(this.aurora())return 'Aurora night';
+    return {sunny:'Clear',cloudy:'Light snow',rain:'Light snow',heavy:'Heavy snow',fog:'Freezing fog',storm:'Blizzard'}[Env.P.key]||Env.P.name;},
+  mood(){if(!started)return null;if(this.inCave)return this.level<=1?'crystal':'deep';if(this.snowK<0.3)return null;const p=this.pos();
+    if(Math.hypot(p.x-VILLAGE.x,p.z-VILLAGE.z)<55||Math.hypot(p.x-SPRINGS.x,p.z-SPRINGS.z)<35)return 'village';if(Math.hypot(p.x-FIELD.x,p.z-FIELD.z)<FIELD.r+10)return 'tense';return 'arctic';},
+  discover(id){if(this.found(id))return;const L=SNOWLOC.find(l=>l.id===id);G.flags['sn_'+id]=true;Level.add(25);FogMap.reveal(L.o.x,L.o.z,(L.o.r||20)+40);
+    UI.banner('Snowy Seas · '+(typeof L.n==='number'?L.n+'. ':'')+L.name,L.desc);Audio.fanfare(2);Ach.check();
+    if(SNOWLOC.every(l=>this.found(l.id)))setTimeout(()=>UI.toast('You found every place in the Snowy Seas!','gold'),3600);Save.write();},
+  update(dt){if(!this.aur)return;this.t+=dt;const cx=camera.position.x,cz=camera.position.z,RG=Env.RG||{};
+    const pp=started?this.pos():camera.position;this.inCave=started&&G.mode==='walk'&&Player.pos.x>1500;this.level=this.inCave?caveLevel(Player.pos.x,Player.pos.z):-1;
+    this.snowK=this.inCave?0:(RG.snow||0);this.region=this.inCave||this.snowK>0.25||inSnowy(pp.x,pp.z);const sn=this.snowK,P=Env.P||{};
+    // aurora
+    const polarK=clamp(1-(Math.hypot(pp.x-POLAR.x,pp.z-POLAR.z)-40)/120,0,1),A=Math.max(sn,polarK)*(0.22+0.78*Env.night)*(1-(P.dark||0)*0.8)*(this.aurora()?1.35:1)*(this.inCave?0:1);
+    this.aur.visible=A>0.01;if(this.aur.visible){this.aur.position.set(cx,0,cz);this.aurMat.uniforms.uT.value=this.t;this.aurMat.uniforms.uA.value=A;}
+    // snowfall
+    {const F=this.flakes,key=P.key||'sunny',amt=sn*({sunny:0.12,cloudy:0.35,rain:0.45,heavy:0.85,fog:0.25,storm:1}[key]||0.2);const n=Math.floor(F.N*amt);F.mesh.count=n;
+      if(n){const wind=(P.wind||0)*(key==='storm'?9:3),cy=camera.position.y;for(let i=0;i<n;i++){let y=F.pos[i*3+1]-dt*(key==='storm'?4:1.6);if(y<-6)y+=24;F.pos[i*3+1]=y;
+        let x=F.pos[i*3]+(wind+Math.sin(this.t*1.3+F.ph[i])*0.6)*dt;if(x>24)x-=48;if(x<-24)x+=48;F.pos[i*3]=x;const zz=F.pos[i*3+2];if(Math.abs(x)<3&&Math.abs(y-6)<3&&Math.abs(zz)<3)F.m4.makeTranslation(0,-999,0);else F.m4.makeTranslation(cx+x,cy-6+y,cz+zz);F.mesh.setMatrixAt(i,F.m4);}F.mesh.instanceMatrix.needsUpdate=true;}}
+    // smoke, steam and embers
+    const near=(p,m)=>Math.abs(p.x-cx)<m&&Math.abs(p.z-cz)<m;
+    for(const s of SNOWFX.smoke)if(near(s,160)&&Math.random()<dt*1.4)Particles.spawn(s.x+rand(-0.2,0.2),s.y,s.z+rand(-0.2,0.2),rand(-0.3,0.3)+0.4,rand(1,1.6),rand(-0.3,0.3),Math.random()<0.5?'#b8bcc2':'#9aa0a6',rand(0.5,0.9),rand(2.5,4),-0.2);
+    for(const s of SNOWFX.steam)if(near(s,180)&&Math.random()<dt*7)Particles.spawn(s.x+rand(-s.r,s.r)*0.7,s.y,s.z+rand(-s.r,s.r)*0.7,rand(-0.2,0.2),rand(0.8,1.4),rand(-0.2,0.2),Math.random()<0.7?'#f4f8fb':'#ffe0c8',rand(0.6,1.1),rand(2,3.2),-0.25);
+    for(const f of SNOWFX.fire)if(near(f,120)&&Math.random()<dt*8)Particles.spawn(f.x+rand(-0.3,0.3),f.y,f.z+rand(-0.3,0.3),rand(-0.3,0.3),rand(1.5,3),rand(-0.3,0.3),Math.random()<0.5?'#ffb03a':'#ff6a1a',0.12,0.9,-0.5);
+    if(SNOWFX.boat)SNOWFX.boat.g.position.y=waveH(SNOWFX.boat.g.position.x,SNOWFX.boat.g.position.z,Time.t)*0.8;
+    // drifting icebergs, small ice, resources and jellyfish
+    const fd=Math.hypot(cx-FIELD.x,cz-FIELD.z);for(const d of this.drift){d.m.visible=fd<520;if(d.extra)d.extra.visible=d.b.npc?!G.flags.sn_rescued:(G.stats['berg'+d.b.i]!==G.day);}if(fd<520)this.place(this.t);
+    for(const c of this.chunks){const vis=near(c,300);c.m.visible=vis;if(!vis)continue;c.vx*=Math.exp(-dt*1.1);c.vz*=Math.exp(-dt*1.1);const nx=c.x+c.vx*dt,nz=c.z+c.vz*dt;
+      if(qHeightAt(nx,nz)<0.2&&deckY(nx,nz)===null){c.x=nx;c.z=nz;}else{c.vx*=-0.5;c.vz*=-0.5;}const hd=Math.hypot(c.hx-c.x,c.hz-c.z);if(hd>30){c.x+=(c.hx-c.x)*dt*0.05;c.z+=(c.hz-c.z)*dt*0.05;}
+      c.m.position.set(c.x,waveH(c.x,c.z,Time.t)*0.9+0.1,c.z);c.m.rotation.set(Math.sin(this.t+c.ph)*0.08,c.ry+=dt*Math.hypot(c.vx,c.vz)*0.05,Math.cos(this.t*0.8+c.ph)*0.08);}
+    const au=this.aurora();for(const n of this.nodes){const vis=near(n,220)&&!this.taken(n);n.g.visible=vis;if(vis){if(n.boat)n.g.position.y=waveH(n.x,n.z,Time.t)*0.9;n.glow.scale.setScalar(1+(au?0.5:0.15)*Math.sin(this.t*3+n.x));
+      if(Math.random()<dt*(au?2:0.6)&&near(n,40))Particles.spawn(n.x+rand(-0.5,0.5),n.g.position.y+rand(0.4,1.2),n.z+rand(-0.5,0.5),0,0.5,0,'#ffffff',0.08,0.8,0);}}
+    for(const j of this.jellies){j.m.visible=this.level===3;if(this.level!==3)continue;j.m.position.set(j.x+Math.sin(this.t*0.2+j.ph)*3,j.y+Math.sin(this.t*0.9+j.ph)*0.6,j.z+Math.cos(this.t*0.17+j.ph)*3);j.m.scale.y=1+Math.sin(this.t*2+j.ph)*0.15;}
+    // fish school that follows a different iceberg every hour
+    {const d=this.drift[(G.day*24+Math.floor(G.time))%this.drift.length];this.school=d?{x:d.b.x+6,z:d.b.z+4}:null;if(this.school&&near(this.school,160)&&Math.random()<dt*10)Particles.spawn(this.school.x+rand(-3,3),0.1,this.school.z+rand(-3,3),0,rand(0.8,1.6),0,'#e6f4ff',0.12,0.5);}
+    if(!started)return;
+    const p=pp;
+    // villagers head indoors when the snow gets heavy
+    {const bad=sn>0.5&&['heavy','storm'].includes(P.key);for(const n of NPC.list)if(n.d.snow&&n.d.r>0)n.c.root.visible=!bad;if(bad&&!this.blizMsg&&Math.hypot(p.x-VILLAGE.x,p.z-VILLAGE.z)<60){this.blizMsg=true;UI.toast('The villagers have gone inside to wait out the snow. The shops are still open.');}if(!bad)this.blizMsg=false;}
+    if(G.mode==='boat'&&!Boat.sinking){this.bumpT-=dt;this.curMsgT-=dt;const hull=G.flags.sn_hull;
+      for(const {b} of this.drift){const dx=Boat.pos.x-b.x,dz=Boat.pos.z-b.z,d=Math.hypot(dx,dz),R=b.s*1.25+1.8;
+        if(d<R&&d>0.01){Boat.pos.x+=dx/d*(R-d);Boat.pos.z+=dz/d*(R-d);if(this.bumpT<=0){this.bumpT=1.4;const hard=Math.abs(Boat.speed)>3;Boat.speed*=-0.35;Cam.shake=0.4;Audio.splash(true);this.crack(1);
+          Particles.splash(Boat.pos.x-dx/d*1.5,Boat.pos.z-dz/d*1.5,16,1);if(hard){const tier=Boat.spec().tier;Boat.damage((hull?1.5:4.5)*(tier>=4?0.5:1));UI.toast(tier>=4?'Your big hull shrugs off a drifting iceberg.':'Crunch! A drifting iceberg hit the hull.','warn');}}}}
+      for(const c of this.chunks){const dx=c.x-Boat.pos.x,dz=c.z-Boat.pos.z,d=Math.hypot(dx,dz),R=c.r+Boat.model.W*0.6+0.8;if(d<R&&d>0.01){const k=(R-d)*3+Math.abs(Boat.speed)*0.5;c.vx+=dx/d*k*dt*6;c.vz+=dz/d*k*dt*6;if(Math.random()<dt*6)Particles.splash(c.x,c.z,4,0.5);}}
+      // strong currents sweep across the fields; bigger boats hold their line better
+      if(fd<FIELD.r){const k=1-fd/FIELD.r,ang=Math.atan2(Boat.pos.z-FIELD.z,Boat.pos.x-FIELD.x)+Math.PI/2,tier=Boat.spec().tier,sp=2.2*(0.4+k)/(1+Math.max(0,tier-1)*0.35);
+        const nx=Boat.pos.x+Math.cos(ang)*sp*dt,nz=Boat.pos.z+Math.sin(ang)*sp*dt;if(!Boat.hits(nx,nz,Boat.yaw)){Boat.pos.x=nx;Boat.pos.z=nz;}
+        if(this.curMsgT<=0){this.curMsgT=45;UI.toast('Strong currents are dragging your boat around the Iceberg Fields!','warn');}
+        if(Math.random()<dt*4)Particles.spawn(Boat.pos.x+rand(-8,8),0.15,Boat.pos.z+rand(-8,8),Math.cos(ang)*3,0.1,Math.sin(ang)*3,'#e6f4ff',0.16,1.2,0);}
+      // blizzard wind pushes boats sideways
+      if(sn>0.5&&P.key==='storm'){const nx=Boat.pos.x+0.9*dt,nz=Boat.pos.z-0.5*dt;if(!Boat.hits(nx,nz,Boat.yaw)){Boat.pos.x=nx;Boat.pos.z=nz;}}
+      if(!this.found('arch')||!SnowQ.done('arch'))if(Math.abs(Boat.pos.x-ARCH.x)<8&&Math.abs(Boat.pos.z-ARCH.z)<4.5){this.discover('arch');Quest.event('arch');}}
+    // on foot: summit, crunchy footsteps
+    if(G.mode==='walk'){if(Math.hypot(p.x-SUMMIT.x,p.z-SUMMIT.z)<5&&Math.abs(p.y-SUMMIT.h)<2&&!this._atTop){this._atTop=true;UI.banner('Summit View','The whole of the Snowy Seas lies below you.');Cam.orbitT=6;Audio.fanfare(3);Quest.event('summit');G.flags.sn_summit=true;Save.write();}
+      if(Math.hypot(p.x-SUMMIT.x,p.z-SUMMIT.z)>9)this._atTop=false;
+      if(this.region&&['walk','run','sprint'].includes(Player.state)&&Player.onGround){this.stepT-=dt*(Player.state==='sprint'?1.5:Player.state==='run'?1.2:1);
+        if(this.stepT<=0){this.stepT=0.34;const deck=deckY(p.x,p.z)!==null;if(deck)Audio.tone(rand(150,180),0.07,{type:'triangle',vol:0.035});else if(!this.inCave)Audio.noiseHit(0.08,{freq:rand(1500,2200),type:'bandpass',q:1.2,vol:0.06});else Audio.noiseHit(0.05,{freq:900,type:'bandpass',vol:0.04});}}}
+    // ice cracking near glaciers and icebergs, drips in the caves
+    this.crackT-=dt;if(this.crackT<=0){this.crackT=rand(5,12);if(sn>0.4&&(Math.hypot(p.x-GLACIER.x,p.z-GLACIER.z)<GLACIER.r+50||fd<FIELD.r+30||Math.hypot(p.x-ARCH.x,p.z-ARCH.z)<50))this.crack(rand(0.4,0.8));}
+    if(this.inCave){this.dripT-=dt;if(this.dripT<=0){this.dripT=rand(0.8,2.6);const f=rand(900,1600);Audio.tone(f,0.25,{type:'sine',vol:0.05,slide:-f*0.3});Audio.tone(f*0.8,0.4,{type:'sine',vol:0.02,when:0.18,slide:-f*0.2});}}
+    // discoveries
+    if(G.flags.frozen&&!this.found('village'))this.discover('village');
+    const chk=(id,o,r)=>{if(!this.found(id)&&Math.hypot(p.x-o.x,p.z-o.z)<r)this.discover(id);};
+    if(!this.inCave){chk('peaks',PEAKS,PEAKS.r+32);chk('glacier',GLACIER,GLACIER.r+6);chk('springs',SPRINGS,SPRINGS.r+22);chk('outpost',OUTPOST,OUTPOST.r+26);chk('field',FIELD,FIELD.r-4);chk('caves',SEACAVE,24);chk('polar',POLAR,POLAR.r+26);
+      if(Math.hypot(p.x-SPRINGS.x,p.z-SPRINGS.z)<SPRINGS.r+22)Quest.event('seeSprings');}
+    else if(this.level>=0&&!G.flags['sn_b'+(this.level+1)]){G.flags['sn_b'+(this.level+1)]=true;UI.banner(CAVES[this.level].name,'Depth '+CAVES[this.level].depth);Audio.fanfare(2);Level.add(30);Quest.event('cave',this.level);Save.write();}
+    this.hudT=(this.hudT||0)-dt;if(this.hudT<=0){this.hudT=0.5;SnowQ.hud();}},
+  crack(v){Audio.noiseHit(0.12,{freq:2600,type:'highpass',vol:0.12*v});Audio.noiseHit(0.5,{freq:180,type:'lowpass',vol:0.25*v,when:0.05});Audio.tone(rand(70,110),0.5,{type:'sine',vol:0.08*v,slide:-30});},
+  // lighting, fog and water for the caves; thicker snow cuts visibility
+  env(K,P,RG){if(this.inCave){const L=Math.max(0,this.level),fc=[lin('#0e2238'),lin('#140f2a'),lin('#0a1a1e'),lin('#02050c')][L];
+      FOG_COL.copy(fc);scene.background.copy(fc);scene.fog.color.copy(fc);scene.fog.near=4;scene.fog.far=[75,65,60,42][L];
+      sun.intensity=0.04;hemi.intensity=[1.0,0.75,0.7,0.42][L];hemi.color.copy([lin('#9ac8f0'),lin('#b08aff'),lin('#8adcd0'),lin('#4a7ab8')][L]);hemi.groundColor.copy(lin('#10182a'));
+      Env.stars.material.opacity=0;if(typeof CLOUDS!=='undefined')CLOUDS.forEach(m=>m.visible=false);MAT.glow.color.setRGB(2.4,2.0,1.5).multiplyScalar(1.25);
+      if(water){const u=water.material.uniforms;u.uLight.value=0.35;u.uTint.value.copy([lin('#1a4a7a'),lin('#2a1a6a'),lin('#0e4a4a'),lin('#040c24')][L]);u.uTintK.value=0.75;u.uAmp.value=0.1;}WAVE_AMP.v=0.1;return;}
+    const sn=RG.snow||0;if(sn>0){const k=P.key;if(k==='heavy')scene.fog.far*=lerp(1,0.6,sn);if(k==='storm'){scene.fog.far*=lerp(1,0.5,sn);scene.fog.near*=lerp(1,0.4,sn);}}},
+  // prompts shown near things you can do
+  prompts(out){if(Boat.sinking)return;const p=this.pos();
+    if(G.mode==='boat'){if(Math.abs(Boat.speed)>3)return;
+      for(const s of SHORES){const d=Math.hypot(p.x-s.boat.x,p.z-s.boat.z);if(d<11)out.push({d,label:'Go ashore at '+s.name,fn:()=>this.ashore(s)});}
+      const ds=Math.hypot(p.x-SPRINGS.x,p.z-SPRINGS.z);if(ds<SPRINGS.r+10&&!out.length)out.push({d:ds,label:'Soak in the hot springs',fn:()=>this.soak()});
+      const dw=Math.hypot(p.x-WRECK.x,p.z-WRECK.z)-6;if(dw<8)out.push({d:dw+2,label:'Search the shipwreck',fn:()=>this.search(true)});
+      for(const d of this.drift){const dd=Math.hypot(p.x-d.b.x,p.z-d.b.z)-(d.b.s*1.25+2);if(dd>5)continue;
+        if(d.b.npc&&!G.flags.sn_rescued)out.push({d:dd,label:'Rescue the stranded explorer',fn:()=>this.rescue()});
+        if(d.b.chest&&G.stats['berg'+d.b.i]!==G.day)out.push({d:dd,label:'Grab the chest on the iceberg',fn:()=>this.bergChest(d.b)});}
+      for(const n of this.nodes){if(!n.boat||this.taken(n))continue;const d=Math.hypot(p.x-n.x,p.z-n.z);if(d<5)out.push({d,label:'Collect '+RES[n.type].name,fn:()=>this.collect(n)});}
+      return;}
+    if(G.mode!=='walk')return;
+    for(const n of this.nodes){if(n.boat||this.taken(n))continue;const d=Math.hypot(p.x-n.x,p.z-n.z);if(d<2.3&&Math.abs(p.y-n.y)<2.5)out.push({d,label:'Collect '+RES[n.type].name,fn:()=>this.collect(n)});}
+    if(!this.inCave){
+      for(const b of SNOW_BLD){if(!b.name)continue;const d=Math.hypot(p.x-b.door.x,p.z-b.door.z);if(d<2.3)out.push({d,label:b.id==='cabin'?'Go inside your Winter Cabin':'Enter '+(b.name.includes("'")?b.name:'the '+b.name),fn:()=>this.enter(b.id)});}
+      if(SNOWFX.board){const d=Math.hypot(p.x-SNOWFX.board.x,p.z-SNOWFX.board.z);if(d<2.6)out.push({d,label:'Read the Snowy Seas quest board',fn:()=>UI.openPanel('snowquests')});}
+      for(const [px,pz,pr] of POOLS){const d=Math.hypot(p.x-px,p.z-pz)-pr;if(d<1.6)out.push({d,label:'Soak in the hot spring',fn:()=>this.soak()});}
+      if(SNOWFX.bath){const d=Math.hypot(p.x-SNOWFX.bath.x,p.z-SNOWFX.bath.z);if(d<2.6)out.push({d,label:'Rest at the bathhouse',fn:()=>this.soak(true)});}
+      if(Math.hypot(p.x-OUTPOST.x,p.z-OUTPOST.z)<10){const d=Math.hypot(p.x-OUTPOST.x,p.z-OUTPOST.z);out.push({d:d+1.5,label:'Search the old camp',fn:()=>this.search()});}
+      if(SNOWFX.hatch){const d=Math.hypot(p.x-SNOWFX.hatch.x,p.z-SNOWFX.hatch.z);if(d<2.2)out.push({d,label:'Open the tunnel hatch',fn:()=>this.hatch()});}
+      {const d=Math.hypot(p.x-ICEHOLE.x,p.z-ICEHOLE.z);if(d<2.8&&!G.flags.sn_hole)out.push({d,label:'Drill a fishing hole in the ice',fn:()=>this.drill()});}
+      if(SNOWFX.caveMouth){const d=Math.hypot(p.x-SNOWFX.caveMouth.x,p.z-SNOWFX.caveMouth.z);if(d<3.6)out.push({d,label:'Enter the Sea Caves',fn:()=>this.enterCave(0)});}
+      if(Math.hypot(p.x-POLAR.x,p.z-POLAR.z)<3.5)out.push({d:1,label:'Look through the telescope',fn:()=>{Cam.orbitT=6;UI.toast(this.aurora()?'The aurora is dancing right overhead. Rare fish are rising all over the Snowy Seas!':'Come back on a clear night to see the aurora from here.','good');}});
+      return;}
+    const L=this.level;if(L<0)return;
+    {const e=CAVE_ENTRY(L),d=Math.hypot(p.x-e.x,p.z-e.z);if(d<3.2)out.push({d,label:L===0?'Climb back to the surface':'Climb up to '+CAVES[L-1].name.split(' ·')[0],fn:()=>L===0?this.leaveCave():this.gotoLevel(L-1,true)});}
+    if(L<3){const e=CAVE_EXIT(L),d=Math.hypot(p.x-e.x,p.z-e.z);if(d<3.2)out.push({d,label:'Go down to '+CAVES[L+1].name,fn:()=>this.gotoLevel(L+1)});}
+    if(L===2&&SNOWFX.chest3){const d=Math.hypot(p.x-SNOWFX.chest3.x,p.z-SNOWFX.chest3.z);if(d<2.6)out.push({d,label:'Open the treasure chamber chest',fn:()=>this.chest3()});}
+    if(L===2&&SNOWFX.tablet){const d=Math.hypot(p.x-SNOWFX.tablet.x,p.z-SNOWFX.tablet.z);if(d<2.6)out.push({d,label:'Read the ancient tablet',fn:()=>this.tablet()});}},
+  fade(fn,msg){$('#fade').classList.add('on');setTimeout(()=>{fn();Cam.target.copy(G.mode==='boat'?Boat.pos:Player.pos);setTimeout(()=>{$('#fade').classList.remove('on');if(msg)UI.toast(msg,'good');},250);},650);},
+  ashore(s){Boat.pos.set(s.boat.x,0,s.boat.z);Boat.yaw=s.yaw;Boat.speed=0;scene.add(Player.model.root);Player.pos.set(s.foot.x,groundAt(s.foot.x,s.foot.z),s.foot.z);Player.visY=Player.pos.y;
+    Player.yaw=Math.atan2(s.foot.x-s.boat.x,s.foot.z-s.boat.z);G.mode='walk';Cam.dist=10;UI.boatHud(false);UI.depth();Audio.tone(160,0.1,{type:'triangle',vol:0.06});UI.toast('You tied up at '+s.name+'.','good');Save.write();},
+  moorAt(id){const s=SHORES.find(k=>k.id===id);if(!s)return;Boat.pos.set(s.boat.x,0,s.boat.z);Boat.yaw=s.yaw;Boat.speed=0;},
+  enter(id){if(id==='tackle'){UI.snowHost='Fishing Shop · Frida';UI.openPanel('tackle');}else if(id==='store'){UI.snowHost='General Store · Olaf';UI.openPanel('shop');}
+    else UI.openPanel({market:'snowmarket',kitchen:'snowkitchen',cabin:'snowcabin',warehouse:'snowres',workshop:'snowworkshop'}[id]);},
+  enterCave(L){if(!SnowQ.done('giant')&&L===0){Dialog.open(null,['Thick blue ice seals the cave mouth. You can hear water dripping somewhere deep inside.','Old Sven at the Snow Village Fish Market says the ice thins once the Snowy Seas trust you. Finish his quests up to "Frozen Giant" first.'],null,'Sea Caves','Sealed entrance');return;}
+    this.moorAt('caves');this.gotoLevel(L);},
+  gotoLevel(L,up){if(L===2&&!G.flags.sn_diving){Dialog.open(null,['The tunnel down to B3 is completely flooded.','You will need Diving Gear. Bjorn at the Snow Village boat workshop can build it from expedition parts and thermal stones.'],null,'Sunken Ruins','Flooded tunnel');return;}
+    if(L===3&&!G.flags.sn_tablet){Dialog.open(null,['A huge stone door blocks the way down. Strange runes glow on its surface.','Maybe the ancient tablet somewhere in these ruins explains how to open it.'],null,'Deep Sea Caves','Sealed door');return;}
+    if(Fishing.busy())return;this.fade(()=>{const e=up?CAVE_EXIT(L):CAVE_ENTRY(L);Player.pos.set(e.x,groundAt(e.x,e.z-2),e.z+(up?2:-2));Player.visY=Player.pos.y;Player.yaw=up?0:Math.PI;Cam.yaw=up?Math.PI:0;Cam.dist=8;},
+      (L===2&&!up)?'You pull on the diving mask and swim down into the flooded ruins.':null);},
+  leaveCave(){this.fade(()=>{const s=SHORES.find(k=>k.id==='caves');this.moorAt('caves');Player.pos.set(s.foot.x,groundAt(s.foot.x,s.foot.z),s.foot.z);Player.visY=Player.pos.y;Player.yaw=Math.atan2(Math.cos(C_OPEN),Math.sin(C_OPEN));Cam.dist=10;},'Back in the fresh air of the lagoon.');},
+  travel(id){if(Fishing.busy()){UI.toast('Finish fishing first.','warn');return;}const s=SHORES.find(k=>k.id===id)||SHORES[0];
+    if(id.startsWith('b')){const L=+id.slice(1)-1;UI.closePanel();if(G.mode==='boat'){scene.add(Player.model.root);G.mode='walk';UI.boatHud(false);UI.depth();}this.moorAt('caves');this.gotoLevel(L);return;}
+    if(!G.flags.boat){UI.toast('You need a boat to travel around the Snowy Seas.','warn');return;}UI.closePanel();
+    this.fade(()=>{if(G.mode==='boat'){this.moorAt(s.id);}else{this.moorAt(s.id);Player.pos.set(s.boat.x,1,s.boat.z);Boat.enter(true);}G.time=(G.time+0.5)%24;},'You sailed to '+s.name+'.');},
+  soak(bath){G.hp=100;G.stamina=100;Buffs.add('warm',bath?600:360);G.stats.soak=(G.stats.soak||0)+1;if(G.mode==='boat'||bath){Boat.hp=100;Boat.repairVisual();}
+    this.fade(()=>{G.time=(G.time+(bath?3:1))%24;},null);setTimeout(()=>{UI.banner('Ahh, the hot springs…',(bath?'A long rest in the bathhouse. ':'')+'Stamina restored and you feel Toasty.');UI.bars&&UI.bars();Quest.event('soak');Ach.check();Save.write();},1000);Audio.fanfare(1);},
+  search(wreck){const k=G.day;
+    if(!G.flags.sn_journal&&!wreck){G.flags.sn_journal=true;Dialog.open(null,['You dig through the snow in the old camp and find a frozen expedition journal.',
+      '"Day 38. The Sea Caves go down much deeper than we thought. Glowing crystals, then ruins older than any map."',
+      '"Day 41. Something enormous circles in the black lake at the very bottom. Its breath turns the water to ice. We are leaving at first light."',
+      'That was the last page. Under the journal lies a small chest the expedition left behind.'],[{label:'Open the chest',cls:'gold',fn:()=>{Dialog.close();this.loot(true);Quest.event('journal');}}],'Abandoned Outpost','The lost expedition');G.stats.outDay=k;Save.write();return;}
+    const key=wreck?'wreckDay':'outDay';if(G.stats[key]===k){UI.toast('You already searched here today. Come back tomorrow.','warn');return;}G.stats[key]=k;this.loot(false,wreck);},
+  loot(first,wreck){const c=first?300:Math.round(rand(80,220)),pl=first?3:(Math.random()<0.3?1:0);G.coins+=c;const got=[];
+    const give=(k,n)=>{G.res[k]=(G.res[k]||0)+n;got.push(n+' '+RES[k].name);};if(first){give('oldmaps',1);G.bait.legend=(G.bait.legend||0)+1;got.push('a Legend Lure');}
+    else give(pick(wreck?['rustyparts','mechparts','oldmaps']:['rustyparts','mechparts','rustyparts'],Math.random),1);
+    UI.coins();UI.gear();Audio.coin();if(pl)Pearls.add(pl,wreck?'the shipwreck':'the Abandoned Outpost');UI.toast(`Found ${c} coins and ${got.join(', ')}!`,'gold');Save.write();},
+  hatch(){if(!G.flags.sn_hatch){G.flags.sn_hatch=true;G.res.mechparts=(G.res.mechparts||0)+1;Dialog.open(null,['The hatch creaks open. Below, a flooded tunnel runs north toward the Sea Caves.','Someone stashed a crate of spare parts on the ladder. You take the Mechanical Components.'],null,'Secret Tunnel','Abandoned Outpost');Save.write();}
+    else UI.toast('The tunnel is flooded. It must lead toward the Sea Caves.');},
+  drill(){if(!G.flags.sn_drill){UI.toast('The ice is too thick. Bjorn at the Snow Village workshop can build you an Ice Drill.','warn');return;}
+    G.flags.sn_hole=true;this.sync();Cam.shake=0.3;this.crack(1);for(let i=0;i<20;i++)Particles.spawn(ICEHOLE.x+rand(-1,1),0.9,ICEHOLE.z+rand(-1,1),rand(-2,2),rand(2,4),rand(-2,2),'#f4f8fb',0.16,0.8);
+    UI.toast('You drilled through the ice! Face the hole and cast to fish the Iceberg Fields from here.','good');Save.write();},
+  collect(n){if(this.taken(n))return;const R=RES[n.type];let k=1;if(this.aurora()&&['icecrystal','purplecrystal','coldcoral'].includes(n.type))k=2;
+    G.res[n.type]=(G.res[n.type]||0)+k;(G.stats.resDay||(G.stats.resDay={}))[n.id]=G.day;G.stats.gathered=(G.stats.gathered||0)+k;n.g.visible=false;Audio.tone(1320,0.12,{type:'sine',vol:0.08});Audio.tone(1760,0.18,{type:'sine',vol:0.06,when:0.08});
+    for(let i=0;i<10;i++)Particles.spawn(n.x,n.y+0.5,n.z,rand(-1.5,1.5),rand(1.5,3),rand(-1.5,1.5),R.col,0.12,0.7);UI.toast(`+${k} ${R.name}${k>1?' (glowing under the aurora!)':''}`,'good');
+    for(let i=0;i<k;i++)Quest.event('res',n.type);Ach.check();Save.write();},
+  rescue(){G.flags.sn_rescued=true;G.res.oldmaps=(G.res.oldmaps||0)+1;Dialog.open(null,['"Oh thank goodness! I was mapping the Iceberg Fields when this berg broke off and carried me away."',
+    '"Here, take my chart of the Snowy Seas. And these pearls. You saved my life, captain!"'],[{label:'Glad to help',cls:'gold',fn:()=>{Dialog.close();Pearls.add(3,'Rescued explorer');for(const L of SNOWLOC)FogMap.reveal(L.o.x,L.o.z,(L.o.r||20)+30);Save.write();}}],'Explorer Kip','Stranded on an iceberg');},
+  bergChest(b){G.stats['berg'+b.i]=G.day;const c=Math.round(rand(120,320)),k=pick(['icechunk','coldcoral','icecrystal','mechparts'],Math.random);G.coins+=c;G.res[k]=(G.res[k]||0)+1;UI.coins();Audio.coin();
+    UI.toast(`The iceberg chest held ${c} coins and 1 ${RES[k].name}!`,'gold');G.stats.treasure=(G.stats.treasure||0)+1;Ach.check();Save.write();},
+  chest3(){const first=!G.flags.sn_chest3;if(!first&&G.stats.chest3===G.day){UI.toast('The chest is empty. It refills by tomorrow, somehow.','warn');return;}G.stats.chest3=G.day;G.flags.sn_chest3=true;
+    const c=first?800:Math.round(rand(150,350));G.coins+=c;G.res.ancientstone=(G.res.ancientstone||0)+(first?2:1);UI.coins();Audio.fanfare(2);if(first)Pearls.add(3,'Treasure chamber');UI.toast(`Treasure! ${c} coins and Ancient Stone${first?' ×2':''}.`,'gold');Save.write();},
+  tablet(){Dialog.open(null,['The tablet is carved with waves, a great serpent and a ring of stars.','"When the sky burns green, the Ice Serpent wakes in the black lake below. Only a golden lure will bring it to the surface."',
+    'As you read, the runes flare. Somewhere deeper, a heavy stone door grinds open.'],[{label:'Continue',cls:'gold',fn:()=>{Dialog.close();if(!G.flags.sn_tablet){G.flags.sn_tablet=true;Quest.event('tablet');Level.add(40);Save.write();}}}],'Ancient Tablet','Sunken Ruins');},
+  drawTarget(g,sx,sz,W,full){if(!this.region||!G.flags.frozen)return;const q=SnowQ.cur(),t=q.at&&q.at();if(!t)return;let X=sx(t.x),Z=sz(t.z);const R=W/2-10,dx=X-W/2,dz=Z-W/2,l=Math.hypot(dx,dz);
+    if(!full&&l>R){X=W/2+dx/l*R;Z=W/2+dz/l*R;}if(full&&(X<0||Z<0||X>W||Z>W))return;g.fillStyle='#8fe8ff';g.strokeStyle='#15305e';g.lineWidth=2;g.beginPath();
+    for(let i=0;i<12;i++){const a=i/12*TAU-Math.PI/2,r=i%2?3.5:(full?8:7);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();},
+  talk(n){const id=n.d.id,q=SnowQ.cur();
+    const say=(pages,opts)=>Dialog.open(n,pages,opts);
+    if(id==='sven')say([G.flags.sn_met?'Back again? The fish are biting and the chart has a few more secrets.':'Welcome to Snow Village, traveller! I am Sven. I buy fish and I keep the chart of the Snowy Seas.','Current job on my board: '+q.title+'. '+q.text],
+      [{label:'Fish Market',fn:()=>{Dialog.close();G.flags.sn_met=true;UI.openPanel('snowmarket');}},{label:'Snowy Seas map',fn:()=>{Dialog.close();UI.openPanel('snowmap');}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='frida')say(['The cold makes fish slow and heavy. Use squid for the big ones in Glacier Bay, and glow jigs down in the caves.'],[{label:'Fishing Shop',fn:()=>{Dialog.close();UI.snowHost='Fishing Shop · Frida';UI.openPanel('tackle');}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='olaf')say(['Bait, snacks, warm socks. If it is sold anywhere, Olaf sells it here. Except warm weather.'],[{label:'General Store',fn:()=>{Dialog.close();UI.snowHost='General Store · Olaf';UI.openPanel('shop');}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='ingrid')say(['Cold fingers? Sit down, I will bring you a bowl of Arctic Chowder. It warms you from the toes up.'],[{label:'Snow Kitchen',fn:()=>{Dialog.close();UI.openPanel('snowkitchen');}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='bjorn')say([G.flags.sn_diving?'That diving gear holding up? Good. Bring me more parts and I will keep your boat in shape.':'Bjorn, boat builder. Bring me parts from that old outpost and stones from the hot springs, and I can build you gear nobody else has.'],[{label:'Boat Workshop',fn:()=>{Dialog.close();UI.openPanel('snowworkshop');}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='elsa')say(['Welcome to the hot springs, dear. Hop in a pool and let the cold melt away. Rest in the bathhouse if you need a proper sleep.'],[{label:'Rest a while',fn:()=>{Dialog.close();this.soak(true);}},{label:'Bye',fn:()=>Dialog.close()}]);
+    else if(id==='tove')say([G.flags.sn_hole?'The hole is open. Face it and cast, the big halibut come right up under the floe.':'Ice fishing is the best fishing. You need a drill though. Bjorn in the village makes good ones.'],null);
+    else if(id==='hilde')say(['Did you see the green lights in the sky last night? Grandpa says rare fish come up when the aurora dances!'],null);}
+};
+const SNOW_CRAFTS=[
+  {id:'diving',name:'Diving Gear',flag:'sn_diving',need:{rustyparts:3,mechparts:2,thermalstone:2},coins:600,desc:'A warm dry suit and mask. Lets you dive down to the flooded Sunken Ruins (B3).',fn:()=>{G.flags.sn_diving=true;}},
+  {id:'drill',name:'Ice Drill',flag:'sn_drill',need:{icecrystal:2,rustyparts:2},coins:150,desc:'Drill a fishing hole through the ice floe in the Iceberg Fields.',fn:()=>{G.flags.sn_drill=true;}},
+  {id:'hull',name:'Thermal Hull Lining',flag:'sn_hull',need:{thermalstone:3,mechparts:1,icechunk:2},coins:400,desc:'Warm stones packed in the hull. Ice never grinds your boat and icebergs do far less damage.',fn:()=>{G.flags.sn_hull=true;}},
+  {id:'compass',name:'Explorer Compass',flag:'sn_compass',need:{oldmaps:2,mechparts:1},coins:200,desc:'Clears the fog from the Snowy Seas chart and marks every resource on it.',fn:()=>{G.flags.sn_compass=true;for(const L of SNOWLOC)FogMap.reveal(L.o.x,L.o.z,(L.o.r||20)+40);}},
+  {id:'lure',name:'Crystal Legend Lure',need:{purplecrystal:3,icecrystal:3},coins:0,desc:'A golden lure set with cave crystals. Legends bite on it. You can build this again.',fn:()=>{G.bait.legend=(G.bait.legend||0)+1;}},
+  {id:'jig',name:'Aurora Jig pack',need:{coldcoral:2,rarealgae:2},coins:0,desc:'Five glow jigs that shine like the aurora. You can build this again.',fn:()=>{G.bait.glow=(G.bait.glow||0)+5;}}];
+/* ---------- Snowy Seas music: cozy village, arctic sailing, tense fields, crystal and deep caves ---------- */
+const W_CH=[{r:38,t:[62,65,69],arp:[74,77,81,77]},{r:34,t:[58,62,65],arp:[70,74,77,74]},{r:36,t:[60,64,67],arp:[72,76,79,76]},{r:33,t:[57,61,64],arp:[69,73,76,73]}];
+const W_MEL=[[[0,81,4],[4,79,2],[6,77,2],[8,76,4],[12,74,4]],[[0,77,4],[4,74,4],[8,77,2],[10,79,2],[12,81,4]],[[0,79,4],[4,76,2],[6,79,2],[8,84,6],[14,83,2]],[[0,81,6],[6,76,2],[8,73,4],[12,76,4]]];
+function snowMusicStep(M,t,s,bar){let mood=null;try{mood=Snowy.mood();}catch(e){}if(!mood)return false;const S=EX_S,ch=W_CH[bar%4],bi=bar%8;
+  if(mood==='village'){if(s===0)M.pad(t,ch.t,S*16,0.9);if(s===0||s===8)M.bass(t,ch.r,S*6,0.6);if(s%2===0)M.steel(t,ch.arp[(s>>1)%4]+12,S*1.5,0.5);if(s%2===1)M.n(t,0.05,0.045,'bandpass',8000,{q:3});
+    if(bi>=4)for(const [st,m] of W_MEL[bar%4])if(st===s)M.marimba(t,m,0.8);}
+  else if(mood==='arctic'){if(s===0){M.pad(t,ch.t,S*16,1.1);M.v('sine',mf(ch.r),t,S*14,0.16);}if(s%4===0&&Math.random()<0.7)M.steel(t,ch.arp[(s>>2)%4]+12,S*3,0.42);if(bi%2===1)for(const [st,m,len] of W_MEL[bar%4])if(st===s)M.steel(t,m,len*S,0.48);}
+  else if(mood==='tense'){if(s%4===0)M.v('sawtooth',mf(ch.r-12),t,S*3,0.07,{lp:300,q:6});if(s%2===0)M.hat(t,0.22);if(s===0)M.pad(t,[ch.t[0],ch.t[0]+1,ch.t[2]],S*16,0.8);if(s===8)M.tom(t,45,0.5);}
+  else if(mood==='crystal'){if(s===0){M.pad(t,ch.t.map(m=>m+12),S*16,1.0);M.v('sine',mf(ch.r),t,S*15,0.14);}M.v('sine',mf(ch.arp[s%4]+12+(s%8>3?12:0)),t,S*2,0.045,{rev:0.9});}
+  else{if(s===0&&bar%2===0)M.v('sine',mf(ch.r-12),t,S*30,0.28,{a:0.8,sus:1,rel:1.5});if(s===0)M.pad(t,ch.t.map(m=>m-12),S*16,0.8);if(s===6&&Math.random()<0.5)M.v('sine',mf(ch.arp[bar%4]+12),t,1.4,0.06,{rev:1});}
+  return true;}
+
+/* ---------- the illustrated Snowy Seas chart ---------- */
+const SNOWMAP={x0:-300,z0:-345,x1:40,z1:-65,W:900,H:741,base:null};
+SNOWMAP.k=SNOWMAP.W/(SNOWMAP.x1-SNOWMAP.x0);
+const smx=x=>(x-SNOWMAP.x0)*SNOWMAP.k,smz=z=>(z-SNOWMAP.z0)*SNOWMAP.k;
+function snowKind(x,z){if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<SEACAVE.r+8)return 'cave';
+  const g=Math.hypot(x-GLACIER.x,z-GLACIER.z);if(g<GLACIER.r+20)return 'ice';if(Math.hypot(x-FIELD.x,z-FIELD.z)<FIELD.r+4)return 'ice';
+  if(Math.abs(z-ARCH.z)<10&&Math.abs(x-ARCH.x)<ARCH.r+8||Math.hypot(x-CRYST_ISLE.x,z-CRYST_ISLE.z)<7)return 'ice';
+  for(const p of POOLS)if(Math.hypot(x-p[0],z-p[1])<p[2]+0.4)return 'pool';return 'snow';}
+function buildSnowMapBase(){const {W,H,k}=SNOWMAP,S=2,cw=Math.ceil(W/S),ch=Math.ceil(H/S);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  const hs=new Float32Array((cw+2)*(ch+2));const wx=i=>SNOWMAP.x0+(i-0.5)*S/k,wz=j=>SNOWMAP.z0+(j-0.5)*S/k;
+  for(let j=0;j<ch+2;j++)for(let i=0;i<cw+2;i++)hs[j*(cw+2)+i]=rawHeight(wx(i),wz(j));
+  const img=g.createImageData(cw,ch),d=img.data;const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+  const shallow=[178,232,244],mid=[74,170,222],deep=[30,96,168],lag=[40,48,110];
+  for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const h=hs[(j+1)*(cw+2)+i+1],x=wx(i+1),z=wz(j+1);let col;
+    if(h<0.5){const dep=Math.max(0,-h);col=mix(mix(shallow,mid,clamp((dep-0.3)/3,0,1)),deep,clamp((dep-3.5)/5,0,1));
+      if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<18)col=mix(col,lag,0.65);
+      // a light rim of foam where water meets land
+      const nb=Math.max(hs[(j+1)*(cw+2)+i],hs[(j+1)*(cw+2)+i+2],hs[j*(cw+2)+i+1],hs[(j+2)*(cw+2)+i+1]);if(nb>=0.5)col=mix(col,[255,255,255],0.55);
+      if((i*7+j*3)%29===0)col=mix(col,[255,255,255],0.18);}
+    else{const kind=snowKind(x,z);const dx=hs[(j+1)*(cw+2)+i+2]-hs[(j+1)*(cw+2)+i],dz=hs[(j+2)*(cw+2)+i+1]-hs[j*(cw+2)+i+1];
+      const steep=Math.hypot(dx,dz);let base;
+      if(kind==='pool')base=[80,210,205];else if(kind==='cave')base=h>11&&steep<3?[236,242,248]:[70,82,98];else if(kind==='ice')base=h>3.5&&steep<2?[236,244,250]:[160,206,236];
+      else base=steep>4.5?[122,134,148]:[240,245,250];
+      const lit=clamp(1+(-dx-dz)*0.045,0.62,1.18);col=base.map(v=>Math.min(255,v*lit));}
+    const q=(j*cw+i)*4;d[q]=col[0];d[q+1]=col[1];d[q+2]=col[2];d[q+3]=255;}
+  const tmp=document.createElement('canvas');tmp.width=cw;tmp.height=ch;tmp.getContext('2d').putImageData(img,0,0);g.imageSmoothingEnabled=true;g.drawImage(tmp,0,0,W,H);
+  // trees, village roofs and the pier on top of the terrain
+  for(const [x,z] of TREES){if(x<SNOWMAP.x0||x>SNOWMAP.x1||z<SNOWMAP.z0||z>SNOWMAP.z1)continue;const X=smx(x),Z=smz(z);g.fillStyle='#2f6f4a';g.beginPath();g.moveTo(X,Z-5);g.lineTo(X+3.5,Z+3);g.lineTo(X-3.5,Z+3);g.fill();g.fillStyle='#f4f8fb';g.fillRect(X-1.5,Z-4,3,1.5);}
+  g.strokeStyle='#8a5a2e';g.lineWidth=7;g.lineCap='butt';g.beginPath();g.moveTo(smx(FROZEN.x+VDIR.x*29),smz(FROZEN.z+VDIR.z*29));g.lineTo(smx(PIER_END.x),smz(PIER_END.z));g.stroke();
+  g.lineWidth=5;g.beginPath();g.moveTo(smx(PIER_END.x-VDIR.z*5),smz(PIER_END.z+VDIR.x*5));g.lineTo(smx(PIER_END.x+VDIR.z*5),smz(PIER_END.z-VDIR.x*5));g.stroke();
+  for(const [lx,lz,col] of [[-9,-3,'#b8402a'],[-8,5,'#2f6fb0'],[8,-4,'#3a8a4a'],[9,4,'#8a3aa0'],[0,-10,'#c8702a'],[-7,-11,'#2f6fb0'],[7,-11,'#b8402a']]){
+    const x=VILLAGE.x-VDIR.z*lx+VDIR.x*lz,z=VILLAGE.z+VDIR.x*lx+VDIR.z*lz;g.fillStyle=col;g.fillRect(smx(x)-6,smz(z)-5,12,10);g.fillStyle='#f4f8fb';g.fillRect(smx(x)-6,smz(z)-5,12,3);}
+  // the ice arch seen from above
+  g.strokeStyle='#bfe4fa';g.lineWidth=12;g.beginPath();g.moveTo(smx(ARCH.x-ARCH.r),smz(ARCH.z));g.lineTo(smx(ARCH.x+ARCH.r),smz(ARCH.z));g.stroke();g.strokeStyle='#ffffff';g.lineWidth=4;g.stroke();
+  g.strokeStyle='#d8eefa';g.lineWidth=5;g.beginPath();g.moveTo(smx(ARCH.x+ARCH.r+3),smz(ARCH.z+3));g.lineTo(smx(CRYST_ISLE.x-3),smz(CRYST_ISLE.z-2));g.stroke();
+  // soft frosty vignette
+  const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.85);vg.addColorStop(0,'rgba(255,255,255,0)');vg.addColorStop(1,'rgba(225,238,250,0.55)');g.fillStyle=vg;g.fillRect(0,0,W,H);
+  SNOWMAP.base=c;}
+const SNOW_LABEL={polar:[170,44],village:[420,300],peaks:[300,160],glacier:[470,64],arch:[770,500],springs:[120,560],outpost:[300,690],field:[602,684],caves:[790,330]};
+const SNOW_ICONS=()=>[['shop',PIER_END.x-VDIR.x*3,PIER_END.z-VDIR.z*3,'village'],['dock',PIER_END.x+VDIR.z*7,PIER_END.z-VDIR.x*7,'village'],['quest',VILLAGE.x-VDIR.z*4+VDIR.x*9+6,VILLAGE.z+VDIR.x*4+VDIR.z*9,'village'],
+  ['village',VILLAGE.x,VILLAGE.z,'village'],['special',PEAKS.x,PEAKS.z,'peaks'],['cave',SNOWFX.cave?SNOWFX.cave.x:PEAKS.x-14,SNOWFX.cave?SNOWFX.cave.z:PEAKS.z-14,'peaks'],
+  ['fish',GLACIER.x,GLACIER.z,'glacier'],['special',ARCH.x,ARCH.z+8,'arch'],['special',SPRINGS.x,SPRINGS.z,'springs'],['cave',SPRINGS.x+Math.cos(Math.atan2(SPRINGS.z,SPRINGS.x))*(SPRINGS.r-3),SPRINGS.z+Math.sin(Math.atan2(SPRINGS.z,SPRINGS.x))*(SPRINGS.r-3),'springs'],
+  ['cave',OUTPOST.x,OUTPOST.z,'outpost'],['wreck',WRECK.x,WRECK.z,'outpost'],['fish',FLOE.x,FLOE.z,'field'],['fish',SEACAVE.x+6,SEACAVE.z+6,'caves'],['under',SEACAVE.x-9,SEACAVE.z-4,'caves'],
+  ['cave',SNOWFX.caveMouth?SNOWFX.caveMouth.x:SEACAVE.x,SNOWFX.caveMouth?SNOWFX.caveMouth.z:SEACAVE.z-17,'caves'],['boss',SEACAVE.x,SEACAVE.z,'caves'],['special',POLAR.x,POLAR.z,'polar'],['fish',LAKE.x,LAKE.z,'peaks'],['special',SPRINGS.x-7,SPRINGS.z+5,'springs'],['quest',SNOWFX.board?SNOWFX.board.x:VILLAGE.x,SNOWFX.board?SNOWFX.board.z:VILLAGE.z,'village']];
+function drawSnowIcon(g,kind,X,Y,r=10){const C={village:'#c8702a',shop:'#e0503f',dock:'#2f6fc0',quest:'#b88a3a',cave:'#5a4a6a',special:'#c040a0',fish:'#1f9ad8',under:'#3a70d8',boss:'#d8323a',wreck:'#7a5a3a'};
+  g.save();g.translate(X,Y);g.fillStyle=C[kind]||'#555';g.strokeStyle='#fff';g.lineWidth=2.5;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();g.stroke();g.fillStyle='#fff';g.strokeStyle='#fff';g.lineWidth=2;const s=r/10;
+  if(kind==='village'){g.beginPath();g.moveTo(-5*s,1*s);g.lineTo(0,-5*s);g.lineTo(5*s,1*s);g.fill();g.fillRect(-3.5*s,1*s,7*s,4*s);}
+  else if(kind==='shop'){g.fillRect(-5*s,-4*s,10*s,3*s);g.fillRect(-4*s,-1*s,8*s,6*s);g.fillStyle=C.shop;g.fillRect(-1.5*s,1*s,3*s,4*s);}
+  else if(kind==='dock'){g.beginPath();g.moveTo(0,-5*s);g.lineTo(0,5*s);g.moveTo(-3*s,-2.5*s);g.lineTo(3*s,-2.5*s);g.moveTo(-5*s,1*s);g.quadraticCurveTo(0,8*s,5*s,1*s);g.stroke();}
+  else if(kind==='quest'){g.fillRect(-4*s,-5*s,8*s,10*s);g.fillStyle=C.quest;for(let k=0;k<3;k++)g.fillRect(-2.5*s,(-3+k*2.5)*s,5*s,1*s);}
+  else if(kind==='cave'){g.beginPath();g.arc(0,2*s,5*s,Math.PI,0);g.lineTo(5*s,4*s);g.lineTo(-5*s,4*s);g.fill();g.fillStyle='#1d1d2a';g.beginPath();g.arc(0,3*s,2.6*s,Math.PI,0);g.fill();}
+  else if(kind==='special'){g.beginPath();g.moveTo(0,-6*s);g.lineTo(4*s,0);g.lineTo(0,6*s);g.lineTo(-4*s,0);g.closePath();g.fill();}
+  else if(kind==='fish'||kind==='under'){g.beginPath();g.ellipse(-1*s,0,4.2*s,2.6*s,0,0,TAU);g.fill();g.beginPath();g.moveTo(2.5*s,0);g.lineTo(6*s,-3*s);g.lineTo(6*s,3*s);g.fill();
+    if(kind==='under'){g.beginPath();g.arc(-4*s,-5*s,1.2*s,0,TAU);g.arc(-1*s,-6.5*s,0.9*s,0,TAU);g.fill();}}
+  else if(kind==='boss'){g.beginPath();g.arc(0,-1*s,4.5*s,0,TAU);g.fill();g.fillRect(-2.6*s,2*s,5.2*s,3.4*s);g.fillStyle=C.boss;g.beginPath();g.arc(-1.8*s,-1.2*s,1.3*s,0,TAU);g.arc(1.8*s,-1.2*s,1.3*s,0,TAU);g.fill();}
+  else if(kind==='wreck'){g.beginPath();g.moveTo(-5*s,0);g.lineTo(5*s,0);g.lineTo(3*s,3.5*s);g.lineTo(-3*s,3.5*s);g.fill();g.fillRect(-0.6*s,-5*s,1.2*s,5*s);}
+  g.restore();}
+function wrapText(g,t,maxW){const w=t.split(' '),out=[];let line='';for(const x of w){const tt=line?line+' '+x:x;if(g.measureText(tt).width>maxW&&line){out.push(line);line=x;}else line=tt;}if(line)out.push(line);return out;}
+function drawSnowMap(g){if(!SNOWMAP.base)buildSnowMapBase();const {W,H}=SNOWMAP;g.clearRect(0,0,W,H);g.drawImage(SNOWMAP.base,0,0);
+  // drifting icebergs where they are right now
+  for(const {b} of Snowy.drift){g.fillStyle='#f4fafe';g.strokeStyle='#8cc0e4';g.lineWidth=2;g.beginPath();g.arc(smx(b.x),smz(b.z),b.s*SNOWMAP.k*0.9,0,TAU);g.fill();g.stroke();}
+  // current arrows through the Iceberg Fields
+  g.strokeStyle='rgba(255,255,255,.75)';g.lineWidth=2.5;for(let i=0;i<6;i++){const a=i/6*TAU+Time.t*0.1,r=FIELD.r*0.6,x=FIELD.x+Math.cos(a)*r,z=FIELD.z+Math.sin(a)*r,X=smx(x),Z=smz(z),t=a+Math.PI/2;
+    g.beginPath();g.moveTo(X-Math.cos(t)*12,Z-Math.sin(t)*12);g.lineTo(X+Math.cos(t)*12,Z+Math.sin(t)*12);g.lineTo(X+Math.cos(t)*12-Math.cos(t-0.6)*7,Z+Math.sin(t)*12-Math.sin(t-0.6)*7);g.stroke();}
+  // boss whirlpool
+  const bb=BOSSES.find(b=>b.id==='frostleviathan');if(bb&&G.flags.frozen&&Bosses.avail(bb)){const X=smx(bb.x),Z=smz(bb.z);g.strokeStyle='#e0407a';g.lineWidth=3;g.beginPath();for(let a=0;a<TAU*2.4;a+=0.25){const r=2+a*3;g.lineTo(X+Math.cos(a+Time.t)*r,Z+Math.sin(a+Time.t)*r);}g.stroke();}
+  // fog over places you have not found yet
+  for(const L of SNOWLOC){if(Snowy.found(L.id))continue;const X=smx(L.o.x),Z=smz(L.o.z),R=((L.o.r||20)+26)*SNOWMAP.k;const fg=g.createRadialGradient(X,Z,R*0.2,X,Z,R);fg.addColorStop(0,'rgba(232,240,248,.97)');fg.addColorStop(0.7,'rgba(232,240,248,.9)');fg.addColorStop(1,'rgba(232,240,248,0)');g.fillStyle=fg;g.beginPath();g.arc(X,Z,R,0,TAU);g.fill();}
+  if(G.flags.sn_compass)for(const n of Snowy.nodes){if(n.x>SNOWMAP.x1||Snowy.taken(n))continue;g.fillStyle=RES[n.type].col;g.strokeStyle='#15305e';g.lineWidth=1.5;g.beginPath();g.arc(smx(n.x),smz(n.z),4,0,TAU);g.fill();g.stroke();}
+  if(Snowy.school){const X=smx(Snowy.school.x),Z=smz(Snowy.school.z);g.strokeStyle='#ffd24a';g.lineWidth=2;for(let r=5;r<16;r+=5){g.beginPath();g.arc(X,Z,r+(Time.t*6)%5,0,TAU);g.stroke();}}
+  // icons
+  for(const [kind,x,z,loc] of SNOW_ICONS()){if(!Snowy.found(loc))continue;if(kind==='boss'&&G.trophies.includes('frostleviathan'))continue;drawSnowIcon(g,kind,smx(x),smz(z),kind==='village'?12:10);}
+  // numbered labels with little description cards
+  for(const L of SNOWLOC){const [lx,ly]=SNOW_LABEL[L.id],ok=Snowy.found(L.id),X=smx(L.o.x),Z=smz(L.o.z);
+    g.strokeStyle=ok?'rgba(20,40,80,.8)':'rgba(80,90,110,.5)';g.lineWidth=2;g.setLineDash([5,4]);g.beginPath();g.moveTo(lx,ly+20);g.lineTo(X,Z);g.stroke();g.setLineDash([]);
+    g.font='900 17px Nunito, sans-serif';const num=typeof L.n==='number'?L.n+'. ':'★ ';const title=ok?(num+L.name.toUpperCase()):(num+'???');const tw=Math.max(150,g.measureText(title).width+26),bx=lx-tw/2;
+    g.font='700 13px Nunito, sans-serif';const lines=ok?wrapText(g,L.desc,tw-10).slice(0,3):['Not discovered yet'];const dh=8+lines.length*16;
+    g.fillStyle='rgba(255,255,255,.95)';g.strokeStyle=ok?'#1d3a6a':'#8a94a4';g.lineWidth=2;rrect(g,bx+6,ly+16,tw-12,dh+10,8);g.fill();g.stroke();
+    g.fillStyle='#24334e';g.textAlign='center';lines.forEach((t,i)=>g.fillText(t,lx,ly+40+i*16));
+    g.fillStyle=ok?'#15305e':'#6a7486';rrect(g,bx,ly-14,tw,32,9);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+    g.fillStyle='#fff';g.font='900 17px Nunito, sans-serif';g.fillText(title,lx,ly+8);
+    g.fillStyle=ok?'#15305e':'#6a7486';g.beginPath();g.arc(X,Z,5,0,TAU);g.fill();}
+  // title plate
+  {g.save();g.translate(SNOWMAP.W-316,0);g.fillStyle='#7a4a26';rrect(g,14,14,288,86,14);g.fill();g.fillStyle='#a36c3b';rrect(g,20,20,276,74,10);g.fill();g.strokeStyle='#5a3418';g.lineWidth=3;rrect(g,14,14,288,86,14);g.stroke();
+    g.textAlign='center';g.font='900 38px Nunito, sans-serif';g.lineWidth=7;g.strokeStyle='#15305e';g.strokeText('SNOWY SEAS',158,70);const gr=g.createLinearGradient(0,40,0,72);gr.addColorStop(0,'#ffffff');gr.addColorStop(1,'#bfe4ff');g.fillStyle=gr;g.fillText('SNOWY SEAS',158,70);
+    g.font='800 12px Nunito, sans-serif';g.fillStyle='#fff3dc';g.fillText(SNOWLOC.filter(l=>Snowy.found(l.id)).length+' of '+SNOWLOC.length+' places discovered',158,90);g.restore();}
+  // legend
+  {const items=[['village','Village'],['shop','Shop'],['dock','Dock'],['quest','Quest'],['cave','Cave / Dungeon'],['special','Special place'],['fish','Fishing spot'],['under','Underwater area'],['boss','Boss lair'],['wreck','Shipwreck']];
+    const lx=12,ly=112,lw=172,lh=items.length*18+14;g.fillStyle='rgba(250,240,215,.96)';rrect(g,lx,ly,lw,lh,10);g.fill();g.strokeStyle='#a0703a';g.lineWidth=2.5;g.stroke();
+    g.textAlign='left';g.font='800 12px Nunito, sans-serif';items.forEach(([k,t],i)=>{drawSnowIcon(g,k,lx+16,ly+16+i*18,7);g.fillStyle='#3a2210';g.fillText(t,lx+30,ly+20+i*18);});}
+  // friends, your boat and you
+  for(const r of Net.others()){if(r.x<SNOWMAP.x0||r.x>SNOWMAP.x1||r.z<SNOWMAP.z0||r.z>SNOWMAP.z1)continue;const X=smx(r.x),Z=smz(r.z);g.fillStyle=r.p.c;g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(X,Z,7,0,TAU);g.fill();g.stroke();
+    g.font='800 12px Nunito, sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(20,30,50,.8)';g.strokeText(r.p.n,X,Z-11);g.fillStyle='#fff';g.fillText(r.p.n,X,Z-11);}
+  const p=G.mode==='boat'?Boat.pos:Player.pos;if(p.x>SNOWMAP.x0&&p.x<SNOWMAP.x1&&p.z>SNOWMAP.z0&&p.z<SNOWMAP.z1){const hy=G.mode==='boat'?Boat.yaw:Player.yaw;g.save();g.translate(smx(p.x),smz(p.z));g.rotate(-hy+Math.PI);
+    g.fillStyle='#ffd24a';g.strokeStyle='#1d1d1d';g.lineWidth=2.5;g.beginPath();g.moveTo(0,-12);g.lineTo(9,9);g.lineTo(0,4);g.lineTo(-9,9);g.closePath();g.fill();g.stroke();g.restore();}
+  else{g.fillStyle='rgba(21,48,94,.85)';rrect(g,W-230,H-34,216,24,8);g.fill();g.fillStyle='#fff';g.font='800 12px Nunito, sans-serif';g.textAlign='center';g.fillText(Snowy.inCave?'You are deep in the Sea Caves':'Home is south-east of this chart →',W-122,H-17);}}
+function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+
 
 const STACKS=[[-27,42,3.4,7],[40,31,3,9],[55,-16,3.4,6],[-51,-6,2.8,8],[-15,-58,3.2,10],[24,-56,2.6,7]];
 function coastT(x,z){const a=Math.atan2(z,x),d=Math.hypot(x,z*1.08);return 44+4*Math.sin(3*a+0.6)+2.5*Math.cos(5*a+1.3)+1.5*Math.sin(7*a)-d;}
@@ -1552,9 +2461,9 @@ function surfaceKind(gx,gz){const i=gi(gx,gz);return i<0?(qHeightCell(gx,gz)>=0.
     else k=2;
     HG[i]=h;KG[i]=k;}
 })();
-function groundAt(x,z){const h=qHeightAt(x,z);return onDock(x,z)?Math.max(DOCK_Y,h):h;}
-function walkable(x,z){return onDock(x,z)||qHeightAt(x,z)>=0.5;}
-function isWater(x,z){return !onDock(x,z)&&qHeightAt(x,z)<0.5&&rawHeight(x,z)<0.3;}
+function groundAt(x,z){const h=qHeightAt(x,z);if(onDock(x,z))return Math.max(DOCK_Y,h);const dy=deckY(x,z);return dy!==null?Math.max(dy,h):h;}
+function walkable(x,z){return onDock(x,z)||qHeightAt(x,z)>=0.5||deckY(x,z)!==null;}
+function isWater(x,z){return !onDock(x,z)&&qHeightAt(x,z)<0.5&&rawHeight(x,z)<0.3&&deckY(x,z)===null;}
 
 const SURF={water:{top:'#3a8fd0'},sand:{top:'#f0d49a'},grass:{top:'#62b043'},cobble:{top:'#d3cab7'},stair:{top:'#c7bda8'},grassHi:{top:'#5a9e3e'},rock:{top:'#9aa2a5'},pond:{top:'#5ab8e0'}};
 
@@ -1879,7 +2788,7 @@ function buildWorld(){
     if(h>=4&&h<8&&rng()<0.3)bananaTree(P,x,h,z,rng);else palm(P,x,h,z,rng,h>=8?1.1:1);}
   for(let i=0;i<260;i++){const x=rng()*88-44,z=rng()*86-50,h=qHeightAt(x,z);if(!okTree(x,z,h)||h<2)continue;if(spots.some(t=>Math.hypot(t[0]-x,t[1]-z)<1.6))continue;
     spots.push([x,z]);if(rng()<0.8)bush(P,x,h,z,0.8+rng()*0.5,rng);else{const s=0.6+rng()*0.8;P.box(x,h+s*0.35,z,s,s*0.7,s,['#9aa3a8','#8b949a'][(rng()*2)|0],rng()*3);}}
-  buildFarIsland(T,S,P,G,SUNNY,'reef',rng);buildFarIsland(T,S,P,G,FROZEN,'snow',rng);
+  buildFarIsland(T,S,P,G,SUNNY,'reef',rng);
   // coastal islets: palms, bushes, rocks, driftwood and one fisher's hut
   COAST_ISLES.forEach((c,i)=>{const [cx,cz,r,,np]=c;
     for(let k=0;k<np;k++){const a=rng()*TAU,d=rng()*r*0.45,x=cx+Math.cos(a)*d,z=cz+Math.sin(a)*d;palm(P,x,qHeightAt(x,z),z,rng,0.85+rng()*0.25);}
@@ -1928,9 +2837,10 @@ function buildWorld(){
   WorldFX.build();
 
   buildP4World();
+  buildSnowySeas();
   buildClouds();
 }
-/* ---------- far islands: Sunny Shores (reef) and Frozen Bay (snow) ---------- */
+/* ---------- far islands: Sunny Shores (reef) and the Snowy Seas (snow) ---------- */
 function buildFarIsland(T,S,P,G,isle,style,rng){
   const R=isle.r+30,g0x=Math.floor((isle.x-R)/2),g1x=Math.floor((isle.x+R)/2),g0z=Math.floor((isle.z-R)/2),g1z=Math.floor((isle.z+R)/2);
   const snow=['#f2f6fa','#e8eef6','#f8fbfd'],ice=['#bcd6ea','#a8c8e0','#c8e0f0'],sand=['#f4dca0','#efd392'],grass=['#6fcf4b','#62c043','#78d652'];
@@ -2070,7 +2980,7 @@ function buildBuilding(P,G,b){
 }
 function buildDistant(){
   const B=new Batch(1.2);
-  // Frozen Bay hint (north-west), Volcano Isles (north-east), Blossom Islands (west)
+  // the Snowy Seas hint (north-west), Volcano Isles (north-east), Blossom Islands (west)
   const isle=(cx,cz,r,top,side,peak,peakCol)=>{for(let x=-r;x<=r;x+=3)for(let z=-r;z<=r;z+=3){const d=Math.hypot(x,z)/r;if(d>1)continue;const h=2+(1-d)*peak+Math.sin(x*0.7)*0.8;B.box(cx+x,h/2-1,cz+z,3,h+2,3,d<0.45?peakCol:(d<0.8?top:side));}};
   isle(300,-300,26,'#4a3f3c','#3a302d',28,'#ff6a2a');
   isle(-380,110,22,'#f4a6c8','#6fc24b',9,'#ffc0da');
@@ -2192,12 +3102,12 @@ const WX={
   storm:{name:'Storm',dark:0.88,near:45,far:170,rain:1,amp:2.7,wind:1,clouds:28,w:6,lightning:true}
 };
 const GREY={top:lin('#66727c'),mid:lin('#95a0a8'),fog:lin('#a0aab2')};
-const BIOME_FOG={deep:lin('#1c2450'),deepSky:lin('#141a3c'),deepWater:lin('#0a1440'),volc:lin('#7a5e52'),volcWater:lin('#1a3438'),bloss:lin('#f4d0dc')};
+const BIOME_FOG={deep:lin('#1c2450'),deepSky:lin('#141a3c'),deepWater:lin('#0a1440'),volc:lin('#7a5e52'),volcWater:lin('#1a3438'),bloss:lin('#f4d0dc'),snow:lin('#dfeaf6'),snowSky:lin('#b8d4f0'),snowWater:lin('#0e3a5c')};
 const Env={flash:0,thunderT:-1,nextBolt:6,t:0,P:null,night:0,
   phase(h=G.time){return (h>=20||h<5)?'night':h<8?'morning':h<17.5?'day':'sunset';},
   isNight(){return this.phase()==='night';},
   region(){const x=camera.position.x,z=camera.position.z,k=(o,a,b)=>clamp((b-Math.hypot(x-o.x,z-o.z))/(b-a),0,1);
-    return {deep:k(DEEP,DEEP.r*0.5,DEEP.r+40),volc:k(VOLCANO,VOLCANO.r+20,VOLCANO.r+110),bloss:k(BLOSSOM,BLOSSOM.r+30,BLOSSOM.r+110),ruins:k(RUINS,RUINS.r+40,RUINS.r+120)};},
+    return {deep:k(DEEP,DEEP.r*0.5,DEEP.r+40),volc:k(VOLCANO,VOLCANO.r+20,VOLCANO.r+110),bloss:k(BLOSSOM,BLOSSOM.r+30,BLOSSOM.r+110),ruins:k(RUINS,RUINS.r+40,RUINS.r+120),snow:inSnowy(x,z)?Math.max(0.55,k(SNOWC,100,190)):k(SNOWC,100,190)};},
   clockText(h=G.time){const hh=Math.floor(h),mm=Math.floor((h-hh)*60/10)*10;const ap=hh<12?'AM':'PM';return ((hh+11)%12+1)+':'+String(mm).padStart(2,'0')+' '+ap;},
   pickWeather(){const cur=G.wx.cur;let tot=0;const opts=Object.entries(WX).filter(([k])=>k!==cur);for(const [,w] of opts)tot+=w.w;let r=Math.random()*tot;for(const [k,w] of opts){r-=w.w;if(r<=0)return k;}return 'sunny';},
   setWeather(k,instant){G.wx.next=k;G.wx.blend=instant?1:0;if(instant)G.wx.cur=k;G.wx.left=3+Math.random()*4;},
@@ -2230,12 +3140,13 @@ const Env={flash:0,thunderT:-1,nextBolt:6,t:0,P:null,night:0,
     if(RG.deep>0){FOG_COL.lerp(BIOME_FOG.deep.clone().multiplyScalar(bright),RG.deep*0.8);SKY.top.lerp(BIOME_FOG.deepSky.clone().multiplyScalar(bright),RG.deep*0.6);SKY.mid.lerp(BIOME_FOG.deep.clone().multiplyScalar(bright),RG.deep*0.55);}
     if(RG.volc>0){FOG_COL.lerp(BIOME_FOG.volc.clone().multiplyScalar(bright),RG.volc*0.45);SKY.mid.lerp(BIOME_FOG.volc.clone().multiplyScalar(bright),RG.volc*0.3);}
     if(RG.bloss>0)FOG_COL.lerp(BIOME_FOG.bloss.clone().multiplyScalar(bright),RG.bloss*0.3);
+    if(RG.snow>0){FOG_COL.lerp(BIOME_FOG.snow.clone().multiplyScalar(bright),RG.snow*0.35);SKY.mid.lerp(BIOME_FOG.snowSky.clone().multiplyScalar(bright),RG.snow*0.25);}
     if(fl>0){SKY.top.lerp(new THREE.Color(1.6,1.7,2),fl*0.6);SKY.mid.lerp(new THREE.Color(1.6,1.7,2),fl*0.6);}
     scene.background.copy(FOG_COL);scene.fog.color.copy(FOG_COL);
     const bk=(1-RG.deep*0.3)*(1-RG.volc*0.3)*(1-RG.ruins*0.35);const near=P.near*(1-this.night*0.2)*bk,far=P.far*(1-this.night*0.15)*bk;scene.fog.near=near;scene.fog.far=far;
     const amp=P.amp*(1+RG.deep*0.9)*(1-RG.bloss*0.55);
     if(water){const u=water.material.uniforms;u.uNear.value=near;u.uFar.value=far;u.uLight.value=(K.light*(1-dk*0.45)+fl*0.8)*(1-RG.deep*0.3);u.uAmp.value=amp;
-      if(RG.deep>=RG.volc){u.uTint.value.copy(BIOME_FOG.deepWater);u.uTintK.value=RG.deep*0.7;}else{u.uTint.value.copy(BIOME_FOG.volcWater);u.uTintK.value=RG.volc*0.45;}}
+      if(RG.snow>RG.deep&&RG.snow>RG.volc){u.uTint.value.copy(BIOME_FOG.snowWater);u.uTintK.value=RG.snow*0.3;}else if(RG.deep>=RG.volc){u.uTint.value.copy(BIOME_FOG.deepWater);u.uTintK.value=RG.deep*0.7;}else{u.uTint.value.copy(BIOME_FOG.volcWater);u.uTintK.value=RG.volc*0.45;}}
     WAVE_AMP.v=amp;
     SUN_DIR.copy(this.sunDir(G.time));
     sun.color.copy(K.sun);sun.intensity=K.si*(1-dk*0.72)+fl*1.2;
@@ -2245,8 +3156,9 @@ const Env={flash:0,thunderT:-1,nextBolt:6,t:0,P:null,night:0,
     this.stars.material.opacity=this.night*(1-dk);this.stars.position.copy(camera.position);
     if(MAT.cloud){const c=new THREE.Color(1,1,1).lerp(new THREE.Color(0.38,0.42,0.46),dk).multiplyScalar(1-this.night*0.75);MAT.cloud.color.copy(c);
       CLOUDS.forEach((m,i)=>m.visible=i<Math.round(P.clouds));}
-    Rain.update(rdt,P.rain,P.wind);
-    Audio.weather&&Audio.weather(P.rain,P.wind,this.night,G.mode==='walk',rdt);
+    const snK=Snowy.inCave?1:(RG.snow||0),cave=Snowy.inCave?0:1;Rain.update(rdt,P.rain*(1-snK),P.wind);
+    Audio.weather&&Audio.weather(P.rain*(1-snK)*cave,Math.min(1,P.wind+snK*(0.25+P.rain*0.6))*cave,this.night,G.mode==='walk',rdt);
+    Snowy.env(K,P,RG);
     this.t-=rdt;if(this.t<=0&&started){this.t=0.5;UI.clock();}
   }
 };
@@ -2647,7 +3559,7 @@ function freshState(){
     flags:{},fog:new Array(3600).fill(0),mode:'walk',totalCaught:0,sold:0,
     owned:{rod:['bamboo'],reel:['r2000'],line:['nylon10'],hook:['j10']},crops:{},seeds:{},dishes:[],buffs:{},house:1,
     farm:Array.from({length:24},()=>({c:null,g:0,w:0})),orders:[],ordersDone:0,
-    time:7,day:1,wx:{cur:'sunny',next:'sunny',blend:1,left:4},boats:{skiff:UP0()},boat:'skiff'});
+    time:7,day:1,wx:{cur:'sunny',next:'sunny',blend:1,left:4},boats:{skiff:UP0()},boat:'skiff',res:{}});
 }
 freshState();
 
@@ -2662,7 +3574,7 @@ const Save={
   serialize(){return {v:1,coins:G.coins,hp:G.hp,bait:G.bait,baitSel:G.baitSel,gear:G.gear,hasRod:G.hasRod,fish:G.fish,dex:G.dex,
     quest:G.quest,qCount:G.qCount,flags:G.flags,fog:G.fog.join(''),totalCaught:G.totalCaught,sold:G.sold,
     owned:G.owned,crops:G.crops,seeds:G.seeds,dishes:G.dishes,buffs:G.buffs,house:G.house,farm:G.farm,orders:G.orders,ordersDone:G.ordersDone,
-    time:G.time,day:G.day,wx:G.wx,boats:G.boats,boatType:G.boat,deep:G.deep,bossDay:G.bossDay,trophies:G.trophies,dexClaim:G.dexClaim,pearls:G.pearls,xp:G.xp,ach:G.ach,stats:G.stats,outfit:G.outfit,outfits:G.outfits,look:G.look,looks:G.looks,decos:G.decos,
+    res:G.res,time:G.time,day:G.day,wx:G.wx,boats:G.boats,boatType:G.boat,deep:G.deep,bossDay:G.bossDay,trophies:G.trophies,dexClaim:G.dexClaim,pearls:G.pearls,xp:G.xp,ach:G.ach,stats:G.stats,outfit:G.outfit,outfits:G.outfits,look:G.look,looks:G.looks,decos:G.decos,
     player:{x:Player.pos.x,y:Player.pos.y,z:Player.pos.z,yaw:Player.yaw},inBoat:G.mode==='boat',
     boat:{x:Boat.pos.x,z:Boat.pos.z,yaw:Boat.yaw,fuel:Boat.fuel,hp:Boat.hp}};},
   apply(s){freshState();
@@ -2689,7 +3601,7 @@ const Save={
     // saves from an older island layout: put the player and skiff somewhere valid
     if(Boat.hits(Boat.pos.x,Boat.pos.z,Boat.yaw)){Boat.moor();}
     if(!s.inBoat){const p=Player.pos;if(!walkable(p.x,p.z)||blocked(p.x,p.z)||Math.abs(groundAt(p.x,p.z)-p.y)>1.5)Player.reset();else{p.y=groundAt(p.x,p.z);Player.visY=p.y;}}
-    if(s.inBoat)Boat.enter(true);}
+    if(s.inBoat)Boat.enter(true);G.res=s.res||{};if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();}
 };
 
 /* =====================================================================
@@ -2911,11 +3823,11 @@ const Boat={pos:new V3(MOOR.x,0,MOOR.z),yaw:0,speed:0,steer:0,roll:0,pitch:0,y:0
     const spN=clamp(this.speed/sp0.speed,-0.4,1.4);
     if(active&&this.speed>9&&hb-this.prevBowH>0.02&&this.hopT<=0){this.vy+=1.6*spN;this.hopT=rand(0.6,1.4);Particles.splash(this.pos.x+s*2.8,this.pos.z+c*2.8,10,0.8);}
     this.prevBowH=hb;this.hopT-=dt;
-    // storms throw big waves over small boats; the ice of Frozen Bay grinds weak hulls
+    // storms throw big waves over small boats; the ice of the Snowy Seas grinds weak hulls
     if(active&&!this.sinking&&Env.P&&Env.P.key==='storm'&&!this.nearDock()){this.stormT-=dt;if(this.stormT<=0){this.stormT=rand(6,12);const tier=sp0.tier,dmg=(tier<=2?6:tier===3?2.6:1.4)*rand(0.8,1.3);
       this.damage(dmg);this.bumpT=0.7;this.vy+=2.2;Cam.shake=0.5;Audio.splash(true);Particles.splash(this.pos.x,this.pos.z,30,1.4);if(!this.sinking)UI.toast(tier<=2?'A huge wave crashes over your skiff!':'A big wave slams the hull.','warn');}}
-    if(active&&!this.sinking&&sp0.tier<3&&Math.hypot(this.pos.x-FROZEN.x,this.pos.z-FROZEN.z)<FROZEN.r+50){this.damage(3.2*dt*(Math.abs(this.speed)>1?1:0.4));
-      this.iceMsgT-=dt;if(this.iceMsgT<=0){this.iceMsgT=6;UI.toast('Ice is grinding your hull! Frozen Bay needs a Fishing Boat or bigger.','warn');}
+    if(active&&!this.sinking&&sp0.tier<3&&!Buffs.has('warm')&&!G.flags.sn_hull&&Math.hypot(this.pos.x-FROZEN.x,this.pos.z-FROZEN.z)<FROZEN.r+50){this.damage(3.2*dt*(Math.abs(this.speed)>1?1:0.4));
+      this.iceMsgT-=dt;if(this.iceMsgT<=0){this.iceMsgT=6;UI.toast('Ice is grinding your hull! the Snowy Seas ice needs a Fishing Boat, a Thermal Hull or a warm-up in the hot springs.','warn');}
       if(Math.random()<dt*10)Particles.spawn(this.pos.x+rand(-1,1),this.y+0.3,this.pos.z+rand(-1,1),rand(-1,1),rand(1,2),rand(-1,1),'#e6f4ff',0.14,0.5);}
     // Volcano Isles boil weak hulls; the Mystic Deep throws monster swells at anything below Tier 5
     if(active&&!this.sinking&&sp0.tier<4&&Math.hypot(this.pos.x-VOLCANO.x,this.pos.z-VOLCANO.z)<VOLCANO.r+50){this.damage(2.8*dt*(Math.abs(this.speed)>1?1:0.5));
@@ -3045,11 +3957,13 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
     UI.toast('Face the water to cast. The end of the dock is a good spot.','warn');return false;},
   cancelCharge(){if(this.state==='charge'){this.state='idle';this.pose=null;UI.fishHud(null);this.rodVis(false);}},
   rodVis(v){Player.rod.g.visible=v;},
-  zoneAt(x,z){if(Math.hypot(x-SPOT.x,z-SPOT.z)<SPOT.r)return 'shallows';if(Math.hypot(x-SUNNY.x,z-SUNNY.z)<SUNNY.r+34)return 'reef';if(Math.hypot(x-FROZEN.x,z-FROZEN.z)<FROZEN.r+46)return 'frozen';const z4=zone4(x,z);if(z4)return z4;if(G.mode==='boat'&&Math.hypot(x,z)>62)return 'open';return 'shore';},
+  zoneAt(x,z){if(Math.hypot(x-SPOT.x,z-SPOT.z)<SPOT.r)return 'shallows';if(Math.hypot(x-SUNNY.x,z-SUNNY.z)<SUNNY.r+34)return 'reef';{const sz=snowZone(x,z);if(sz)return sz;}const z4=zone4(x,z);if(z4)return z4;if(G.mode==='boat'&&Math.hypot(x,z)>62)return 'open';return 'shore';},
   roll(){
     const sel=G.baitSel,bait=BAITS[sel],deep=this.deepDrop,firstEver=G.totalCaught===0,sonar=G.mode==='boat'&&Boat.has('sonar');
-    let pool=FISH_DB.filter(f=>f.zones.includes(this.zone)&&f.rarity!=='mythic');
+    const zz=this.zone,sub=zz!=='frozen'&&SNOWZ.includes(zz)&&!zz.startsWith('cave'),au=SNOWZ.includes(zz)&&Snowy.aurora(),bliz=SNOWZ.includes(zz)&&Env.P&&Env.P.key==='storm',sch=Snowy.school&&G.mode==='boat'&&Math.hypot(Boat.pos.x-Snowy.school.x,Boat.pos.z-Snowy.school.z)<12;
+    let pool=FISH_DB.filter(f=>(f.zones.includes(zz)||sub&&f.zones.includes('frozen'))&&f.rarity!=='mythic');
     const calc=f=>{const r=RARITY[f.rarity],dz=f.dz||0;let v=r.w*(f.bait.includes(sel)?1.6:(sel==='bread'?0.12:0.6));
+      if(sub)v*=f.zones.includes(zz)?2.6:0.5;if(f.aurora)v*=au?3:0.2;if(au&&r.rank>=1)v*=1.6;if(bliz&&r.rank>=2)v*=1.5;if(sch&&r.rank>=1)v*=2;if(SNOWZ.includes(zz)&&r.rank>=1&&Buffs.has('warm'))v*=1.3;
       if(r.rank>=1)v*=bait.rare;if(r.rank>=2&&sel==='worm')v*=0.4;if(r.rank>=1&&Buffs.has('luck'))v*=1.7;if(r.rank>=2&&sonar)v*=1.25;
       if(f.minCm>GEAR.hook[G.gear.hook].maxCm)v*=0.35;v*=condFactor(f);if(r.rank>=1)v*=1+Level.perk()*0.015;if(r.rank>=2&&this.frenzy)v*=2.2;
       if(f.maxCm<=30)v*=(GEAR.hook[G.gear.hook].small||1)*(GEAR.reel[G.gear.reel].small||1);
@@ -3063,7 +3977,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
     const b=Bosses.at(this.target.x,this.target.z);
     if(G.baitSel==='legend'){
       if(!b){this.reset();UI.toast('The Legend Lure only works where a legend lives. Look for a dark whirlpool on your map.','warn');return;}
-      if(G.mode!=='boat'||Boat.spec().tier<b.tier){this.reset();UI.toast(`The ${FISH[b.id].name} would drag this boat under. You need a Tier ${b.tier} boat.`,'warn');return;}
+      if(!b.foot&&(G.mode!=='boat'||Boat.spec().tier<b.tier)){this.reset();UI.toast(`The ${FISH[b.id].name} would drag this boat under. You need a Tier ${b.tier} boat.`,'warn');return;}
       this.boss=b;this.wait=rand(3.5,5.5);this.nibT=99;UI.fishHint('Something enormous is circling your lure…','warn');Cam.shake=0.25;Audio.roar(0.4);return;}
     if(b&&!this._bossHint){this._bossHint=true;setTimeout(()=>this._bossHint=false,20000);UI.toast(`Something enormous circles below… it ignores your ${BAITS[G.baitSel].name.toLowerCase()}. Bring a Legend Lure.`,'warn');}
     if(G.deep&&G.mode==='boat'&&Boat.has('winch')){if(['shore','shallows','reef','blossom'].includes(this.zone))UI.toast('Too shallow here for a deep drop.','warn');
@@ -3249,7 +4163,7 @@ const OUTFITS={
   sailor:{name:'Sailor Whites',price:4,pal:{shirt:'#f4f8fa',vest:'#1f3a6a',shorts:'#f4f1ea',cap:'#ffffff',scarf:'#d8322a'},desc:'Crisp whites and a red neckerchief.'},
   tropical:{name:'Tropical Holiday',price:4,pal:{shirt:'#ea5a44',vest:'#f0c83a',shorts:'#2f86dc',straw:true},desc:'Loud shirt, straw hat, zero worries.'},
   diver:{name:'Deep Diver',price:6,pal:{shirt:'#2a8a8a',vest:'#1d1d24',shorts:'#1d1d24',goggles:true},desc:'A wetsuit look for the abyss.'},
-  arctic:{name:'Arctic Parka',price:5,pal:{shirt:'#d8dce4',vest:'#c8402a',shorts:'#3a3f46',boots:'#3a2a20',hat:'#c8402a'},desc:'Warm enough for Frozen Bay.'},
+  arctic:{name:'Arctic Parka',price:5,pal:{shirt:'#d8dce4',vest:'#c8402a',shorts:'#3a3f46',boots:'#3a2a20',hat:'#c8402a'},desc:'Warm enough for the Snowy Seas.'},
   captain:{name:"Captain's Coat",price:8,pal:{shirt:'#f4f8fa',vest:'#1d2a4a',shorts:'#1d2a4a',cap:'#1d2a4a',belt:'#e1b54a',buckle:'#ffe38a'},desc:'Navy coat and gold buckle. You earned it.'},
   hunter:{name:'Legend Hunter',price:10,need:'boss',pal:{vest:'#8a1a2a',shorts:'#2a2e33',scarf:'#e1b54a',cap:'#8a1a2a'},desc:'Only for those who have beaten a boss.'}
 };
@@ -3290,7 +4204,7 @@ const ACHS=[
   ['dexall','Complete Encyclopedia','Log every species except the bosses',()=>FISH_DB.every(f=>f.rarity==='mythic'||G.dex[f.id]),15],
   ['legend','Legendary!','Catch a Legendary fish',()=>Object.keys(G.dex).some(id=>FISH[id]&&FISH[id].rarity==='legendary'),3],
   ['boss1','Monster Hunter','Defeat a boss',()=>G.trophies.length>=1,4],
-  ['bossall','Legend Slayer','Defeat all six bosses',()=>G.trophies.length>=BOSSES.length,12],
+  ['bossall','Legend Slayer','Defeat every boss, the Frost Leviathan too',()=>G.trophies.length>=BOSSES.length,12],
   ['islands','Explorer','Discover every island and the Mystic Deep',()=>Object.keys(ISLES).every(k=>G.flags[k]),5],
   ['rich','Fortune','Hold 10,000 coins at once',()=>G.coins>=10000,3],
   ['cook10','Home Chef','Cook 10 dishes',()=>(G.stats.cooked||0)>=10,2],
@@ -3303,6 +4217,13 @@ const ACHS=[
   ['treasure','Treasure Hunter','Open 5 treasure chests',()=>(G.stats.treasure||0)>=5,3],
   ['frenzy','Feeding Frenzy','Catch a fish in a feeding frenzy',()=>(G.stats.frenzy||0)>=1,2],
   ['level10','Veteran','Reach angler level 10',()=>Level.lv()>=10,3],
+  ['snowy','Snowy Seas Explorer','Discover every place in the Snowy Seas',()=>SNOWLOC.every(l=>G.flags['sn_'+l.id]),5],
+  ['archsail','Through the Arch','Sail under the Ice Arch',()=>!!G.flags.sn_arch,1],
+  ['soak','Hot Soak','Warm up in the hot springs',()=>(G.stats.soak||0)>=1,1],
+  ['summit','Top of the World','Stand on the summit of the Frozen Peaks',()=>!!G.flags.sn_summit,2],
+  ['gather','Gatherer','Gather 30 resources in the Snowy Seas',()=>(G.stats.gathered||0)>=30,3],
+  ['abyss','Into the Abyss','Reach B4, the Deep Sea Caves',()=>!!G.flags.sn_b4,4],
+  ['snowhero','Hero of the Snowy Seas','Finish every Snowy Seas quest',()=>(G.stats.sqI||0)>=SQUESTS.length-1,8],
   ['manor',"Captain's Manor",'Upgrade your house to level 5',()=>G.house>=5,5],
   ['mega','Admiral','Own the Mega Boat',()=>!!G.boats.mega,5],
   ['style','Dressed to Sail','Buy a new outfit or boat paint',()=>(G.stats.style||0)>=1,1]
@@ -3402,6 +4323,15 @@ const NPCS=[
   {id:'nami',name:'Professor Nami',role:'Marine Biologist',home:[NAMI_POS.x,NAMI_POS.z],r:1.0,pal:{skin:'#e8b890',hair:'#1d1d24',shirt:'#f4f8fa',vest:'#eef4f6',shorts:'#3b4a5a',boots:'#4a3a2a',scarf:'#36b07e',bun:true}},
   {id:'bo',name:'Fisher Bo',role:'Dock Regular',home:[-1.3,DZ1-1.2],r:0,fisher:true,pal:{skin:'#b97c55',hair:'#2a1a10',shirt:'#9ec3d9',vest:'#2e5e3a',shorts:'#3b3f4a',boots:'#3b2a20',cap:'#e0a23f'}}
 ];
+{const sb=id=>SNOW_BLD.find(b=>b.id===id).door,hd=unit2(-SPRINGS.x,-SPRINGS.z);
+  NPCS.push({id:'sven',name:'Old Sven',role:'Fish Market',home:[sb('market').x,sb('market').z],r:1.2,snow:true,pal:{skin:'#e7b089',hair:'#e8e8e8',shirt:'#3a5a8a',vest:'#c8402a',shorts:'#3b3f4a',boots:'#4a3020',hat:'#c8402a',beard:'#f2f2f2'}},
+    {id:'frida',name:'Frida',role:'Fishing Shop',home:[sb('tackle').x,sb('tackle').z],r:1.0,snow:true,pal:{skin:'#f0c29a',hair:'#e8c86a',shirt:'#f4f1ea',vest:'#2f6fb0',shorts:'#3b3f4a',boots:'#4a3020',scarf:'#e0503f',bun:true}},
+    {id:'olaf',name:'Olaf',role:'General Store',home:[sb('store').x,sb('store').z],r:1.0,snow:true,pal:{skin:'#d9a07a',hair:'#8a5a2a',shirt:'#3a8a4a',vest:'#3a8a4a',shorts:'#5b4a3a',boots:'#4a3020',apron:'#f5efe0',beard:'#8a5a2a'}},
+    {id:'ingrid',name:'Ingrid',role:'Snow Kitchen',home:[sb('kitchen').x,sb('kitchen').z],r:1.0,snow:true,pal:{skin:'#f0c29a',hair:'#c8702a',shirt:'#f6f4ee',vest:'#f6f4ee',shorts:'#3b3f4a',boots:'#3b2a20',chef:true,scarf:'#3a8a4a'}},
+    {id:'bjorn',name:'Bjorn',role:'Boat Workshop',home:[sb('workshop').x,sb('workshop').z],r:0.8,snow:true,pal:{skin:'#c98a62',hair:'#2a1a10',shirt:'#8a5a3a',vest:'#3a3f46',shorts:'#3b3f4a',boots:'#3b2a20',cap:'#2f86dc',beard:'#2a1a10',belt:'#6b4224'}},
+    {id:'hilde',name:'Hilde',role:'Village Kid',home:[vpt(-3,2).x,vpt(-3,2).z],r:3,scale:0.85,snow:true,pal:{skin:'#eab58c',hair:'#e8c86a',shirt:'#e0503f',vest:'#e0503f',shorts:'#3a5a8a',boots:'#4a3020',messy:true}},
+    {id:'elsa',name:'Elsa',role:'Hot Springs Keeper',home:[SPRINGS.x+hd.x*10.5,SPRINGS.z+hd.z*10.5+3],r:1.0,snow:true,pal:{skin:'#f0c29a',hair:'#dcdcdc',shirt:'#f4f1ea',vest:'#b8402a',shorts:'#6a4a7a',boots:'#6b4424',bun:true,scarf:'#f2cf3f'}},
+    {id:'tove',name:'Tove',role:'Ice Fisher',home:[FLOE.x+0.6,FLOE.z+3.2],r:0,fisher:true,snow:true,pal:{skin:'#e7b089',hair:'#3a2214',shirt:'#9ec3d9',vest:'#2f6fb0',shorts:'#3b3f4a',boots:'#3b2a20',hat:'#e0a23f'}});}
 const NPC={list:[],
   init(){NPCS.forEach((d,i)=>{const c=buildCharacter(d.pal,20+i);if(d.scale)c.root.scale.setScalar(d.scale);scene.add(c.root);
     const n={d,c,pos:new V3(d.home[0],0,d.home[1]),yaw:0,tgt:null,idleT:rand(1,4),state:'idle'};n.pos.y=groundAt(n.pos.x,n.pos.z);
@@ -3592,8 +4522,8 @@ const QUESTS=[
   {id:'night',title:'Night Shift',text:'Catch any fish after dark. Some fish only come out at night. Rest at home to skip ahead to evening.',target:()=>null,on:(t,d)=>t==='catch'&&d.night,reward:()=>{G.coins+=40;UI.coins();}},
   {id:'rain',title:'Singing in the Rain',text:'Catch a fish while it is raining or storming. Watch the weather next to your coins.',target:()=>null,on:(t,d)=>t==='catch'&&d.rain,reward:()=>{G.coins+=40;UI.coins();}},
   {id:'boat3',title:'Bigger Boat',text:"Buy the Fishing Boat from Captain Rosa's shipyard. It shrugs off storms and can push through ice.",target:npcPos('rosa'),on:t=>t==='buyBoat',enter:()=>!!G.boats.fisher},
-  {id:'frozen',title:'Frozen Bay',text:'Take the Fishing Boat far to the north-west, to the icebergs of Frozen Bay.',target:()=>new V3(FROZEN.x,0,FROZEN.z),on:(t,d)=>t==='discover'&&d==='frozen',enter:()=>!!G.flags.frozen},
-  {id:'coldcatch',title:'Cold Water',text:'Catch a fish in the icy waters of Frozen Bay.',target:()=>new V3(FROZEN.x,0,FROZEN.z),on:(t,d)=>t==='catch'&&d.zone==='frozen',reward:()=>{G.coins+=80;UI.coins();}},
+  {id:'frozen',title:'The Snowy Seas',text:'Take the Fishing Boat far to the north-west, to Snow Village and the icebergs of the Snowy Seas.',target:()=>new V3(FROZEN.x,0,FROZEN.z),on:(t,d)=>t==='discover'&&d==='frozen',enter:()=>!!G.flags.frozen},
+  {id:'coldcatch',title:'Cold Water',text:'Catch a fish in the icy waters of the Snowy Seas.',target:()=>new V3(FROZEN.x,0,FROZEN.z),on:(t,d)=>t==='catch'&&SNOWZ.includes(d.zone),reward:()=>{G.coins+=80;UI.coins();}},
   {id:'tuneup',title:'Tune-up',text:'Buy any upgrade for your boat at the shipyard.',target:npcPos('rosa'),on:t=>t==='boatUp'},
   {id:'collector',title:'Collector',text:'Discover 25 species. Try different places, times of day and weather.',target:()=>null,
     on:t=>t==='catch'&&Object.keys(G.dex).length>=25,enter:()=>Object.keys(G.dex).length>=25,
@@ -3692,7 +4622,7 @@ function talk(n){
   if(id==='rosa'){
     if(!phase3()){Dialog.open(n,["I build boats, kid. Proper ones. Come back once the whole village knows your name."]);return;}
     const first=Quest.cur().id==='shipwright';
-    const lines=first?["So you're the one everybody talks about! I'm Rosa. I build and fix boats.","That skiff won't survive a storm, and it'll be crushed by the ice up in Frozen Bay. Save up and I'll sell you a real Fishing Boat. I can also tune up whatever you sail."]
+    const lines=first?["So you're the one everybody talks about! I'm Rosa. I build and fix boats.","That skiff won't survive a storm, and it'll be crushed by the ice up in the Snowy Seas. Save up and I'll sell you a real Fishing Boat. I can also tune up whatever you sail."]
       :[phase4()&&!G.boats.offshore&&!G.boats.mega?'Heading for the Mystic Deep? Only my Offshore Cruiser rides out those swells. And the Mega Boat... that one is a floating home.':
         G.boats.fisher?'How is she handling? I can tune the engine, reinforce the hull, fit a bigger tank or night lights.':'The Fishing Boat moored at the west pier is waiting for you. Nine hundred coins and she\'s yours.'];
     Dialog.open(n,lines,[{label:'Shipyard',cls:'gold',fn:()=>{Dialog.close();if(first)Quest.event('talkRosa');UI.openPanel('shipyard');}},{label:'Bye',fn:()=>{Dialog.close();if(first)Quest.event('talkRosa');}}]);return;}
@@ -3700,7 +4630,7 @@ function talk(n){
     if(!phase4()){Dialog.open(n,["Professor Nami, marine biologist. I'm here to catalogue every creature in this ocean.","Discover 25 species and come find me. I'll have a job for someone with your talent."]);return;}
     const first=Quest.cur().id==='nami';const got=Object.keys(G.dex).length;
     const lines=first?["You must be the fisher everyone talks about! I'm Professor Nami. I'm mapping every creature in this ocean, more than three hundred species.",
-      "Five wild biomes lie beyond Sunny Shores and Frozen Bay: Volcano Isles to the north-east, the Ancient Ruins in the north, the Blossom Islands to the west, Dino Reef in the south, and the dark Mystic Deep far to the south-east.",
+      "Five wild biomes lie beyond Sunny Shores and the Snowy Seas: Volcano Isles to the north-east, the Ancient Ruins in the north, the Blossom Islands to the west, Dino Reef in the south, and the dark Mystic Deep far to the south-east.",
       "Every biome hides a legend, and every 25 species you log earns a reward from me. Nana Pia now stocks Squid Strips, Bread Balls, Glow Jigs and Legend Lures, and Marlo has monster tackle."]
       :[Quest.cur().id==='boss'?'Bosses only bite on a Legend Lure, cast right into their whirlpool. They fight in three phases, so keep your line in the green and let go when they rage!':
         Quest.cur().id==='deepdrop'?'Down in the abyss it is pitch black. Glow Jigs attract the deep-sea fish, and a winch lets you drop hundreds of metres.':
@@ -3731,6 +4661,7 @@ function interactions(){
     if(!Boat.sinking&&Boat.nearDock()&&Math.abs(Boat.speed)<3)out.push({d:0,label:'Step onto the dock',fn:()=>Boat.exit()});
     else if(!Boat.sinking&&Boat.has('base')&&Math.abs(Boat.speed)<1&&Boat.startT<=0)out.push({d:1,label:'Mobile base: sleep and cook',fn:()=>UI.openPanel('base')});
   }
+  Snowy.prompts(out);
   out.sort((a,b)=>a.d-b.d);return out;
 }
 
@@ -3890,6 +4821,7 @@ const Music={c:null,track:'explore',
   /* ---------- sequencing ---------- */
   exStep(t){
     const s=this.step%16,bar=Math.floor(this.step/16);
+    if(snowMusicStep(this,t,s,bar))return;
     if(s===0&&bar>0&&bar%8===0)this.seqI=this.seqI+1>=EX_SEQ.length?1:this.seqI+1;
     if(s===0)this.sea=started&&G.mode==='boat'&&Math.hypot(Player.pos.x,Player.pos.z)>95;
     const sec=EX_SEQ[this.seqI],L=this.sea?OCEAN_L[bar%2]:EX_L[sec],bi=bar%8,ch=EX_CH[bi],S=EX_S;
@@ -3996,7 +4928,7 @@ const UI={
     b.append(rows);if(!others.length)b.insertAdjacentHTML('beforeend','<p style="margin-top:10px">Nobody else is here yet. Share the game link with a friend and they will appear in your ocean.</p>');
     if(!Net.connected)b.insertAdjacentHTML('beforeend','<p><b>Connecting to the multiplayer server…</b></p>');},
   autoBtn(){$('#bAuto').classList.toggle('on',AutoFish.on);document.body.classList.toggle('autofish',AutoFish.on);},
-  clock(){$('#clockText').textContent=Env.clockText();$('#wxText').textContent=(Env.P||WX.sunny).name;$('#clockIcon').className=Env.night>0.5?'moonIcon':'sunIcon';},
+  clock(){$('#clockText').textContent=Env.clockText();$('#wxText').textContent=Snowy.wxLabel()||(Env.P||WX.sunny).name;$('#clockIcon').className=Env.night>0.5?'moonIcon':'sunIcon';},
   quest(){const q=Quest.cur();$('#qTitle').textContent=q.title;$('#qText').textContent=q.text;
     const p=$('#qProg');if(q.count){p.hidden=false;p.textContent=G.qCount+' / '+q.count;}else if(q.id==='collector'){p.hidden=false;p.textContent=Object.keys(G.dex).length+' / 25 species';}else if(q.id==='free'){p.hidden=false;p.textContent=Object.keys(G.dex).length+' / '+FISH_DB.length+' species';}else if(q.id==='hundred'){p.hidden=false;p.textContent=Object.keys(G.dex).length+' / 100 species';}else p.hidden=true;},
   gear(){const set=(id,txt,on)=>{const e=$(id);e.querySelector('span').textContent=txt;e.classList.toggle('off',!on);};
@@ -4032,15 +4964,15 @@ const UI={
     setTimeout(()=>{card.hidden=false;$('#ccOk').focus();},r.rank>=4?3500:650);},
   closeCatch(){$('#catchCard').hidden=true;if(Fishing.state==='caught')Fishing.finish();canvas.focus();},
   openPanel(kind){this.panelKind=kind;const b=$('#pBody');b.innerHTML='';
-    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players Online',wardrobe:'Wardrobe',achievements:'Achievements',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
-    $('#pTitle').textContent=titles[kind];this['panel_'+kind](b);$('#panelWrap').hidden=false;$('#pClose').focus();},
-  closePanel(){if(this.cookGame&&!this.cookGame.done){this.cookStop();}$('#panelWrap').hidden=true;this.panelKind=null;this.cookGame=null;clearInterval(this.farmTimer);canvas.focus();},
+    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players Online',wardrobe:'Wardrobe',achievements:'Achievements',snowmap:'Snowy Seas Map',snowmarket:'Fish Market · Old Sven',snowquests:'Snowy Seas Quest Board',snowkitchen:'Snow Kitchen · Ingrid',snowcabin:'Your Winter Cabin',snowres:'Storage Warehouse',snowworkshop:'Boat Workshop · Bjorn',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
+    $('#pTitle').textContent=(this.snowHost&&['tackle','shop','sell','dishes','shipyard'].includes(kind)?this.snowHost:titles[kind]);if(!['tackle','shop','sell','dishes','shipyard'].includes(kind))this.snowHost=null;this['panel_'+kind](b);$('#panelWrap').hidden=false;$('#pClose').focus();},
+  closePanel(){this.snowHost=null;if(this.cookGame&&!this.cookGame.done){this.cookStop();}$('#panelWrap').hidden=true;this.panelKind=null;this.cookGame=null;clearInterval(this.farmTimer);canvas.focus();},
   togglePanel(k){if(!$('#panelWrap').hidden&&this.panelKind===k)this.closePanel();else if(!Fishing.busy()||k==='help'||k==='sound')this.openPanel(k);},
   fishCanvas(f,w,h,locked){const c=document.createElement('canvas');c.width=w;c.height=h;drawFishIcon(c,f,locked);return c;},
   panel_dex(b){{const ab=document.createElement('button');ab.className='btn sm plain';ab.style.float='right';ab.textContent='Achievements';ab.onclick=()=>this.openPanel('achievements');b.append(ab);}
-    const TABS=[['all','All'],['shore','Starting Island'],['open','Open sea'],['shallows','Coral Shallows'],['reef','Sunny Shores'],['frozen','Frozen Bay'],['volcano','Volcano Isles'],['dino','Dino Reef'],['ruins','Ancient Ruins'],['blossom','Blossom Islands'],['deep','Mystic Deep'],['legend','Legends']];
+    const TABS=[['all','All'],['shore','Starting Island'],['open','Open sea'],['shallows','Coral Shallows'],['reef','Sunny Shores'],['frozen','Snowy Seas'],['volcano','Volcano Isles'],['dino','Dino Reef'],['ruins','Ancient Ruins'],['blossom','Blossom Islands'],['deep','Mystic Deep'],['legend','Legends']];
     const tab=this.dexTab||'all',rar=this.dexRar||'all',own=!!this.dexOwn;
-    const inTab=(f,t)=>t==='all'||(t==='legend'?RARITY[f.rarity].rank>=4:f.zones.includes(t));
+    const inTab=(f,t)=>t==='all'||(t==='legend'?RARITY[f.rarity].rank>=4:t==='frozen'?f.zones.some(z=>SNOWZ.includes(z)):f.zones.includes(t));
     const got=Object.keys(G.dex).filter(id=>FISH[id]).length,total=FISH_DB.length,legends=Object.keys(G.dex).filter(id=>FISH[id]&&FISH[id].rarity==='legendary').length;
     b.insertAdjacentHTML('beforeend',`<p style="margin:0 0 6px"><b>${got} of ${total}</b> species logged in the Fish Encyclopedia. Catch a species once to unlock its entry.</p><div class="dexProg"><i style="width:${got/total*100}%"></i></div>
       <div class="dexStats"><span>Fish caught <b>${G.totalCaught}</b></span><span>Legends <b>${legends}</b></span><span>Bosses beaten <b>${G.trophies.length} / ${BOSSES.length}</b></span></div>`);
@@ -4250,16 +5182,16 @@ const UI={
       bt.onclick=()=>{if(Orders.deliver(i)){this.coins();Audio.fanfare(1);this.toast(`Order filled! +${o.reward} coins`,'gold');Save.write();this.openPanel('orders');}};row.append(bt);rows.append(row);});
     b.append(rows);},
   panel_shipyard(b){
-    b.insertAdjacentHTML('beforeend',`<p>You have <b>${G.coins} coins</b>. Boats you own stay at the shipyard; pick one to sail. Bigger boats hold extra fish, survive storms and can enter Frozen Bay.${phase4()?' Tier 4 boats take the heat of Volcano Isles, and only Tier 5 and up survive the Mystic Deep.':''}</p><h3>Boats</h3>`);
+    b.insertAdjacentHTML('beforeend',`<p>You have <b>${G.coins} coins</b>. Boats you own stay at the shipyard; pick one to sail. Bigger boats hold extra fish, survive storms and can enter the Snowy Seas.${phase4()?' Tier 4 boats take the heat of Volcano Isles, and only Tier 5 and up survive the Mystic Deep.':''}</p><h3>Boats</h3>`);
     const rows=document.createElement('div');rows.className='rows';
     for(const [id,bt] of Object.entries(BOATS)){if(bt.p4&&!phase4()&&!G.boats[id])continue;const own=!!G.boats[id],cur=G.boat===id;const r=document.createElement('div');r.className='row gearRow'+(cur?' eq':'');
       const cv=document.createElement('canvas');cv.width=96;cv.height=54;cv.className='gearIcon';drawBoatIcon(cv,id);r.append(cv);
       r.insertAdjacentHTML('beforeend',`<div class="rmain"><div class="rname">${bt.name} <span class="pill" style="background:#8a5a2e">Tier ${bt.tier}</span></div><div class="rsub">${bt.desc}</div><div class="rsub">Speed ${bt.speed} · Hull ${bt.hull} · Fuel ${bt.fuel}${bt.cooler?' · +'+bt.cooler+' cooler':''}</div></div><div class="rval">${own?'':bt.price+'c'}</div>`);
       const btn=document.createElement('button');
       if(cur){btn.className='btn sm plain';btn.textContent='Sailing';btn.disabled=true;}
-      else if(own){btn.className='btn sm';btn.textContent='Use';btn.disabled=G.mode==='boat';btn.onclick=()=>{Boat.setType(id);Boat.moor();Audio.click();this.toast(bt.name+' is moored at the dock.','good');Save.write();this.openPanel('shipyard');};}
+      else if(own){btn.className='btn sm';btn.textContent='Use';btn.disabled=G.mode==='boat';btn.onclick=()=>{Boat.setType(id);(this.snowHost?Snowy.moorAt('village'):Boat.moor());Audio.click();this.toast(bt.name+' is moored at the dock.','good');Save.write();this.openPanel('shipyard');};}
       else{btn.className='btn sm gold';btn.textContent='Buy';btn.disabled=G.coins<bt.price||G.mode==='boat';
-        btn.onclick=()=>{if(G.coins<bt.price)return;G.coins-=bt.price;G.boats[id]=UP0();Boat.setType(id);Boat.moor();this.coins();Audio.fanfare(3);
+        btn.onclick=()=>{if(G.coins<bt.price)return;G.coins-=bt.price;G.boats[id]=UP0();Boat.setType(id);(this.snowHost?Snowy.moorAt('village'):Boat.moor());this.coins();Audio.fanfare(3);
           UI.banner('New boat!',bt.name+' is moored at the dock');Quest.event('buyBoat',id);Save.write();this.openPanel('shipyard');};}
       r.append(btn);rows.append(r);}
     b.append(rows);
@@ -4334,7 +5266,63 @@ const UI={
     b.append(wall);},
 
   panel_map(b){const c=document.createElement('canvas');c.width=560;c.height=560;c.className='mapCanvas';b.append(c);drawMap(c.getContext('2d'),560,true);
-    b.insertAdjacentHTML('beforeend',`<div class="legend"><span><i style="background:#ffd24a;border-radius:50%"></i>Quest</span><span><i style="background:#fff;border:2px solid #222;border-radius:50%"></i>You</span><span><i style="background:#9c5c2c"></i>Skiff</span><span><i style="background:#d8e6ee"></i>Unexplored</span><span><i style="background:#5fd6e8"></i>Shallows</span><span><i style="background:#8a5a2e;border:2px solid #ffd24a"></i>Treasure</span><span><i style="background:#ff8a2a;border-radius:50%"></i>Feeding frenzy</span><span><i style="background:#e0407a;border-radius:50%"></i>Boss whirlpool</span></div>`);},
+    b.insertAdjacentHTML('beforeend',`<div class="legend"><span><i style="background:#ffd24a;border-radius:50%"></i>Quest</span><span><i style="background:#fff;border:2px solid #222;border-radius:50%"></i>You</span><span><i style="background:#9c5c2c"></i>Skiff</span><span><i style="background:#d8e6ee"></i>Unexplored</span><span><i style="background:#5fd6e8"></i>Shallows</span><span><i style="background:#8a5a2e;border:2px solid #ffd24a"></i>Treasure</span><span><i style="background:#ff8a2a;border-radius:50%"></i>Feeding frenzy</span><span><i style="background:#e0407a;border-radius:50%"></i>Boss whirlpool</span></div>`);
+    if(G.flags.frozen){const sb=document.createElement('button');sb.className='btn gold';sb.style.margin='10px auto 0';sb.style.display='block';sb.textContent='Open the Snowy Seas map';sb.onclick=()=>this.openPanel('snowmap');b.append(sb);}},
+  panel_snowmap(b){const c=document.createElement('canvas');c.width=SNOWMAP.W;c.height=SNOWMAP.H;c.className='mapCanvas snowMap';b.append(c);const g=c.getContext('2d');drawSnowMap(g);
+    clearInterval(this.farmTimer);this.farmTimer=setInterval(()=>{if(this.panelKind==='snowmap')drawSnowMap(g);},900);
+    const grid=document.createElement('div');grid.className='snowCards';
+    const card=(title,body,found,thumb,act)=>{const d=document.createElement('div');d.className='snowCard'+(found?'':' locked');d.innerHTML=`<div class="scH">${title}</div>`;if(thumb)d.append(thumb);
+      const s=document.createElement('div');s.className='scB';s.innerHTML=body;d.append(s);if(act){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent=act[0];bt.onclick=act[1];s.append(bt);}grid.append(d);};
+    const thumb=(o)=>{const t=document.createElement('canvas');t.width=200;t.height=110;const tg=t.getContext('2d'),X=smx(o.x),Z=smz(o.z);tg.drawImage(SNOWMAP.base,X-100,Z-55,200,110,0,0,200,110);t.className='scT';return t;};
+    const fishOf=z=>{const fl=FISH_DB.filter(f=>f.zones.includes(z)&&f.rarity!=='mythic');const got=fl.filter(f=>G.dex[f.id]);return `${got.length}/${fl.length} fish logged`+(got.length?': '+got.slice(0,4).map(f=>f.name).join(', ')+(got.length>4?'…':''):'');};
+    for(const L of SNOWLOC){const ok=Snowy.found(L.id);const num=typeof L.n==='number'?L.n+'. ':'★ ';
+      const sh=SHORES.find(s=>s.id===L.id)||(L.id==='caves'?SHORES.find(s=>s.id==='caves'):null);
+      card(num+(ok?L.name:'???'),ok?`<p>${L.desc}</p><p class="scS">${L.spots.join(' · ')}</p><p class="scF">🐟 ${fishOf(L.zone)}</p><p class="scF">⛏ ${L.res.map(k=>RES[k].name).join(', ')}</p>`:'<p>Not discovered yet. Explore the Snowy Seas to reveal it.</p>',ok,ok?thumb(L.o):null,
+        ok&&G.flags.boat?[sh?'Travel here':'Sail here',()=>sh?Snowy.travel(sh.id):Snowy.travel('village')]:null);}
+    for(let i=0;i<4;i++){const C=CAVES[i],ok=!!G.flags['sn_b'+(i+1)];card(C.name,ok?`<p>Depth ${C.depth}</p><p class="scF">🐟 ${fishOf(C.zone)}</p>`+(i===3?'<p class="scF">💀 Lair of the Frost Leviathan</p>':''):`<p>${i===0?'Deep inside the Sea Caves.':'Further below…'}</p>`,ok,null,ok?['Go down here',()=>Snowy.travel('b'+(i+1))]:null);}
+    b.append(grid);},
+  panel_snowmarket(b){b.insertAdjacentHTML('beforeend','<p><b>Old Sven:</b> "Fresh fish, fair prices, and the best chart of the Snowy Seas north of anywhere. What will it be?"</p>');
+    const acts=document.createElement('div');acts.className='snowActs';
+    const btn=(t,cls,fn)=>{const x=document.createElement('button');x.className='btn '+cls;x.textContent=t;x.onclick=fn;acts.append(x);return x;};
+    btn('Sell fish','gold',()=>{this.snowHost='Fish Market · Old Sven';this.openPanel('sell');});btn('Snowy Seas map','',()=>this.openPanel('snowmap'));btn('Quest board','',()=>this.openPanel('snowquests'));
+    const cocoa=btn('Hot cocoa · 60 coins','plain',()=>{if(G.coins<60)return;G.coins-=60;Buffs.add('warm',300);this.coins();Audio.coin();this.toast('Toasty! Ice cannot hurt you and cold-water rare fish bite more often.','good');this.openPanel('snowmarket');});cocoa.disabled=G.coins<60;
+    b.append(acts);b.insertAdjacentHTML('beforeend','<h3>Sell resources</h3>');this.resRows(b,true);},
+  resRows(b,sell){const rows=document.createElement('div');rows.className='rows';let any=false;
+    for(const [k,R] of Object.entries(RES)){const n=G.res[k]||0;if(!n&&sell)continue;any=true;const r=document.createElement('div');r.className='row';
+      r.innerHTML=`<i class="swatch" style="background:${R.col}"></i><div class="rmain"><div class="rname">${R.name} <small>× ${n}</small></div><div class="rsub">${R.desc}</div></div><div class="rval">${R.price} coins</div>`;
+      if(sell){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Sell 1';bt.onclick=()=>{if(!G.res[k])return;G.res[k]--;G.coins+=R.price;this.coins();Audio.coin();Save.write();this.openPanel(this.panelKind);};r.append(bt);}
+      rows.append(r);}
+    if(!any)rows.innerHTML='<div class="row"><div class="rmain"><div class="rname">Nothing gathered yet</div><div class="rsub">Look for sparkling crystals, herbs, stones and old parts around the Snowy Seas.</div></div></div>';b.append(rows);},
+  panel_snowquests(b){const cur=SnowQ.i();b.insertAdjacentHTML('beforeend','<p>Jobs pinned up by the people of Snow Village. Finish them in order to unlock the deeper secrets of the Snowy Seas.</p>');
+    const rows=document.createElement('div');rows.className='rows';
+    SQUESTS.forEach((q,i)=>{if(q.id==='done'&&cur<i)return;const st=i<cur?'done':i===cur?'cur':'lock';const r=document.createElement('div');r.className='row'+(st==='cur'?' eq':'');
+      const rw=q.rw?[q.rw.coins?q.rw.coins+' coins':'',q.rw.pearls?q.rw.pearls+' pearls':'',q.rw.res?Object.entries(q.rw.res).map(([k,n])=>n+' '+RES[k].name).join(', '):''].filter(Boolean).join(' · '):'';
+      r.innerHTML=`<i class="swatch" style="background:${st==='done'?'#5cc04b':st==='cur'?'#8fe8ff':'#c8b890'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900">${st==='done'?'✓':i+1}</i><div class="rmain"><div class="rname">${st==='lock'?'???':q.title}${st==='cur'&&q.need?` <small>${G.stats.sqN||0}/${q.need}</small>`:''}</div><div class="rsub">${st==='lock'?'Finish the quests above first.':q.text}</div></div><div class="rval">${st==='lock'?'':rw}</div>`;rows.append(r);});
+    b.append(rows);},
+  panel_snowkitchen(b){b.insertAdjacentHTML('beforeend','<p><b>Ingrid:</b> "Sit, sit! Nothing warms a fisher like a hot bowl. Made with herbs you bring me."</p>');
+    const rows=document.createElement('div');rows.className='rows';
+    const meals=[['Arctic Chowder',120,{frozenherb:1},'Full stamina, Toasty for 6 min and Lucky for 3 min',()=>{G.hp=100;G.stamina=100;Buffs.add('warm',360);Buffs.add('luck',180);}],
+      ['Thermal Tea',60,{rarealgae:1},'Full stamina and Strong for 4 min',()=>{G.stamina=100;Buffs.add('strength',240);}],
+      ['Glacier Fish Pie',200,{frozenherb:2,icechunk:1},'Energized and Quick Reel for 5 min',()=>{G.stamina=100;Buffs.add('stamina',300);Buffs.add('reel',300);}]];
+    for(const [name,price,need,desc,fn] of meals){const ok=G.coins>=price&&Object.entries(need).every(([k,n])=>(G.res[k]||0)>=n);const r=document.createElement('div');r.className='row';
+      r.innerHTML=`<div class="rmain"><div class="rname">${name}</div><div class="rsub">${desc}. Needs ${Object.entries(need).map(([k,n])=>n+' '+RES[k].name).join(' + ')}.</div></div><div class="rval">${price} coins</div>`;
+      const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Eat';bt.disabled=!ok;bt.onclick=()=>{G.coins-=price;for(const [k,n] of Object.entries(need))G.res[k]-=n;fn();this.coins();UI.bars&&UI.bars();Audio.fanfare(1);this.toast(name+'! Delicious.','good');Save.write();this.openPanel('snowkitchen');};r.append(bt);rows.append(r);}
+    b.append(rows);const x=document.createElement('button');x.className='btn plain';x.textContent='Sell your dishes to Ingrid';x.onclick=()=>{this.snowHost='Snow Kitchen · Ingrid';this.openPanel('dishes');};b.append(x);},
+  panel_snowcabin(b){const nightish=G.time>=17||G.time<5;b.insertAdjacentHTML('beforeend',`<p>A warm little cabin with a crackling stove. Your base in the Snowy Seas.</p>`);
+    const acts=document.createElement('div');acts.className='snowActs';
+    const sl=document.createElement('button');sl.className='btn gold';sl.textContent=nightish?'Sleep until morning':'Nap until evening';
+    sl.onclick=()=>{this.closePanel();$('#fade').classList.add('on');setTimeout(()=>{if(nightish){if(G.time>=17)G.day++;G.time=6;}else G.time=18.2;G.hp=100;G.stamina=100;Buffs.add('warm',240);
+      if(Math.random()<0.6)Env.setWeather(Env.pickWeather(),true);Save.write();UI.clock();$('#fade').classList.remove('on');UI.banner(nightish?'Good morning, captain!':'Evening in Snow Village','Day '+G.day+' · rested and warm');},900);};acts.append(sl);
+    const bag=document.createElement('button');bag.className='btn';bag.textContent='Open your cooler';bag.onclick=()=>this.openPanel('bag');acts.append(bag);
+    const st=document.createElement('button');st.className='btn';st.textContent='Storage warehouse';st.onclick=()=>this.openPanel('snowres');acts.append(st);b.append(acts);},
+  panel_snowres(b){b.insertAdjacentHTML('beforeend','<p>Everything you have gathered in the Snowy Seas is kept here. Sell resources to Old Sven, or bring them to Bjorn and Ingrid.</p>');this.resRows(b,false);},
+  panel_snowworkshop(b){b.insertAdjacentHTML('beforeend','<p><b>Bjorn:</b> "Parts from the outpost, stones from the springs, crystals from the peaks. Bring them and I will build."</p>');
+    const rows=document.createElement('div');rows.className='rows';
+    for(const c of SNOW_CRAFTS){const own=c.flag&&G.flags[c.flag];const ok=!own&&G.coins>=(c.coins||0)&&Object.entries(c.need).every(([k,n])=>(G.res[k]||0)>=n);const r=document.createElement('div');r.className='row'+(own?' eq':'');
+      r.innerHTML=`<div class="rmain"><div class="rname">${c.name}${own?' <small>Owned</small>':''}</div><div class="rsub">${c.desc}<br>Needs ${Object.entries(c.need).map(([k,n])=>`${n} ${RES[k].name} (${G.res[k]||0})`).join(', ')}${c.coins?' + '+c.coins+' coins':''}</div></div>`;
+      if(!own){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Build';bt.disabled=!ok;bt.onclick=()=>{G.coins-=(c.coins||0);for(const [k,n] of Object.entries(c.need))G.res[k]-=n;c.fn();this.coins();UI.gear();Audio.fanfare(2);this.toast(c.name+' ready!','good');Save.write();this.openPanel('snowworkshop');};r.append(bt);}
+      rows.append(r);}
+    b.append(rows);const x=document.createElement('button');x.className='btn plain';x.textContent='Boats and upgrades (shipyard)';x.onclick=()=>{this.snowHost='Boat Workshop · Bjorn';this.openPanel('shipyard');};b.append(x);},
   panel_sound(b){
     const rows=[['master','Master volume','Everything you hear'],['music','Music','Island groove and fishing battle theme'],['sfx','Sound effects','Waves, reels, splashes, engine']];
     b.insertAdjacentHTML('beforeend','<p>Changes apply right away and are remembered on this device.</p>');
@@ -4366,6 +5354,7 @@ const UI={
       <h3 style="margin-top:14px">Pearls and levels</h3><p>Every catch, dish, quest and discovery earns angler XP. Each level gives a pearl and makes rare fish a little more likely. Pearls also come from treasure chests floating at sea, rare fish and achievements. Spend them on outfits, boat paint and garden decorations.</p>
       <h3 style="margin-top:14px">Legends and bosses</h3><p>Every biome hides a boss. Look for a dark whirlpool near each island (it shows on your map once you find the island), buy a Legend Lure from Nana Pia and cast right into it. Bosses fight in three phases and need a big boat and heavy gear. Each boss returns the next day.</p>
       <h3 style="margin-top:14px">The fight</h3><p>Reel while the needle sits in the green. Too far right and the line snaps; leave it slack too long and the fish slips off. Surging fish pull harder, so let go of F until they settle, then reel again. Heavy fish load your reel and tire you out faster.</p>
+      <h3 style="margin-top:14px">The Snowy Seas</h3><p>Far to the north-west lies Snow Village. Tie up at its pier to go ashore, then walk the trail up the Frozen Peaks, fish from the docks and read the quest board. Sail to Glacier Bay, the Ice Arch, the Hot Springs, the Abandoned Outpost, the Iceberg Fields (mind the drifting ice and currents) and the Sea Caves. Gather sparkling resources for Bjorn's workshop, and follow the quests down four cave levels to the Frost Leviathan. Open the Snowy Seas map from the world map.</p>
       <h3>Saving</h3><p>Progress saves automatically in this browser after catches, sales and quests, and when you rest at home.</p>`;
     const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';
     const s=document.createElement('button');s.className='btn sm';s.textContent='Save now';s.onclick=()=>{this.toast(Save.write()?'Game saved.':'Saving is unavailable in this browser.',Save.exists()?'good':'warn');};
@@ -4462,6 +5451,7 @@ function drawMap(g,W,full){
     g.fillStyle='#ffd24a';g.strokeStyle='#5a2c05';g.lineWidth=2;g.beginPath();
     for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,r=i%2?4:(full?9:8);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();
     if(hid&&full){g.fillStyle='#3a2210';g.font='800 12px Nunito';g.fillText('?',X,Z+22);}}
+  Snowy.drawTarget(g,sx,sz,W,full);
   // boat
   if(G.mode!=='boat'){g.save();g.translate(sx(Boat.pos.x),sz(Boat.pos.z));g.rotate(-Boat.yaw);g.fillStyle='#9c5c2c';g.strokeStyle='#fff';g.lineWidth=1.5;
     g.beginPath();g.moveTo(0,6);g.lineTo(3,-1);g.lineTo(3,-5);g.lineTo(-3,-5);g.lineTo(-3,-1);g.closePath();g.fill();g.stroke();g.restore();}
@@ -4531,7 +5521,7 @@ function setupTouch(){
   hold($('#tJump'),()=>{if(!uiBlocking())Input.jumpPressed=true;});
 }
 
-function newGame(){freshState();Save.clear();Player.reset();Boat.setType('skiff');Boat.moor();Boat.fuel=100;Boat.hp=100;Boat.repairVisual();FogMap.reveal(0,0,62);}
+function newGame(){freshState();if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();Save.clear();Player.reset();Boat.setType('skiff');Boat.moor();Boat.fuel=100;Boat.hp=100;Boat.repairVisual();FogMap.reveal(0,0,62);}
 function startGame(cont){
   Audio.init();try{if(localStorage.getItem('oceanbound.muted')==='1'){Audio.setMuted(true);$('#bSound').classList.add('off');}}catch(e){}
   const fade=$('#fade');fade.classList.add('on');
@@ -4567,7 +5557,7 @@ function loop(){
     else if(G.mode==='walk'&&!Fishing.busy()&&G.hasRod&&!uiBlocking()){
       const f=Player.forward();let w=false;for(let k=1.5;k<=4;k+=0.5)if(isWater(Player.pos.x+f.x*k,Player.pos.z+f.z*k)){w=true;break;}
       UI.prompt(w?{key:'F',label:'Hold to cast your line'}:null);}
-    else if(G.mode==='boat'&&!Boat.sinking&&!Fishing.busy()&&!uiBlocking()&&Math.abs(Boat.speed)<1.8&&G.hasRod&&Boat.startT<=0)UI.prompt({key:'F',label:Bosses.near(Boat.pos.x,Boat.pos.z)?(G.baitSel==='legend'?'Cast into the whirlpool':'A legend circles here (use a Legend Lure)'):({shallows:'Fish Coral Shallows',reef:'Fish the reef',frozen:'Fish Frozen Bay',volcano:'Fish the volcanic waters',dino:'Fish Dino Reef',ruins:'Fish the Ancient Ruins',blossom:'Fish the lagoon',deep:G.deep?'Deep drop into the abyss':'Fish the Mystic Deep'})[Fishing.zoneAt(Boat.pos.x,Boat.pos.z)]||'Hold to cast'});
+    else if(G.mode==='boat'&&!Boat.sinking&&!Fishing.busy()&&!uiBlocking()&&Math.abs(Boat.speed)<1.8&&G.hasRod&&Boat.startT<=0)UI.prompt({key:'F',label:Bosses.near(Boat.pos.x,Boat.pos.z)?(G.baitSel==='legend'?'Cast into the whirlpool':'A legend circles here (use a Legend Lure)'):({shallows:'Fish Coral Shallows',reef:'Fish the reef',frozen:'Fish the Snowy Seas',volcano:'Fish the volcanic waters',dino:'Fish Dino Reef',ruins:'Fish the Ancient Ruins',blossom:'Fish the lagoon',deep:G.deep?'Deep drop into the abyss':'Fish the Mystic Deep'})[Fishing.zoneAt(Boat.pos.x,Boat.pos.z)]||'Hold to cast'});
     else UI.prompt(null);
     Dialog.update(rdt);Farm.update(rdt);Buffs.update(rdt);HouseVis.update(rdt);Treasure.update(rdt);Frenzy.update(rdt);Ach.update(rdt);
     fogT-=rdt;if(fogT<0){fogT=0.5;FogMap.reveal(Player.pos.x,Player.pos.z,G.mode==='boat'?48:34);}
@@ -4590,7 +5580,7 @@ function loop(){
     gl.g.rotation.z=gl.sp>0?0.25:-0.25;const fl=Math.sin(Time.t*7+gl.off*3)*0.5;gl.wings[0].rotation.z=fl;gl.wings[1].rotation.z=-fl;}
   WorldFX.update(rdt);Debris.update(dt);
   for(const c of CLOUDS){c.position.x+=rdt*2;const ox=c.position.x-camera.position.x,oz=c.position.z-camera.position.z;if(ox>320)c.position.x-=640;else if(ox<-320)c.position.x+=640;if(oz>320)c.position.z-=640;else if(oz<-320)c.position.z+=640;}
-  WorldFX4.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
+  WorldFX4.update(rdt);Snowy.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
   // sun + water follow the focus point
   const fx=started?Player.pos.x:0,fz=started?Player.pos.z:8;
   sun.position.set(fx+SUN_DIR.x*80,SUN_DIR.y*80,fz+SUN_DIR.z*80);sun.target.position.set(fx,0,fz);
