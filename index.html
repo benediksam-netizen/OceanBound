@@ -1387,7 +1387,7 @@ const SPOT={x:56,z:118,r:18,name:'Coral Shallows'};
 const COAST_ISLES=[[-63,18,7.5,2.6,3],[-47,63,5.5,1.9,1],[69,4,8,3.2,3],[58,-53,6,2.6,2],[-41,-68,7,3.0,2],[-13,90,5,1.8,1],[84,62,6,2.4,2],[-75,-30,5.5,2.2,2],[33,-74,5,2.0,1],[-80,52,4.5,1.7,1]];
 // Phase 3 islands you can sail to
 const SUNNY={x:185,z:95,r:26,name:'Sunny Shores'};
-const FROZEN={x:-160,z:-205,r:30,name:'Snowy Seas'};
+const FROZEN={x:-330,z:-385,r:30,name:'Snowy Seas'};
 const BERGS=(()=>{const r=mulberry32(31),o=[];for(let i=0;i<16;i++){const a=r()*TAU,d=FROZEN.r+8+r()*38;o.push([FROZEN.x+Math.cos(a)*d,FROZEN.z+Math.sin(a)*d,1.6+r()*3.2,1.4+r()*4]);}return o;})();
 // ---------------- Phase 4 biomes ----------------
 const VOLCANO={x:330,z:-215,r:34,name:'Volcano Isles'};
@@ -1416,16 +1416,16 @@ const ISLES={sunny:{o:SUNNY,near:40,sub:'tropical reef fish'},frozen:{o:FROZEN,n
   ruins:{o:RUINS,near:62,sub:'a sunken temple and mysterious fish'},blossom:{o:BLOSSOM,near:56,sub:'koi, calm lagoons and cherry blossoms'},
   deep:{o:DEEP,near:0,sub:'the dark end of the ocean. Legends lurk below'}};
 // ---------------- Snowy Seas: eight places around Snow Village ----------------
-const PEAKS={x:-178,z:-252,r:26,name:'Frozen Peaks'};
-const GLACIER={x:-90,z:-292,r:30,name:'Glacier Bay'};
-const ARCH={x:-40,z:-188,r:13,name:'Ice Arch'};
-const SPRINGS={x:-252,z:-172,r:16,name:'Hot Springs'};
-const OUTPOST={x:-212,z:-116,r:17,name:'Abandoned Outpost'};
-const FIELD={x:-62,z:-118,r:40,name:'Iceberg Fields'};
-const SEACAVE={x:-5,z:-262,r:32,name:'Sea Caves'};
-const POLAR={x:-272,z:-318,r:9,name:'Polar Lights Viewpoint'};
-const LAKE={x:-192,z:-221,r:6.5,name:'Peak Lake'};
-const SNOWC={x:-125,z:-205};
+const PEAKS={x:-348,z:-432,r:26,name:'Frozen Peaks'};
+const GLACIER={x:-260,z:-472,r:30,name:'Glacier Bay'};
+const ARCH={x:-210,z:-368,r:13,name:'Ice Arch'};
+const SPRINGS={x:-422,z:-352,r:16,name:'Hot Springs'};
+const OUTPOST={x:-382,z:-296,r:17,name:'Abandoned Outpost'};
+const FIELD={x:-232,z:-298,r:40,name:'Iceberg Fields'};
+const SEACAVE={x:-175,z:-442,r:32,name:'Sea Caves'};
+const POLAR={x:-442,z:-498,r:9,name:'Polar Lights Viewpoint'};
+const LAKE={x:-362,z:-401,r:6.5,name:'Peak Lake'};
+const SNOWC={x:-295,z:-385};
 const SN_HOLE={v:false};
 const unit2=(x,z)=>{const l=Math.hypot(x,z)||1;return {x:x/l,z:z/l};};
 const VDIR=unit2(-FROZEN.x,-FROZEN.z),VPERP={x:-VDIR.z,z:VDIR.x};
@@ -1513,7 +1513,7 @@ function snowZone(x,z){const L=caveLevel(x,z);if(L>=0)return CAVES[L].zone;
   if(Math.hypot(x-FROZEN.x,z-FROZEN.z)<FROZEN.r+46||inSnowy(x,z))return 'frozen';return null;}
 function snowHeight(x,z,h){
   if(x>1400)return caveHeight(x,z);
-  if(x>40||x<-320||z>-50||z<-350)return h;
+  if(x>-130||x<-490||z>-230||z<-530)return h;
   // Snow Village: a flat snowy quay on the side facing home
   {const d=Math.hypot(x-VILLAGE.x,z-VILLAGE.z);if(d<17){if(d<13.5)h=1.6;else if(h>1.6)h=lerp(1.6,h,(d-13.5)/3.5);}}
   // Frozen Peaks rise behind the village
@@ -2142,6 +2142,10 @@ const Snowy={t:0,aur:null,drift:[],chunks:[],nodes:[],jellies:[],bumpT:0,curMsgT
     // ice cracking near glaciers and icebergs, drips in the caves
     this.crackT-=dt;if(this.crackT<=0){this.crackT=rand(5,12);if(sn>0.4&&(Math.hypot(p.x-GLACIER.x,p.z-GLACIER.z)<GLACIER.r+50||fd<FIELD.r+30||Math.hypot(p.x-ARCH.x,p.z-ARCH.z)<50))this.crack(rand(0.4,0.8));}
     if(this.inCave){this.dripT-=dt;if(this.dripT<=0){this.dripT=rand(0.8,2.6);const f=rand(900,1600);Audio.tone(f,0.25,{type:'sine',vol:0.05,slide:-f*0.3});Audio.tone(f*0.8,0.4,{type:'sine',vol:0.02,when:0.18,slide:-f*0.2});}}
+    // first arrival: Old Sven welcomes you and offers a tour
+    if(this.tour){this.tour.t-=dt;Cam.yaw+=dt*0.22;if(this.tour.t<=0)this.tourNext();}
+    else if(G.flags.frozen&&!G.flags.sn_intro&&!this.inCave){const dv=Math.hypot(p.x-VILLAGE.x,p.z-VILLAGE.z);
+      if(dv<85&&!uiBlocking()&&!Fishing.busy()){this.introT=(this.introT||0)+dt;if(this.introT>2.5)this.intro();}}
     // discoveries
     if(G.flags.frozen&&!this.found('village'))this.discover('village');
     const chk=(id,o,r)=>{if(!this.found(id)&&Math.hypot(p.x-o.x,p.z-o.z)<r)this.discover(id);};
@@ -2149,6 +2153,35 @@ const Snowy={t:0,aur:null,drift:[],chunks:[],nodes:[],jellies:[],bumpT:0,curMsgT
       if(Math.hypot(p.x-SPRINGS.x,p.z-SPRINGS.z)<SPRINGS.r+22)Quest.event('seeSprings');}
     else if(this.level>=0&&!G.flags['sn_b'+(this.level+1)]){G.flags['sn_b'+(this.level+1)]=true;UI.banner(CAVES[this.level].name,'Depth '+CAVES[this.level].depth);Audio.fanfare(2);Level.add(30);Quest.event('cave',this.level);Save.write();}
     this.hudT=(this.hudT||0)-dt;if(this.hudT<=0){this.hudT=0.5;SnowQ.hud();}},
+  intro(replay){G.flags.sn_intro=true;this.introT=0;if(G.mode==='boat')Boat.speed=0;const sven=NPC.get('sven');
+    Dialog.open(sven,[
+      'Ahoy there, traveller! Welcome to the Snowy Seas. I am Old Sven, and I run the Fish Market here in Snow Village.',
+      'Sail to the end of our long pier, then press E to tie up and go ashore. Your boat will wait for you right there.',
+      'Let me introduce the village. Frida runs the Fishing Shop for rods, reels and bait. Olaf keeps the General Store. Ingrid cooks hot meals in the Snow Kitchen that keep you Toasty.',
+      'Bjorn builds boat gear in his workshop by the pier. Bring him parts and crystals. Out at the Hot Springs, Elsa will let you rest, and Tove fishes through the ice in the Iceberg Fields.',
+      'Jobs go up on the quest board in the village square. Your first one: catch 3 Arctic Cod. The little fishing dock on the left side of the village is a good spot.',
+      'Watch for sparkling crystals, herbs and stones to gather, and look at the Snowy Seas map from your world map. Shall I show you around the village?'],
+      [{label:'Show me around',cls:'gold',fn:()=>{Dialog.close();this.startTour();}},{label:"I'll explore myself",fn:()=>{Dialog.close();this.afterIntro();}}],'Old Sven',replay?'Welcome, again':'Snow Village · Fish Market');Save.write();},
+  startTour(){const st=[],b=id=>SNOW_BLD.find(k=>k.id===id);const at=(p,title,sub,d)=>st.push({x:p.x,z:p.z,y:Math.max(1.6,groundAt(p.x,p.z)),title,sub,d:d||14});
+    at(PIER_END,'Main Dock','Tie up at the end of the pier and press E to go ashore',18);
+    at(b('market'),'Fish Market · Old Sven','Sell fish and resources, and see the Snowy Seas map');
+    at(b('tackle'),'Fishing Shop · Frida','Rods, reels, lines, hooks and bait');
+    at(b('store'),'General Store · Olaf','Bait, seeds and supplies');
+    at(b('kitchen'),'Snow Kitchen · Ingrid','Hot meals that make you Toasty and give buffs');
+    at(b('cabin'),'Your Winter Cabin','Sleep, rest and open your cooler');
+    at(b('warehouse'),'Storage Warehouse','Everything you gather is kept here');
+    at(b('workshop'),"Bjorn's Boat Workshop",'Diving gear, an ice drill, hull upgrades and new boats');
+    if(SNOWFX.board)at(SNOWFX.board,'Quest Board','Snowy Seas quests, one after another');
+    at(vpt(-12.5,13),'Fishing Dock','Your first quest: catch 3 Arctic Cod here',16);
+    at(TRAIL[22],'Frozen Peaks Trail','Walk all the way up to the summit for the best view',26);
+    this.tour={i:-1,t:0,stops:st,dist:Cam.dist,pitch:Cam.pitch};
+    const sk=document.createElement('button');sk.className='btn plain sm';sk.id='tourSkip';sk.textContent='Skip tour';sk.style.cssText='position:absolute;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;';
+    sk.onclick=()=>this.endTour();$('#hud').append(sk);this.tourNext();},
+  tourNext(){const T=this.tour;if(!T)return;T.i++;if(T.i>=T.stops.length){this.endTour();return;}const s=T.stops[T.i];
+    this.tourPt=new V3(s.x,s.y+1.2,s.z);Cam.dist=s.d+2;Cam.pitch=0.72;T.t=3.8;UI.banner(s.title,s.sub);Audio.tone(880,0.12,{type:'sine',vol:0.06});},
+  endTour(){const T=this.tour;if(!T)return;this.tour=null;this.tourPt=null;Cam.dist=T.dist;Cam.pitch=T.pitch;const sk=$('#tourSkip');if(sk)sk.remove();this.afterIntro();},
+  afterIntro(){SnowQ.hud(true);UI.banner('Snowy Seas quest',SnowQ.cur().title+' · '+SnowQ.cur().text.split('.')[0]);
+    setTimeout(()=>UI.toast('Tip: talk to the villagers to meet them. Open the Snowy Seas map from your world map (M).','good'),3600);Save.write();},
   crack(v){Audio.noiseHit(0.12,{freq:2600,type:'highpass',vol:0.12*v});Audio.noiseHit(0.5,{freq:180,type:'lowpass',vol:0.25*v,when:0.05});Audio.tone(rand(70,110),0.5,{type:'sine',vol:0.08*v,slide:-30});},
   // lighting, fog and water for the caves; thicker snow cuts visibility
   env(K,P,RG){if(this.inCave){const L=Math.max(0,this.level),fc=[lin('#0e2238'),lin('#140f2a'),lin('#0a1a1e'),lin('#02050c')][L];
@@ -2236,6 +2269,7 @@ const Snowy={t:0,aur:null,drift:[],chunks:[],nodes:[],jellies:[],bumpT:0,curMsgT
     if(!full&&l>R){X=W/2+dx/l*R;Z=W/2+dz/l*R;}if(full&&(X<0||Z<0||X>W||Z>W))return;g.fillStyle='#8fe8ff';g.strokeStyle='#15305e';g.lineWidth=2;g.beginPath();
     for(let i=0;i<12;i++){const a=i/12*TAU-Math.PI/2,r=i%2?3.5:(full?8:7);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();},
   talk(n){const id=n.d.id,q=SnowQ.cur();
+    if(!G.flags['sn_met_'+id]&&SNOW_INTRO[id]){G.flags['sn_met_'+id]=true;Dialog.open(n,SNOW_INTRO[id],[{label:'Nice to meet you!',cls:'gold',fn:()=>{Dialog.close();Save.write();}}]);return;}
     const say=(pages,opts)=>Dialog.open(n,pages,opts);
     if(id==='sven')say([G.flags.sn_met?'Back again? The fish are biting and the chart has a few more secrets.':'Welcome to Snow Village, traveller! I am Sven. I buy fish and I keep the chart of the Snowy Seas.','Current job on my board: '+q.title+'. '+q.text],
       [{label:'Fish Market',fn:()=>{Dialog.close();G.flags.sn_met=true;UI.openPanel('snowmarket');}},{label:'Snowy Seas map',fn:()=>{Dialog.close();UI.openPanel('snowmap');}},{label:'Bye',fn:()=>Dialog.close()}]);
@@ -2266,8 +2300,18 @@ function snowMusicStep(M,t,s,bar){let mood=null;try{mood=Snowy.mood();}catch(e){
   else{if(s===0&&bar%2===0)M.v('sine',mf(ch.r-12),t,S*30,0.28,{a:0.8,sus:1,rel:1.5});if(s===0)M.pad(t,ch.t.map(m=>m-12),S*16,0.8);if(s===6&&Math.random()<0.5)M.v('sine',mf(ch.arp[bar%4]+12),t,1.4,0.06,{rev:1});}
   return true;}
 
+const SNOW_INTRO={
+  sven:['Ah, it is you! Old Sven, Fish Market. I buy every fish you catch up here, and I keep the chart of the Snowy Seas.','Check my quest board in the square whenever you need a job.'],
+  frida:['Hi! I am Frida. My Fishing Shop has rods, reels, lines, hooks and bait.','Cold-water fish are heavy and stubborn, so upgrade your reel before you try Glacier Bay.'],
+  olaf:['Olaf, General Store. Bait, seeds, snacks and warm socks.','If you need it, I probably stock it. If I do not, try asking Bjorn.'],
+  ingrid:['Welcome to the Snow Kitchen! I am Ingrid.','My hot meals make you Toasty, so the ice cannot hurt your boat, and they give you strength for big fights. Bring me Frozen Herbs from the peaks.'],
+  bjorn:['Bjorn. I build boat gear.','Bring me Rusty Parts and Mechanical Components from the old outpost, Thermal Stones from the hot springs and crystals from the peaks.','Diving gear, an ice drill, a warm hull lining. You bring the parts, I build it.'],
+  elsa:['Hello, dear. I am Elsa, and I look after the hot springs.','Soak in any pool to get your stamina back, or rest in the bathhouse for a proper sleep.'],
+  tove:['Shh, you will scare the fish! I am Tove, and I fish through the ice right here.','Get an Ice Drill from Bjorn and you can drill your own hole next to mine.'],
+  hilde:['Hi! I am Hilde! I know every corner of this village!','The quest board is in the square, and the fishing dock is the little pier on the left. Go catch some Arctic Cod!']};
+
 /* ---------- the illustrated Snowy Seas chart ---------- */
-const SNOWMAP={x0:-300,z0:-345,x1:40,z1:-65,W:900,H:741,base:null};
+const SNOWMAP={x0:-470,z0:-525,x1:-130,z1:-245,W:900,H:741,base:null};
 SNOWMAP.k=SNOWMAP.W/(SNOWMAP.x1-SNOWMAP.x0);
 const smx=x=>(x-SNOWMAP.x0)*SNOWMAP.k,smz=z=>(z-SNOWMAP.z0)*SNOWMAP.k;
 function snowKind(x,z){if(Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<SEACAVE.r+8)return 'cave';
@@ -5298,7 +5342,7 @@ const UI={
     SQUESTS.forEach((q,i)=>{if(q.id==='done'&&cur<i)return;const st=i<cur?'done':i===cur?'cur':'lock';const r=document.createElement('div');r.className='row'+(st==='cur'?' eq':'');
       const rw=q.rw?[q.rw.coins?q.rw.coins+' coins':'',q.rw.pearls?q.rw.pearls+' pearls':'',q.rw.res?Object.entries(q.rw.res).map(([k,n])=>n+' '+RES[k].name).join(', '):''].filter(Boolean).join(' · '):'';
       r.innerHTML=`<i class="swatch" style="background:${st==='done'?'#5cc04b':st==='cur'?'#8fe8ff':'#c8b890'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900">${st==='done'?'✓':i+1}</i><div class="rmain"><div class="rname">${st==='lock'?'???':q.title}${st==='cur'&&q.need?` <small>${G.stats.sqN||0}/${q.need}</small>`:''}</div><div class="rsub">${st==='lock'?'Finish the quests above first.':q.text}</div></div><div class="rval">${st==='lock'?'':rw}</div>`;rows.append(r);});
-    b.append(rows);},
+    b.append(rows);const rp=document.createElement('button');rp.className='btn plain';rp.style.marginTop='10px';rp.textContent="Hear Old Sven's welcome again";rp.onclick=()=>{this.closePanel();Snowy.intro(true);};b.append(rp);},
   panel_snowkitchen(b){b.insertAdjacentHTML('beforeend','<p><b>Ingrid:</b> "Sit, sit! Nothing warms a fisher like a hot bowl. Made with herbs you bring me."</p>');
     const rows=document.createElement('div');rows.className='rows';
     const meals=[['Arctic Chowder',120,{frozenherb:1},'Full stamina, Toasty for 6 min and Lucky for 3 min',()=>{G.hp=100;G.stamina=100;Buffs.add('warm',360);Buffs.add('luck',180);}],
@@ -5474,6 +5518,7 @@ const Cam={yaw:Math.PI,pitch:0.42,dist:10,lastDrag:-9,shake:0,zoomT:0,orbitT:0,t
     if(G.mode==='boat'){tgt=new V3(Boat.pos.x,Boat.y+1.8,Boat.pos.z);
       if(Time.t-this.lastDrag>1.6&&Math.abs(Boat.speed)>1.5&&!Fishing.busy())this.yaw+=angDiff(this.yaw,Boat.yaw+Math.PI)*Math.min(1,dt*1.4);}
     else tgt=new V3(Player.pos.x,Player.visY+1.55,Player.pos.z);
+    if(typeof Snowy!=='undefined'&&Snowy.tourPt)tgt=Snowy.tourPt.clone();
     if((Fishing.state==='caught'||Fishing.state==='land')&&G.mode==='walk'&&Time.t-this.lastDrag>1&&!(this.orbitT>0))this.yaw+=angDiff(this.yaw,Player.yaw+0.5)*Math.min(1,dt*2.5);
     if(Fishing.state==='fight'){const fp=Fishing.fishPos();tgt.lerp(new V3(fp.x,tgt.y-0.4,fp.z),0.3);}
     this.target.lerp(tgt,Math.min(1,dt*8));
