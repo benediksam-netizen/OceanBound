@@ -1,9 +1,17 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1c7cc8">
 <title>Oceanbound</title>
 <meta name="description" content="Oceanbound: a cozy 3D fishing and island adventure you can play with friends in your browser.">
 <meta property="og:title" content="Oceanbound – Fishing &amp; Island Adventure">
 <meta property="og:description" content="Catch 300+ fish, sail to 9 regions, explore the Snowy Seas, fight legendary bosses and play with friends.">
 <meta property="og:image" content="og-image.jpg">
 <link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
@@ -423,6 +431,39 @@ body.touch #chatFeed{top:calc(120px + env(safe-area-inset-top,0px));width:min(30
 .snowCard .scS{color:#2f6fb0;font-weight:800;}
 .snowCard .scF{color:#5a4632;}
 .snowActs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px;}
+/* ---------- phone fit: compact quest card, smaller pills, tidy stats ---------- */
+body.touch #questCard{cursor:pointer;}
+body.touch #questCard::after{content:'▾';position:absolute;right:8px;top:6px;font-size:12px;color:#ffd978;opacity:.8;}
+body.touch #questCard.open::after{content:'▴';}
+body.touch #questCard:not(.open) .qtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px;}
+body.touch #questCard:not(.open) .qtext{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+body.touch #questCard.snowOn:not(.open) > .qlabel:first-child,body.touch #questCard.snowOn:not(.open) > #qTitle,body.touch #questCard.snowOn:not(.open) > #qText,body.touch #questCard.snowOn:not(.open) > #qProg{display:none;}
+body.touch #questCard.snowOn:not(.open) #snowQ{margin-top:0;padding-top:0;border-top:0;}
+body.touch #questCard.open{z-index:6;max-height:calc(100vh - 24px);overflow:auto;}
+body.touch .buffRow{gap:3px;}
+body.touch .buff{font-size:9.5px;padding:1px 6px;}
+body.touch .qlabel{font-size:10.5px;}
+@media (orientation:portrait){
+  body.touch #questCard{width:calc(100vw - 150px);max-width:300px;padding:7px 11px 8px;}
+  body.touch .qtitle{font-size:15px;}body.touch .qtext{font-size:12px;}
+  body.touch .coinPill{font-size:15px;padding:3px 9px 3px 5px;}body.touch .coin{width:16px;height:16px;}body.touch .pearl{width:12px;height:12px;}
+  body.touch .clockPill{font-size:12.5px;padding:2px 8px 2px 5px;}body.touch .clockPill #wxText{font-size:10.5px;}
+  body.touch #prompt{font-size:13.5px;padding:6px 11px 6px 7px;}
+  body.touch #dialog{bottom:calc(150px + env(safe-area-inset-bottom,0px));}
+  body.touch .dtext{font-size:14px;padding:9px 12px;}
+  body.touch .stat{width:140px;}
+  body.touch #tourSkip{bottom:calc(330px + env(safe-area-inset-bottom,0px))!important;}
+}
+@media (orientation:landscape) and (max-height:540px){
+  body.touch #questCard{max-width:208px;}body.touch .ibtn{width:32px;height:32px;}body.touch .menuRow{gap:5px;}
+  body.touch #dialog{left:calc(50% + 20px);width:min(520px,calc(100vw - 330px));}
+  body.touch .stat .barRow .bl{width:30px;font-size:10.5px;}
+  body.touch #tourSkip{bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
+  body.touch .title-help{display:none;}
+}
+@media (max-width:380px){body.touch .ibtn{width:34px;height:34px;}body.touch .ibtn svg{width:18px;height:18px;}}
+.snowMap{touch-action:pan-x pan-y pinch-zoom;}
+:fullscreen body,:-webkit-full-screen body{background:#000;}
 </style>
 
 <canvas id="c" tabindex="0"></canvas>
@@ -433,6 +474,7 @@ body.touch #chatFeed{top:calc(120px + env(safe-area-inset-top,0px));width:min(30
     <div class="ribbon" id="subtitle">Fishing &amp; Island Adventure</div>
     <label class="nameRow" id="nameRow"><span>Captain name</span><input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false"></label>
     <div class="title-online" id="titleOnline" hidden></div>
+    <button class="btn plain sm" id="btnFull" style="margin-top:2px">⛶ Play full screen</button>
     <div class="title-btns">
       <button class="btn gold big" id="btnContinue" hidden>Continue</button>
       <button class="btn big" id="btnNew">New Voyage</button>
@@ -464,6 +506,8 @@ body.touch #chatFeed{top:calc(120px + env(safe-area-inset-top,0px));width:min(30
       <button class="ibtn" id="bAuto" aria-label="Auto fish (R)" title="Auto fish (R)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L17 7"/><path d="M17 7v8"/><circle cx="17" cy="17" r="2"/><path d="M19 3a4 4 0 0 1 2 3.5M3 13.5A8 8 0 0 1 9 4"/><path d="M19 3l-1.5 1.8M9 4l-2 .3"/></svg><b class="autoTag">AUTO</b></button>
       <button class="ibtn" id="bChat" hidden aria-label="Chat (Enter)" title="Chat (Enter)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
       <button class="ibtn" id="bSound" aria-label="Sound settings" title="Sound settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+      <button class="ibtn" id="bFull" aria-label="Full screen (F11)" title="Full screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path id="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="ibtn" id="bStuck" aria-label="Stuck? Respawn" title="Stuck? Respawn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
       <button class="ibtn" id="bHelp" aria-label="Help and settings (H)" title="Help (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 9a3 3 0 1 1 4 2.8c-.7.3-1 .9-1 1.7V15"/><circle cx="12" cy="19" r=".6" fill="currentColor"/></svg></button>
     </div>
   </div>
@@ -2002,7 +2046,7 @@ const SnowQ={
   event(t,d){if(!G.flags.frozen)return;const q=this.cur();if(!q.on||!q.on(t,d))return;if(q.need){G.stats.sqN=(G.stats.sqN||0)+1;if(G.stats.sqN<q.need){this.hud(true);Save.write();return;}}this.advance();},
   advance(){const q=this.cur();const r=q.rw||{};if(r.coins){G.coins+=r.coins;UI.coins();}if(r.pearls)Pearls.add(r.pearls,q.title);if(r.res)for(const [k,n] of Object.entries(r.res))G.res[k]=(G.res[k]||0)+n;
     G.stats.sqI=this.i()+1;G.stats.sqN=0;Level.add(60);UI.banner('Snowy Seas quest complete!',q.title+(r.coins?' · +'+r.coins+' coins':''));Audio.fanfare(2);this.hud(true);Save.write();},
-  hud(force){const el=$('#snowQ');if(!el)return;const show=Snowy.region&&G.flags.frozen;el.hidden=!show;if(!show)return;const q=this.cur();
+  hud(force){const el=$('#snowQ');if(!el)return;const show=Snowy.region&&G.flags.frozen;el.hidden=!show;$('#questCard').classList.toggle('snowOn',show);if(!show)return;const q=this.cur();
     const t=q.title+(q.need?` (${G.stats.sqN||0}/${q.need})`:'');if(force||el._t!==t){el._t=t;$('#sqTitle').textContent=t;$('#sqText').textContent=q.text;}}};
 const Snowy={t:0,aur:null,drift:[],chunks:[],nodes:[],jellies:[],bumpT:0,curMsgT:0,region:false,inCave:false,level:-1,snowK:0,stepT:0,crackT:3,dripT:2,blizMsg:false,
   init(){
@@ -5385,6 +5429,8 @@ const UI={
   panel_help(b){b.innerHTML=`<div class="keys">
       <kbd>WASD</kbd><span>Walk (arrow keys work too). Hold Shift to sprint.</span>
       <kbd>Space</kbd><span>Jump</span>
+      <kbd>↺</kbd><span>Stuck in a hole? Press the round-arrow button at the top right to respawn. The game also pulls you out on its own.</span>
+      <kbd>⛶</kbd><span>Play in full screen (the corner-arrows button)</span>
       <kbd>E</kbd><span>Talk, read, board or leave the boat</span>
       <kbd>F</kbd><span>Hold to wind up a cast, release to throw. Press when the bobber dips, then hold to reel. You can also press and hold the mouse.</span>
       <kbd>Q</kbd><span>Switch bait</span>
@@ -5413,6 +5459,35 @@ $('#pClose').onclick=()=>UI.closePanel();
 $('#panelWrap').addEventListener('pointerdown',e=>{if(e.target.id==='panelWrap')UI.closePanel();});
 $('#ccOk').onclick=()=>UI.closeCatch();
 $('#bDex').onclick=()=>UI.togglePanel('dex');$('#bBag').onclick=()=>UI.togglePanel('bag');$('#bMap').onclick=()=>UI.togglePanel('map');$('#bHelp').onclick=()=>UI.togglePanel('help');
+$('#bFull').onclick=()=>FS.toggle();$('#btnFull').onclick=()=>FS.toggle();$('#bStuck').onclick=()=>{UI.closePanel();Stuck.respawn(true);};
+$('#questCard').onclick=()=>{if(document.body.classList.contains('touch'))$('#questCard').classList.toggle('open');};
+document.addEventListener('fullscreenchange',()=>FS.sync());document.addEventListener('webkitfullscreenchange',()=>FS.sync());
+/* ---------- full screen ---------- */
+const FS={el:document.documentElement,
+  can(){return !!(this.el.requestFullscreen||this.el.webkitRequestFullscreen);},
+  on(){return !!(document.fullscreenElement||document.webkitFullscreenElement);},
+  sync(){const on=this.on();$('#fsIco').setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');$('#btnFull').textContent=on?'⛶ Exit full screen':'⛶ Play full screen';setTimeout(resize,120);},
+  toggle(quiet){try{if(this.on()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+      if(!this.can())throw new Error('no api');const r=(this.el.requestFullscreen||this.el.webkitRequestFullscreen).call(this.el,{navigationUI:'hide'});
+      if(r&&r.catch)r.catch(()=>{if(!quiet)this.fail();});}catch(e){if(!quiet)this.fail();}},
+  fail(){UI.toast(/iPhone|iPod/.test(navigator.userAgent)?'On iPhone, tap Share and then Add to Home Screen to play in full screen.':'Full screen is blocked in this window. Open the game website in your browser to play full screen.','warn');}};
+/* ---------- getting unstuck ---------- */
+const Stuck={t:0,chk:0,
+  free(x,z,y){let n=0;for(let k=0;k<8;k++){const a=k/8*TAU;for(const r of [0.8,1.6]){const nx=x+Math.cos(a)*r,nz=z+Math.sin(a)*r;if(walkable(nx,nz)&&!blocked(nx,nz)&&groundAt(nx,nz)-y<=0.62){n++;break;}}}return n;},
+  spots(){const p=Player.pos,o=[{x:BLD.house.door.x,z:BLD.house.door.z+0.4}];
+    if(typeof caveLevel==='function'){const L=caveLevel(p.x,p.z);if(L>=0){const e=CAVE_ENTRY(L);return [{x:e.x,z:e.z-2}];}for(const s of SHORES)o.push(s.foot);o.push(vpt(0,3));}return o;},
+  update(dt){if(!started||G.mode!=='walk'||uiBlocking()||Fishing.busy()||Dialog.npc){this.t=0;return;}this.chk-=dt;if(this.chk>0)return;this.chk=0.5;
+    const p=Player.pos,wet=!walkable(p.x,p.z)||p.y<-1;if(!wet&&(!Player.onGround||this.free(p.x,p.z,p.y)>0)){this.t=0;return;}
+    this.t+=0.5;if(this.t>=(wet?1:3)){this.t=0;UI.toast('You looked stuck, so we pulled you out!','warn');this.respawn();}},
+  respawn(manual){if(Fishing.busy()){UI.toast('Finish fishing first.','warn');return;}
+    if(G.mode==='boat'){for(let r=4;r<=60;r+=4)for(let k=0;k<16;k++){const a=k/16*TAU,x=Boat.pos.x+Math.cos(a)*r,z=Boat.pos.z+Math.sin(a)*r;if(!Boat.hits(x,z,Boat.yaw)){Boat.pos.set(x,0,z);Boat.speed=0;UI.toast('Your boat is free again.','good');return;}}
+      Boat.moor();UI.toast('Your boat was towed back to the dock.','good');return;}
+    const p=Player.pos;let spot=null;const inCave=typeof caveLevel==='function'&&caveLevel(p.x,p.z)>=0;if(inCave)spot=this.spots()[0];
+    // first look for open ground close by, then fall back to the nearest safe landing spot
+    if(!spot)outer:for(let r=1;r<=12;r++)for(let k=0;k<16;k++){const a=k/16*TAU,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;if(!walkable(x,z)||blocked(x,z))continue;const y=groundAt(x,z);if(y<0.4&&(typeof deckY!=='function'||deckY(x,z)===null))continue;if(this.free(x,z,y)>=4){spot={x,z};break outer;}}
+    if(!spot&&!inCave){let bd=1e9;for(const s of this.spots()){const d=Math.hypot(s.x-p.x,s.z-p.z);if(d<bd&&walkable(s.x,s.z)){bd=d;spot=s;}}if(bd>450)spot=null;}
+    if(!spot){Player.reset();}else{Player.pos.set(spot.x,groundAt(spot.x,spot.z),spot.z);Player.visY=Player.pos.y;Player.vy=0;}
+    for(let i=0;i<10;i++)Particles.smoke&&Particles.smoke(Player.pos.x,Player.pos.y+0.5,Player.pos.z);Cam.target.copy(Player.pos);if(manual)UI.toast('Back on solid ground.','good');}};
 $('#bAuto').onclick=()=>AutoFish.toggle();
 $('#bChat').onclick=()=>{if($('#chatBox').hidden)UI.openChat();else UI.closeChat();};
 $('#netPill').onclick=()=>UI.togglePanel('players');
@@ -5568,6 +5643,7 @@ function setupTouch(){
 
 function newGame(){freshState();if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();Save.clear();Player.reset();Boat.setType('skiff');Boat.moor();Boat.fuel=100;Boat.hp=100;Boat.repairVisual();FogMap.reveal(0,0,62);}
 function startGame(cont){
+  if(document.body.classList.contains('touch')&&!FS.on())FS.toggle(true);
   Audio.init();try{if(localStorage.getItem('oceanbound.muted')==='1'){Audio.setMuted(true);$('#bSound').classList.add('off');}}catch(e){}
   const fade=$('#fade');fade.classList.add('on');
   setTimeout(()=>{
@@ -5625,7 +5701,7 @@ function loop(){
     gl.g.rotation.z=gl.sp>0?0.25:-0.25;const fl=Math.sin(Time.t*7+gl.off*3)*0.5;gl.wings[0].rotation.z=fl;gl.wings[1].rotation.z=-fl;}
   WorldFX.update(rdt);Debris.update(dt);
   for(const c of CLOUDS){c.position.x+=rdt*2;const ox=c.position.x-camera.position.x,oz=c.position.z-camera.position.z;if(ox>320)c.position.x-=640;else if(ox<-320)c.position.x+=640;if(oz>320)c.position.z-=640;else if(oz<-320)c.position.z+=640;}
-  WorldFX4.update(rdt);Snowy.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
+  WorldFX4.update(rdt);Snowy.update(rdt);Stuck.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
   // sun + water follow the focus point
   const fx=started?Player.pos.x:0,fz=started?Player.pos.z:8;
   sun.position.set(fx+SUN_DIR.x*80,SUN_DIR.y*80,fz+SUN_DIR.z*80);sun.target.position.set(fx,0,fz);
