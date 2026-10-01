@@ -99,8 +99,9 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; ch
    Each player's progress lives in their own browser and belongs to one web address.
    When the game moves (set the MOVE_TO variable, e.g. "dinorampage.sourmilkstudioos.com"),
    a visit to the old address hands the player's saved data to the new address once, so
-   nobody loses their progress. Leave MOVE_TO unset to turn this off. */
-const MOVE_TO = String(process.env.MOVE_TO || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+   nobody loses their progress. The game now lives at oceanbound.sourmilkstudioos.com; set MOVE_TO to "off" on Railway to turn this off. */
+const MOVE_TO_RAW = String(process.env.MOVE_TO || "oceanbound.sourmilkstudioos.com").trim();
+const MOVE_TO = (/^(off|none|false|0)$/i.test(MOVE_TO_RAW) ? "" : MOVE_TO_RAW).toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 const transfers = new Map(); // token -> { data, exp }
 const MAX_TRANSFER = 4 * 1024 * 1024;
 setInterval(() => { const now = Date.now(); for (const [k, v] of transfers) if (v.exp < now) transfers.delete(k); }, 60000).unref();
