@@ -1,3 +1,30 @@
+// Keeps players' progress when the game moves to a new web address (see MOVE_TO in server.js).
+(function () {
+  try {
+    const LS = window.localStorage;
+    const sync = (method, url, body) => { const x = new XMLHttpRequest(); x.open(method, url, false); if (body) x.setRequestHeader("content-type", "application/json"); x.send(body || null); return x; };
+    const m = location.search.match(/[?&]transfer=([a-f0-9]{32})/);
+    if (m) {
+      // Arrived at the new address: copy the old save in, without overwriting anything already here.
+      const x = sync("GET", "/api/transfer/" + m[1]);
+      if (x.status === 200) { const d = JSON.parse(x.responseText); for (const k in d) if (LS.getItem(k) === null) LS.setItem(k, d[k]); }
+      history.replaceState(null, "", location.pathname + location.hash);
+      return;
+    }
+    const mv = sync("GET", "/api/move");
+    const to = mv.status === 200 ? JSON.parse(mv.responseText).to : null;
+    if (!to) return;
+    // On the old address: hand this player's data to the new one, then go there.
+    const data = {}; let n = 0;
+    for (let i = 0; i < LS.length; i++) { const k = LS.key(i); data[k] = LS.getItem(k); n++; }
+    let q = "";
+    if (n) { const x = sync("POST", "/api/transfer", JSON.stringify(data)); if (x.status !== 200) return; q = "?transfer=" + JSON.parse(x.responseText).token; }
+    document.documentElement.style.visibility = "hidden";
+    location.replace(location.protocol + "//" + to + (location.port ? ":" + location.port : "") + "/" + q + location.hash);
+    throw new Error("moving"); // stop the rest of this page from starting
+  } catch (e) { if (e && e.message === "moving") throw e; }
+})();
+
 // Connects the game to this website's own multiplayer server.
 // It provides the same room / db / user features the game uses on claude.ai,
 // so everyone who opens the site joins automatically — no accounts or invites.

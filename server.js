@@ -95,8 +95,45 @@ function dbOp(msg, uid) {
 
 /* ---------------- web server ---------------- */
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".json": "application/json" };
+/* ---------------- moving to a new web address ----------------
+   Each player's progress lives in their own browser and belongs to one web address.
+   When the game moves (set the MOVE_TO variable, e.g. "dinorampage.sourmilkstudioos.com"),
+   a visit to the old address hands the player's saved data to the new address once, so
+   nobody loses their progress. Leave MOVE_TO unset to turn this off. */
+const MOVE_TO = String(process.env.MOVE_TO || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+const transfers = new Map(); // token -> { data, exp }
+const MAX_TRANSFER = 4 * 1024 * 1024;
+setInterval(() => { const now = Date.now(); for (const [k, v] of transfers) if (v.exp < now) transfers.delete(k); }, 60000).unref();
+function handleMove(req, res, u) {
+  const json = (code, obj) => { res.writeHead(code, { "content-type": "application/json", "cache-control": "no-store" }); res.end(JSON.stringify(obj)); };
+  const host = String(req.headers.host || "").toLowerCase().split(":")[0];
+  if (u === "/api/move") { json(200, { to: MOVE_TO && host !== MOVE_TO ? MOVE_TO : null }); return true; }
+  if (u === "/api/transfer" && req.method === "POST") {
+    if (!MOVE_TO || host === MOVE_TO) { json(403, { error: "not moving" }); return true; }
+    let size = 0; const chunks = [];
+    req.on("data", c => { size += c.length; if (size > MAX_TRANSFER) { req.destroy(); return; } chunks.push(c); });
+    req.on("end", () => {
+      let data; try { data = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch (e) { json(400, { error: "bad data" }); return; }
+      if (!data || typeof data !== "object" || Array.isArray(data)) { json(400, { error: "bad data" }); return; }
+      const clean = {}; for (const [k, v] of Object.entries(data)) if (typeof v === "string" && k.length <= 200) clean[k] = v;
+      const token = crypto.randomBytes(16).toString("hex");
+      transfers.set(token, { data: clean, exp: Date.now() + 15 * 60 * 1000 });
+      json(200, { token, to: MOVE_TO });
+    });
+    return true;
+  }
+  const m = u.match(/^\/api\/transfer\/([a-f0-9]{32})$/);
+  if (m) {
+    const t = transfers.get(m[1]);
+    if (!t || t.exp < Date.now()) { json(404, { error: "expired" }); return true; }
+    transfers.delete(m[1]); json(200, t.data); return true;
+  }
+  return false;
+}
+
 const server = http.createServer((req, res) => {
   let u = decodeURIComponent((req.url || "/").split("?")[0]);
+  if (u.startsWith("/api/") && handleMove(req, res, u)) return;
   if (u === "/health") { res.writeHead(200, { "content-type": "text/plain" }); res.end("ok"); return; }
   // for search engines: allow everything, and point to the sitemap
   if (u === "/robots.txt") { res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }); res.end(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`); return; }
