@@ -13,7 +13,8 @@ const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC_DIR = fs.existsSync(path.join(__dirname, "public", "index.html")) ? path.join(__dirname, "public") : __dirname;
 const SERVE_OK = new Set(["index.html", "claude-shim.js", "og-image.jpg", "icon.png"]);
 // The public address, used in the sitemap so search engines can find the game.
-const SITE_URL = (process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+// The game's public address, used in robots.txt and the sitemap so search engines find it.
+const SITE_URL = (/^https:\/\/[^/]+$/.test(String(process.env.SITE_URL || "").replace(/\/$/, "")) && !/railway\.app/.test(process.env.SITE_URL) ? process.env.SITE_URL : "https://oceanbound.sourmilkstudioos.com").replace(/\/$/, "");
 const _readFile = fs.readFile; fs.readFile = (f, cb) => (PUBLIC_DIR !== __dirname || SERVE_OK.has(path.basename(f))) ? _readFile(f, cb) : cb(new Error("not served"));
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "db.json");
