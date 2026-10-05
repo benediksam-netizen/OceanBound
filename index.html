@@ -14,7 +14,7 @@
 <meta property="og:site_name" content="Sour Milk Studios">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"VideoGame","name":"Ocean Bound","alternateName":"Oceanbound","url":"https://oceanbound.sourmilkstudioos.com/","image":"https://oceanbound.sourmilkstudioos.com/og-image.jpg","description":"A free 3D fishing and island adventure in your browser. Catch 300+ fish, sail to 9 regions, fight legendary bosses and play online with friends.","genre":["Fishing","Adventure"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"author":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"publisher":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"VideoGame","name":"Ocean Bound","alternateName":"Oceanbound","url":"https://oceanbound.sourmilkstudioos.com/","image":"https://oceanbound.sourmilkstudioos.com/og-image.jpg","description":"A free 3D fishing and island adventure in your browser. Catch 400+ fish, sail to 9 regions, fight legendary bosses and play online with friends.","genre":["Fishing","Adventure"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"author":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"publisher":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <meta property="og:title" content="Oceanbound – Fishing &amp; Island Adventure">
 <meta property="og:description" content="Catch 400+ fish, sail to 9 regions, explore the Snowy Seas and the Blossom Islands, fight legendary bosses and play with friends.">
@@ -474,6 +474,7 @@ body.touch .qlabel{font-size:10.5px;}
 @media (max-width:380px){body.touch .ibtn{width:34px;height:34px;}body.touch .ibtn svg{width:18px;height:18px;}}
 .snowMap{touch-action:pan-x pan-y pinch-zoom;}
 :fullscreen body,:-webkit-full-screen body{background:#000;}
+#ver{position:fixed;right:calc(7px + env(safe-area-inset-right,0px));bottom:calc(2px + env(safe-area-inset-bottom,0px));z-index:40;pointer-events:none;font:800 11px/1 Nunito,sans-serif;letter-spacing:.4px;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(10,40,70,.9),0 0 3px rgba(10,40,70,.6);white-space:nowrap;}
 #blosQ{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(90,60,30,.25);}
 .blosL{color:#ffb0d0!important;}
 .blosCards .snowCard{box-shadow:0 0 0 2px #b8327a;}.blosCards .snowCard.locked{box-shadow:0 0 0 2px #a898a0;}
@@ -483,6 +484,7 @@ body.touch #questCard.blosOn:not(.open) #blosQ{margin-top:0;padding-top:0;border
 </style>
 
 <canvas id="c" tabindex="0"></canvas>
+<div id="ver">v1.5 · Blossom Islands</div>
 
 <div id="title">
   <div class="title-inner">
