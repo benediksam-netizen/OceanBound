@@ -1742,6 +1742,7 @@ const PET_C=toV(PETAL),PET_L=PET_C-0.6,PET_N=-0.9,PET_A0=PET_N+0.86,PET_A1=PET_N
 const LAG_G=0.55,GRO_G=toV(GROTTO);
 const MPOND={x:MOON.x+5.2,z:MOON.z+0.4};
 const BPOND={x:BAMBOO.x-4,z:BAMBOO.z+1,r:4.6};
+const BHILL={x:BAMBOO.x+2,z:BAMBOO.z-14,h:7};
 const BSTREAM=(()=>{const a=BAM_L+2.5;return {x0:BPOND.x,z0:BPOND.z,x1:BAMBOO.x+Math.cos(a)*(BAMBOO.r+6),z1:BAMBOO.z+Math.sin(a)*(BAMBOO.r+6)};})();
 const SCREEK=(()=>{const a=SAK_L-0.85;return {x0:SAKURA.x+Math.cos(a)*(SAKURA.r+5),z0:SAKURA.z+Math.sin(a)*(SAKURA.r+5),x1:SAKURA.x+Math.cos(a)*(SAKURA.r-13),z1:SAKURA.z+Math.sin(a)*(SAKURA.r-13)};})();
 // the small islands: four Eastern Isles, joined in pairs by plank bridges, and two tiny islets out in the channels
@@ -1756,7 +1757,7 @@ const MTRAIL=(()=>{const pts=[],N=280,turn=2.2*TAU,r0=21,r1=8.5;for(let k=0;k<=N
 const MSUM={x:MOON.x,z:MOON.z,h:MTRAIL[MTRAIL.length-1].h,r:8.5};
 function moonCone(r){if(r>=21)return 1.6;if(r<=8.5)return MSUM.h;const k=(21-r)/12.5*(MTRAIL.length-1),i=Math.floor(k);return lerp(MTRAIL[i].h,MTRAIL[Math.min(MTRAIL.length-1,i+1)].h,k-i);}
 // Petal Falls: a path climbs round the back of the valley to the top of the waterfalls
-const PTRAIL=(()=>{const pts=[],N=30,a0=PET_A0,a1=PET_A1,R=20.5,h0=1.5+(R-11)*0.22;for(let k=0;k<=N;k++){const t=k/N,a=lerp(a0,a1,t);pts.push({x:PETAL.x+Math.cos(a)*R,z:PETAL.z+Math.sin(a)*R,h:lerp(h0,9,t)});}return pts;})();
+const PTRAIL=(()=>{const pts=[],N=30,a0=PET_A0,a1=PET_A1,R=20.5,h0=3;for(let k=0;k<=N;k++){const t=k/N,a=lerp(a0,a1,t);pts.push({x:PETAL.x+Math.cos(a)*R,z:PETAL.z+Math.sin(a)*R,h:lerp(h0,9,t)});}return pts;})();
 const BTRAILS=[MTRAIL,PTRAIL].map(P=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);}return {P,x0:x0-3,x1:x1+3,z0:z0-3,z1:z1+3};});
 function btrailAt(x,z){let best=null,bd=2.4;for(const T of BTRAILS){if(x<T.x0||x>T.x1||z<T.z0||z>T.z1)continue;const P=T.P;
     for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i];if(Math.abs(x-a.x)>6||Math.abs(z-a.z)>6)continue;
@@ -1767,6 +1768,14 @@ const BROCKS=(()=>{const r=mulberry32(612),o=[],big=[[BLOSSOM,34],[SAKURA,28],[M
   for(let i=0;i<1200&&o.length<16;i++){const x=BLOS_BOX.x0+20+r()*(BLOS_BOX.x1-BLOS_BOX.x0-40),z=BLOS_BOX.z0+16+r()*(BLOS_BOX.z1-BLOS_BOX.z0-32);if(blosK(x,z)>0.94)continue;
     if(big.some(([I,R])=>Math.hypot(x-I.x,z-I.z)<R+20)||ISLETS.some(I=>Math.hypot(x-I.x,z-I.z)<I.r+20)||o.some(q=>Math.hypot(q[0]-x,q[1]-z)<24))continue;
     if(segDist(x,z,BLOSSOM.x,BLOSSOM.z,BAY.x+BV_U.x*70,BAY.z+BV_U.z*70)<26)continue;o.push([x,z,1.5+r()*0.7,3+r()*4.5]);}return o;})();
+// tall rock peaks that stand on the islands themselves: far too steep to climb, they give every skyline its shape
+const BPEAKS=(()=>{const su={x:Math.cos(SAK_L),z:Math.sin(SAK_L)},sp={x:-su.z,z:su.x},lb=LAG_G+Math.PI,gb=GRO_G+Math.PI,o=[];
+  for(const s of[-1,1]){const p=bvpt(s*20.5,-22);o.push([p.x,p.z,4.4,s<0?12:10]);}
+  o.push([SAKURA.x-su.x*17+sp.x*10.5,SAKURA.z-su.z*17+sp.z*10.5,4.6,17]);
+  o.push([LAGOON.x+Math.cos(lb+0.05)*20.5,LAGOON.z+Math.sin(lb+0.05)*20.5,3.6,13]);
+  o.push([GROTTO.x+Math.cos(gb)*20.5,GROTTO.z+Math.sin(gb)*20.5,4.2,16]);
+  o.push([ISLETS[3].x,ISLETS[3].z-6,2.6,7.5]);
+  for(const k of o){k[4]=true;BROCKS.push(k);}return o;})();
 
 // ---- the shape of the land ----
 // the wobbly outline of an island; it runs true where the dock lands
@@ -1777,22 +1786,29 @@ function landingCap(I,aL,x,z,hh){const dl=Math.hypot(x-I.x-Math.cos(aL)*I.r,z-I.
 function villageH(x,z){const I=BLOSSOM,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.r+18)return null;const a=Math.atan2(dz,dx),rr=outline(I,a,0.6);
   const db=Math.hypot(x-BAY.x,z-BAY.z);if(db<BAY.r)return -2.4-Math.min(1.2,(BAY.r-db)*0.15);
   if(e>rr)return coast(e,rr,false);
-  const p=-(dx*BV_U.x+dz*BV_U.z);return 1.6+clamp((p-7)*0.2,0,3.4);}
+  const p=-(dx*BV_U.x+dz*BV_U.z),sm=1.6+clamp((p-7)*0.2,0,3.4);
+  // the hillside behind the town is cut into terraces; the stone steps to the shrine run straight up the middle
+  return Math.abs(dx*BV_W.x+dz*BV_W.z)<2.6?sm:1.6+1.7*Math.round((sm-1.6)/1.7);}
+const sakCorr=(x,z)=>Math.abs(-(x-SAKURA.x)*Math.sin(SAK_L)+(z-SAKURA.z)*Math.cos(SAK_L))<2.6;
 function sakuraH(x,z){const I=SAKURA,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.r+16)return null;const a=Math.atan2(dz,dx),rr=outline(I,a,1.3,SAK_L);
   if(segDist(x,z,SCREEK.x0,SCREEK.z0,SCREEK.x1,SCREEK.z1)<2.2)return -1.5;
   const beach=Math.abs(angDiff(a,SAK_L))<0.5;if(e>rr)return coast(e,rr,beach);
-  const p=-(dx*Math.cos(SAK_L)+dz*Math.sin(SAK_L));let hh=landingCap(I,SAK_L,x,z,5+clamp((p-2)*0.2,0,5));
+  const p=-(dx*Math.cos(SAK_L)+dz*Math.sin(SAK_L)),sm=5+clamp((p+6)*0.2,0,6.2);
+  // three broad steps of forest, 2.5 m apart, with the highland path climbing straight through them
+  let hh=landingCap(I,SAK_L,x,z,sakCorr(x,z)?sm:5+2.5*Math.round((sm-5)/2.5));
   if(beach)hh=Math.min(hh,0.7+(rr-e)*0.2);return hh;}
 function moonH(x,z){const I=MOON,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.r+16)return null;const a=Math.atan2(dz,dx),rr=outline(I,a,2,MOON_L)*0.5+I.r*0.5;
   const beach=Math.abs(angDiff(a,MOON_L))<0.5;if(e>rr)return coast(e,rr,beach);
   if(Math.hypot(x-MPOND.x,z-MPOND.z)<1.9)return -2;
   let hh=moonCone(e);if(e<23.5&&e>6){const t=btrailAt(x,z);if(t!==null)hh=t;}
   if(beach&&e>21.5)hh=Math.min(hh,0.7+(rr-e)*0.2);return hh;}
+const petCorr=(a,e)=>Math.abs(angDiff(a,PET_L-0.82))*e<2.6||Math.abs(angDiff(a,PET_C+0.95))*e<2.6;
+const petNear=a=>Math.abs(angDiff(a,PET_L-0.82))<0.42||Math.abs(angDiff(a,PET_C+0.95))<0.42;
 function petalH(x,z){const I=PETAL,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.r+16)return null;const a=Math.atan2(dz,dx),rr=outline(I,a,0.4,PET_L);
   const al=dx*Math.cos(PET_C)+dz*Math.sin(PET_C),ac=Math.abs(-dx*Math.sin(PET_C)+dz*Math.cos(PET_C));
   if(e<7||(al>0&&ac<3.2))return -2.2;
   const beach=Math.abs(angDiff(a,PET_L))<0.5;if(e>rr)return coast(e,rr,beach);
-  let hh=1.5+clamp((e-11)*0.22,0,3.4);if(Math.abs(angDiff(a,PET_N))<0.7&&e>10.2)hh=9;
+  const sm=1.5+clamp((e-11)*0.22,0,3.4);let lv=Math.round((sm-1.5)/1.5);if(lv>1&&!petNear(a))lv=1;let hh=petCorr(a,e)?sm:1.5+1.5*lv;if(Math.abs(angDiff(a,PET_N))<0.7&&e>10.2)hh=9;
   // the outer ledge of the high rocks is one long ramp, climbing round from the valley to the top of the falls
   if(e>18){const t=angDiff(a,PET_A0)/(PET_A0-PET_A1);if(t>=0&&t<1)hh=lerp(PTRAIL[0].h,9,t);}
   if(beach)hh=Math.min(hh,0.7+(rr-e)*0.2);return hh;}
@@ -1807,7 +1823,8 @@ function coralH(x,z){const I=CORAL,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.
 function bambooH(x,z){const I=BAMBOO,dx=x-I.x,dz=z-I.z,e=Math.hypot(dx,dz);if(e>I.r+16)return null;const a=Math.atan2(dz,dx),rr=outline(I,a,2.4,BAM_L);
   const dp=Math.hypot(x-BPOND.x,z-BPOND.z);if(dp<BPOND.r||segDist(x,z,BSTREAM.x0,BSTREAM.z0,BSTREAM.x1,BSTREAM.z1)<2.1)return -1.6;
   const beach=Math.abs(angDiff(a,BAM_L))<0.5;if(e>rr)return coast(e,rr,beach);
-  let hh=landingCap(I,BAM_L,x,z,1.5+clamp((dp-8)*0.18,0,2.6));if(beach)hh=Math.min(hh,0.7+(rr-e)*0.2);return hh;}
+  let hh=1.5+clamp((dp-8)*0.18,0,2.6);hh=Math.max(hh,BHILL.h-0.2*Math.hypot(x-BHILL.x,z-BHILL.z));
+  hh=landingCap(I,BAM_L,x,z,hh);if(beach)hh=Math.min(hh,0.7+(rr-e)*0.2);return hh;}
 function isletH(x,z){let hv=null;for(const I of ISLETS){const d=Math.hypot(x-I.x,z-I.z);if(d<I.r+10){const v=Math.min(2.4,0.7+(I.r-d)*0.2);hv=hv===null?v:Math.max(hv,v);}}return hv;}
 function blossomHeight(x,z,h){
   if(!inBlosBox(x,z))return h;
@@ -1815,7 +1832,7 @@ function blossomHeight(x,z,h){
   for(const f of [villageH,sakuraH,moonH,petalH,coralH,bambooH,isletH]){const v=f(x,z);if(v!==null)h=Math.max(h,v);}
   {const v=ringH(LAGOON,x,z,LAG_G,4.2,11,14.5,7,0.9);if(v!==null)h=Math.max(h,v);}
   {const v=ringH(GROTTO,x,z,GRO_G,5,11,14.5,9,2.2);if(v!==null)h=Math.max(h,v);}
-  for(const r of BROCKS){const e=Math.hypot(x-r[0],z-r[1]);if(e<r[2])h=Math.max(h,r[3]);}
+  for(const r of BROCKS){const e=Math.hypot(x-r[0],z-r[1]);if(e<r[2])h=Math.max(h,r[4]&&e>r[2]*0.56?r[3]*0.6:r[3]);}
   // pools, creeks and channels stay open water
   if(Math.hypot(x-BAY.x,z-BAY.z)<BAY.r)h=Math.min(h,-2.4);
   return h;}
@@ -2739,9 +2756,139 @@ function drawSnowMap(g){if(!SNOWMAP.base)buildSnowMapBase();const {W,H}=SNOWMAP;
     g.fillStyle='#ffd24a';g.strokeStyle='#1d1d1d';g.lineWidth=2.5;g.beginPath();g.moveTo(0,-12);g.lineTo(9,9);g.lineTo(0,4);g.lineTo(-9,9);g.closePath();g.fill();g.stroke();g.restore();}
   else{g.fillStyle='rgba(21,48,94,.85)';rrect(g,W-230,H-34,216,24,8);g.fill();g.fillStyle='#fff';g.font='800 12px Nunito, sans-serif';g.textAlign='center';g.fillText(Snowy.inCave?'You are deep in the Sea Caves':'Home is south-east of this chart →',W-122,H-17);}}
 function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+/* ---------- Blossom Islands decoration blocks: plants, rocks, statues, stalls, beach finds and seabed life ---------- */
+const gy=(x,z)=>groundAt(x,z);
+const ROCKC=['#9a8f86','#a89d92','#8c8178'],DARKC=['#4a4458','#544c64','#3e3a4c'];
+function palmTree(P,x,y,z,rng,s=1){const lean=rng()*TAU,lx=Math.cos(lean),lz=Math.sin(lean),n=5;let px=x,pz=z;
+  for(let k=0;k<n;k++){P.box(px,y+(k+0.5)*0.8*s,pz,0.34*s,0.84*s,0.34*s,k%2?'#8a6a42':'#7a5a36');px+=lx*0.1*k*s;pz+=lz*0.1*k*s;}
+  const ty=y+n*0.8*s;for(let k=0;k<7;k++){const a=k/7*TAU+rng();P.box(px+Math.cos(a)*1.0*s,ty-0.12*s,pz+Math.sin(a)*1.0*s,2.1*s,0.14*s,0.55*s,pick(['#3f9a3a','#4aa844','#368a34'],rng),-a,0,-0.36);}
+  P.box(px,ty-0.2*s,pz,0.5*s,0.4*s,0.5*s,'#6a4a26');for(let k=0;k<2;k++)P.box(px+(k-0.5)*0.4*s,ty-0.5*s,pz+0.2*s,0.26*s,0.26*s,0.26*s,'#5a3a1e');CIRCCOL.push({x,z,r:0.34*s});BLOSFX.greens.push([x,z]);}
+function tropTree(P,x,y,z,rng,s=1){const th=2.4*s;P.box(x,y+th/2,z,0.6*s,th,0.6*s,'#6a4a2a');P.box(x+0.5*s,y+th*0.7,z,1.2*s,0.3*s,0.3*s,'#6a4a2a',rng()*3,0,0.5);
+  for(let k=0;k<6;k++){const a=rng()*TAU,d=rng()*1.5*s,w=(1.8+rng()*1.2)*s;P.box(x+Math.cos(a)*d,y+th+0.2*s+rng()*1.2*s,z+Math.sin(a)*d,w,w*0.5,w,pick(['#3f9a3a','#4fae44','#2f8a34','#5ab84a'],rng),rng()*2);}CIRCCOL.push({x,z,r:0.55*s});BLOSFX.greens.push([x,z]);}
+function deadTree(P,x,y,z,rng,s=1){const th=(2.6+rng())*s,c='#6a5a52';P.box(x,y+th/2,z,0.34*s,th,0.34*s,c,0,0,0.08);
+  for(let k=0;k<4;k++){const a=rng()*TAU,l=(0.9+rng()*0.9)*s;P.box(x+Math.cos(a)*l*0.45,y+th*(0.5+k*0.14),z+Math.sin(a)*l*0.45,l,0.16*s,0.16*s,c,-a,0,0.5+rng()*0.3);}CIRCCOL.push({x,z,r:0.35*s});}
+function fallenLog(P,x,y,z,ry){P.box(x,y+0.28,z,2.2,0.52,0.52,'#7a5a3a',ry);P.box(x+Math.cos(ry)*1.12,y+0.28,z-Math.sin(ry)*1.12,0.06,0.44,0.44,'#c8a878',ry);P.box(x-Math.cos(ry)*0.3,y+0.56,z+Math.sin(ry)*0.3,0.5,0.1,0.4,'#6fae4f',ry);}
+function treeStump(P,x,y,z){P.box(x,y+0.26,z,0.7,0.52,0.7,'#7a5a3a');P.box(x,y+0.54,z,0.56,0.06,0.56,'#c8a878');P.box(x+0.4,y+0.1,z,0.4,0.2,0.26,'#6a4a2e');}
+function flowerBush(P,x,y,z,rng,cols){P.box(x,y+0.34,z,1.0,0.68,1.0,'#4a9a3e');P.box(x+0.2,y+0.7,z-0.1,0.66,0.4,0.66,'#58aa48');for(let k=0;k<6;k++)P.box(x+rng()*0.9-0.45,y+0.5+rng()*0.5,z+rng()*0.9-0.45,0.22,0.22,0.22,pick(cols,rng),rng()*3);}
+const AZALEA=['#f06a9a','#ff8ab8','#e8507a'],HYDRA=['#6a8af0','#8a7ae8','#a8b8ff','#c08aff'];
+function tallGrass(P,x,y,z,rng){for(let k=0;k<5;k++)P.box(x+rng()*0.9-0.45,y+0.32,z+rng()*0.9-0.45,0.09,0.64+rng()*0.3,0.09,pick(['#5fae44','#6fbe50','#4f9e3a'],rng),0,(rng()-0.5)*0.4,(rng()-0.5)*0.4);}
+function fern(P,x,y,z,rng){for(let k=0;k<6;k++){const a=k/6*TAU+rng();P.box(x+Math.cos(a)*0.4,y+0.26,z+Math.sin(a)*0.4,0.9,0.07,0.3,pick(['#3f9a4a','#4aa854'],rng),-a,0,-0.5);}}
+function mushroom(P,G,x,y,z,rng,s=1,glow){const c=glow?pick(['#c08aff','#ff8ad8','#8fe8ff'],rng):pick(['#e8a0b8','#e0503f','#c8a070'],rng);P.box(x,y+0.4*s,z,0.26*s,0.8*s,0.26*s,'#f0e4d0');(glow?G:P).box(x,y+0.9*s,z,1.0*s,0.3*s,1.0*s,c);P.box(x,y+1.06*s,z,0.6*s,0.16*s,0.6*s,glow?'#e8d8ff':shade(c,1.15));
+  if(!glow)for(let k=0;k<3;k++)P.box(x+rng()*0.6*s-0.3*s,y+1.06*s,z+rng()*0.6*s-0.3*s,0.14*s,0.18*s,0.14*s,'#ffffff');}
+function petalPile(P,x,y,z,rng){for(let k=0;k<3;k++)P.box(x+rng()*1.2-0.6,y+0.04+k*0.03,z+rng()*1.2-0.6,0.9-k*0.2,0.07,0.8-k*0.2,pick(['#fcc8dc','#f8b0cc','#fbd6e4'],rng),rng()*3);}
+function crag(P,x,y,z,rng,s=1,cols=ROCKC,cap='#86cc62'){let yy=y,w=(1.9+rng()*0.6)*s;const n=3+((rng()*2)|0);for(let k=0;k<n;k++){const hh=(0.9+rng()*0.9)*s,dn=k?0:1.2;P.box(x+(rng()-0.5)*0.5*s,yy+hh/2-dn/2,z+(rng()-0.5)*0.5*s,w,hh+dn,w*(0.8+rng()*0.3),pick(cols,rng),rng()*3);yy+=hh*0.86;w*=0.74;}
+  if(cap)P.box(x,yy+0.1,z,w*1.1,0.22,w*1.1,cap,rng()*3);CIRCCOL.push({x,z,r:Math.min(1.25,0.95*s)});return yy;}
+function rockArch(P,x,y,z,ry,w,hh,rng,cols=ROCKC){const cs=Math.cos(ry),sn=Math.sin(ry);for(let k=0;k<=10;k++){const t=k/10*Math.PI,ox=Math.cos(t)*w,oy=Math.sin(t)*hh,ft=k===0||k===10;P.box(x+cs*ox,y+oy-(ft?1.2:0),z-sn*ox,1.5,ft?3.9:1.5,1.9,pick(cols,rng),ry);}
+  P.box(x,y+hh+0.8,z,2.2,0.3,2,'#86cc62',ry);for(const sd of[-1,1])CIRCCOL.push({x:x+cs*w*sd,z:z-sn*w*sd,r:0.8});}
+function foxStatue(P,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry);P.box(x,y+0.3,z,0.8,0.6,0.8,'#9aa3a8',ry);P.box(x,y+0.95,z,0.44,0.7,0.5,'#f4f1ea',ry);P.box(x+sn*0.12,y+1.45,z+cs*0.12,0.4,0.36,0.4,'#f4f1ea',ry);
+  for(const sd of[-1,1])P.box(x+cs*sd*0.14,y+1.72,z-sn*sd*0.14,0.12,0.2,0.1,'#f4f1ea',ry);P.box(x+sn*0.2,y+1.18,z+cs*0.2,0.46,0.16,0.14,'#d8322a',ry);CIRCCOL.push({x,z,r:0.42});}
+function waterBasin(P,G,x,y,z,ry){for(const [a,b] of [[-0.8,-0.6],[0.8,-0.6],[-0.8,0.6],[0.8,0.6]])P.box(x+a,y+0.95,z+b,0.14,1.9,0.14,'#6a4226');P.box(x,y+2.0,z,2.3,0.18,1.9,'#3a3a44');P.box(x,y+2.16,z,1.7,0.14,1.3,'#b8322a');
+  P.box(x,y+0.35,z,1.2,0.7,0.8,'#9aa3a8');P.box(x,y+0.72,z,0.96,0.06,0.56,'#5ac8e8');P.box(x,y+0.86,z,1.0,0.05,0.06,'#c8a878');CIRCCOL.push({x,z,r:0.75});}
+function prayerBoard(P,x,y,z,ry,rng){const cs=Math.cos(ry),sn=Math.sin(ry);for(const sd of[-1,1])P.box(x+cs*sd*0.9,y+0.9,z-sn*sd*0.9,0.14,1.8,0.14,'#6a4226');P.box(x,y+1.86,z,2.3,0.14,0.4,'#3a3a44',ry);
+  for(let i=0;i<4;i++)for(let j=0;j<2;j++)P.box(x+cs*(i-1.5)*0.42,y+0.9+j*0.46,z-sn*(i-1.5)*0.42,0.32,0.36,0.06,pick(['#e8cf9a','#dcc088','#f0d8a8'],rng),ry);CIRCCOL.push({x,z,r:0.5});}
+function daruma(P,x,y,z,ry){P.box(x,y+0.4,z,0.7,0.8,0.66,'#d8322a',ry);P.box(x+Math.sin(ry)*0.3,y+0.5,z+Math.cos(ry)*0.3,0.44,0.36,0.1,'#f8ecd8',ry);P.box(x+Math.sin(ry)*0.34,y+0.52,z+Math.cos(ry)*0.34,0.3,0.06,0.06,'#1d1d1d',ry);}
+function festivalStall(P,G,x,y,z,ry,c){const cs=Math.cos(ry),sn=Math.sin(ry),put=(B,ox,oy,oz,w,h,d,col)=>B.box(x+ox*cs+oz*sn,y+oy,z-ox*sn+oz*cs,w,h,d,col,ry);
+  put(P,0,0.5,0.3,2.2,1.0,0.8,'#8a5a3a');put(P,0,1.04,0.3,2.3,0.08,0.9,'#f4ecd8');for(const [a,b] of [[-1,-0.6],[1,-0.6],[-1,0.7],[1,0.7]])put(P,a,1.2,b,0.1,2.4,0.1,'#5a3a22');
+  for(let k=0;k<5;k++)put(P,-0.96+k*0.48,2.5,0.05,0.48,0.1,1.7,k%2?c:'#f8f4ec');put(P,0,2.3,0.92,2.4,0.3,0.06,c);for(const sd of[-1,1])put(G,sd*0.9,2.0,0.95,0.26,0.36,0.26,'#ff9a5a');
+  for(let k=0;k<3;k++)put(P,-0.6+k*0.6,1.18,0.3,0.3,0.2,0.3,['#f08a9a','#ffd24a','#8ad0e8'][k]);CIRCCOL.push({x,z,r:0.95});}
+function festivalFloat(P,G,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry),put=(B,ox,oy,oz,w,h,d,col)=>B.box(x+ox*cs+oz*sn,y+oy,z-ox*sn+oz*cs,w,h,d,col,ry);
+  for(const [a,b] of [[-0.9,-0.9],[0.9,-0.9],[-0.9,0.9],[0.9,0.9]])put(P,a,0.4,b,0.2,0.8,0.8,'#5a3a22');put(P,0,1.0,0,2.2,0.5,2.6,'#b8322a');put(P,0,1.3,0,2.3,0.1,2.7,'#e0a23f');put(P,0,2.0,0,1.5,1.3,1.8,'#f4ecd8');
+  put(P,0,2.8,0,2.4,0.2,2.8,'#3a3a44');put(P,0,3.0,0,1.7,0.2,2.0,'#b8322a');put(P,0,3.5,0,1.0,0.8,1.2,'#f4ecd8');put(P,0,4.0,0,1.6,0.18,1.9,'#3a3a44');put(P,0,4.5,0,0.14,0.9,0.14,'#e0a23f');
+  for(const [a,b] of [[-1.1,-1.3],[1.1,-1.3],[-1.1,1.3],[1.1,1.3]])put(G,a,2.4,b,0.26,0.36,0.26,'#ffb0c8');CIRCCOL.push({x,z,r:1.4});}
+function carpBanner(P,x,y,z,rng){P.box(x,y+3.2,z,0.14,6.4,0.14,'#c8b890');P.box(x,y+6.5,z,0.4,0.4,0.1,'#e0a23f');const ry=rng()*0.6+0.3;
+  ['#1d1d24','#d8322a','#2f6fd6'].forEach((c,k)=>{const yy=y+5.6-k*0.9,l=1.9-k*0.25;P.box(x+Math.cos(ry)*l*0.55,yy,z-Math.sin(ry)*l*0.55,l,0.42,0.1,c,ry,0,-0.12);P.box(x+Math.cos(ry)*0.25,yy,z-Math.sin(ry)*0.25,0.2,0.46,0.14,'#f8f4ec',ry,0,-0.12);});CIRCCOL.push({x,z,r:0.2});}
+function umbrellaBench(P,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry);P.box(x,y+1.3,z,0.1,2.6,0.1,'#5a3a22');P.box(x,y+2.56,z,2.6,0.1,2.6,'#d8322a',ry);P.box(x,y+2.66,z,1.7,0.1,1.7,'#e8483a',ry+0.78);P.box(x,y+2.78,z,0.3,0.16,0.3,'#3a2a1e');
+  P.box(x+sn*1.0,y+0.42,z+cs*1.0,1.8,0.12,0.6,'#c8402a',ry);for(const sd of[-1,1])P.box(x+sn*1.0+cs*sd*0.75,y+0.2,z+cs*1.0-sn*sd*0.75,0.12,0.4,0.5,'#5a3a22',ry);CIRCCOL.push({x,z,r:0.25});}
+function signpost(P,x,y,z,ry){P.box(x,y+0.9,z,0.14,1.8,0.14,'#6a4226');P.box(x,y+1.5,z,1.2,0.34,0.08,'#c8a878',ry);P.box(x,y+1.1,z,0.9,0.28,0.08,'#b89868',ry+0.5);}
+function handCart(P,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry);P.box(x,y+0.7,z,1.6,0.5,1.0,'#8a5a3a',ry);P.box(x,y+1.0,z,1.3,0.3,0.8,'#c8a040',ry);for(const sd of[-1,1])P.box(x-sn*sd*0.58,y+0.4,z-cs*sd*0.58,0.8,0.8,0.1,'#5a3a22',ry);
+  P.box(x+cs*1.3,y+0.8,z-sn*1.3,1.1,0.08,0.08,'#6a4226',ry);CIRCCOL.push({x,z,r:0.7});}
+function basket(P,x,y,z,rng){P.box(x,y+0.22,z,0.56,0.44,0.56,'#c8a060');P.box(x,y+0.46,z,0.44,0.1,0.44,pick(['#8aa0b8','#f08a9a','#6fc24b','#e0503f'],rng));}
+function netRack(P,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry);for(const sd of[-1,1])P.box(x+cs*sd*1.2,y+0.9,z-sn*sd*1.2,0.12,1.8,0.12,'#6b4424');P.box(x,y+1.76,z,2.6,0.1,0.1,'#6b4424',ry);
+  for(let i=0;i<7;i++)P.box(x+cs*(i-3)*0.36,y+1.05,z-sn*(i-3)*0.36,0.05,1.3,0.05,'#c8b890');for(let j=0;j<3;j++)P.box(x,y+0.6+j*0.4,z,2.3,0.04,0.04,'#c8b890',ry);}
+function anchorProp(P,x,y,z,ry){P.box(x,y+0.6,z,0.14,1.2,0.14,'#3a3f46',ry,0,0.2);P.box(x,y+0.16,z,0.9,0.14,0.14,'#3a3f46',ry);P.box(x,y+1.1,z,0.5,0.1,0.1,'#3a3f46',ry);}
+function rowboat(P,x,y,z,ry,c='#8a5a3a'){const cs=Math.cos(ry),sn=Math.sin(ry);P.box(x,y+0.22,z,3.0,0.44,1.2,c,ry);P.box(x,y+0.4,z,2.6,0.12,0.9,shade(c,0.7),ry);P.box(x+cs*1.7,y+0.3,z-sn*1.7,0.5,0.4,0.8,c,ry);P.box(x-cs*1.6,y+0.3,z+sn*1.6,0.3,0.4,1.0,c,ry);
+  P.box(x,y+0.46,z,0.2,0.08,1.0,'#c8a878',ry);P.box(x,y+0.5,z,3.2,0.06,1.28,'#f4ecd8',ry);}
+function tableSet(P,x,y,z,ry){P.box(x,y+0.5,z,1.3,0.1,0.8,'#8a5a3a',ry);P.box(x,y+0.25,z,0.14,0.5,0.14,'#5a3a22');for(const sd of[-1,1])P.box(x+Math.sin(ry)*sd*0.8,y+0.28,z+Math.cos(ry)*sd*0.8,1.1,0.1,0.3,'#a36c3b',ry);}
+function driftwood(P,x,y,z,rng){const ry=rng()*3;P.box(x,y+0.12,z,1.6,0.22,0.24,'#c8b8a0',ry,0,0.06);P.box(x+0.3,y+0.2,z+0.2,0.7,0.14,0.14,'#b8a890',ry+0.8,0,0.3);}
+function shellPile(P,x,y,z,rng){for(let k=0;k<4;k++)P.box(x+rng()*0.7-0.35,y+0.07,z+rng()*0.7-0.35,0.22,0.14,0.2,pick(['#f8d8e4','#ffffff','#f8e0a0','#f0b8c8'],rng),rng()*3);}
+function starfish(P,x,y,z,rng){const c=pick(['#ff8a5a','#ff6a8a','#ffb03a'],rng),a=rng()*3;P.box(x,y+0.05,z,0.6,0.08,0.16,c,a);P.box(x,y+0.05,z,0.6,0.08,0.16,c,a+1.05);P.box(x,y+0.05,z,0.6,0.08,0.16,c,a+2.1);}
+function rockPile(P,x,y,z,rng,cols=ROCKC){for(let k=0;k<3;k++)P.box(x+rng()*0.8-0.4,y+0.2+k*0.12,z+rng()*0.8-0.4,0.7-k*0.12,0.44,0.6-k*0.1,pick(cols,rng),rng()*3);}
+function seaweed(S,x,y,z,rng){for(let k=0;k<4;k++){const hh=Math.min(0.7+rng()*1.1,-y-0.2);S.box(x+rng()*0.9-0.45,y+hh/2,z+rng()*0.9-0.45,0.12,hh,0.12,pick(['#2f8a4a','#3f9a5a','#4aa86a'],rng),0,(rng()-0.5)*0.5,(rng()-0.5)*0.5);}}
+function coralRock(S,x,y,z,rng){S.box(x,y+0.3,z,1.1,0.6,0.9,'#8a8a92',rng()*3);for(let k=0;k<3;k++)S.box(x+rng()*0.8-0.4,y+0.7,z+rng()*0.8-0.4,0.22,0.5,0.22,pick(['#ff6a8a','#ff9a4a','#c08aff','#5ad0ff'],rng),rng()*3);}
+function sunkenPillar(S,x,y,z,rng,dry){const hh=dry?1.2+rng()*1.6:Math.min(1.2+rng()*1.6,Math.max(0.6,-y-0.7));S.box(x,y+hh/2,z,0.8,hh,0.8,'#b8b4a4',0,(rng()-0.5)*0.3,(rng()-0.5)*0.3);S.box(x,y+hh+0.1,z,1.0,0.2,1.0,'#a8a494',0,0,0.1);S.box(x+1.1,y+0.3,z+0.4,1.4,0.6,0.7,'#b0ac9c',rng()*3);}
+function sunkenStatue(S,x,y,z,ry){S.box(x,y+0.5,z,1.0,1.0,0.8,'#8a9a8a',ry);S.box(x,y+1.3,z,0.7,0.7,0.6,'#9aaa9a',ry);S.box(x,y+1.34,z+0.32,0.4,0.1,0.06,'#6fe8d8',ry);}
+function watchTower(P,G,x,y,z,ry=0){for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const g=Math.min(y,gy(x+a,z+b))-0.3;P.box(x+a,(g+y+4.8)/2,z+b,0.2,y+4.8-g,0.2,'#6b4424');}P.box(x,y+4.8,z,2.8,0.18,2.8,'#a36c3b');
+  for(let k=0;k<8;k++){const a=k/8*TAU;P.box(x+Math.cos(a)*1.3,y+5.3,z+Math.sin(a)*1.3,0.1,0.9,0.1,'#6b4424');}for(const [a,b] of [[-1.2,-1.2],[1.2,-1.2],[-1.2,1.2],[1.2,1.2]])P.box(x+a,y+6.0,z+b,0.14,2.2,0.14,'#6b4424');
+  P.box(x,y+7.2,z,3.4,0.2,3.4,'#3a3a44');P.box(x,y+7.4,z,2.4,0.2,2.4,'#b8322a');G.box(x,y+6.6,z,0.3,0.4,0.3,'#ff9a5a');for(let k=0;k<6;k++)P.box(x+1.0,y+0.4+k*0.8,z-1.0+k*0.02,0.08,0.08,0.7,'#6b4424');CIRCCOL.push({x,z,r:1.2});}
+function greenhouse(P,G,x,y,z,ry){const cs=Math.cos(ry),sn=Math.sin(ry),put=(B,ox,oy,oz,w,h,d,col)=>B.box(x+ox*cs+oz*sn,y+oy,z-ox*sn+oz*cs,w,h,d,col,ry);
+  put(P,0,0.2,0,3.2,0.4,2.4,'#8a8f96');put(P,0,1.1,0,3.0,1.5,2.2,'#bfe8e0');put(P,0,2.1,0,3.2,0.5,1.4,'#d0f0ea');for(const sx of[-1.5,0,1.5])put(P,sx,1.1,1.12,0.1,1.5,0.06,'#f4f8f8');put(P,0,1.9,1.12,3.1,0.08,0.06,'#f4f8f8');
+  for(let k=0;k<4;k++)put(P,-1+k*0.66,0.8,0.3,0.3,0.5,0.3,'#4fae44');CIRCCOL.push({x,z,r:1.3});}
+function moonLantern(P,G,x,y,z){P.box(x,y+0.2,z,0.5,0.4,0.5,'#8a93a8');P.box(x,y+0.9,z,0.16,1.0,0.16,'#a8b0c4');G.box(x,y+1.6,z,0.46,0.5,0.46,'#bfd8ff');P.box(x,y+1.9,z,0.66,0.12,0.66,'#5a6480');}
+function glowFlower(P,G,x,y,z,rng){for(let k=0;k<3;k++){const ox=rng()*0.8-0.4,oz=rng()*0.8-0.4,hh=0.3+rng()*0.4;P.box(x+ox,y+hh/2,z+oz,0.06,hh,0.06,'#3a8a5a');G.box(x+ox,y+hh+0.08,z+oz,0.2,0.2,0.2,pick(['#8fe8ff','#ff8ad8','#c08aff','#8fffd0'],rng));}}
+function hotSpringPool(P,G,x,y,z,r,rng){for(let k=0;k<12;k++){const a=k/12*TAU;P.box(x+Math.cos(a)*r,y+0.2,z+Math.sin(a)*r,1,0.5,0.9,pick(['#8a8f96','#9aa0a6','#7a7f86'],rng),a);}P.box(x,y+0.12,z,r*1.75,0.14,r*1.75,'#4fc8c8');G.box(x,y+0.2,z,r*0.9,0.04,r*0.9,'#8ff0e8');BLOSFX.steam.push({x,y:y+0.4,z,r});}
+function bambooFence(P,ax,az,bx,bz,lvl){const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.round(L/1.2)),ry=Math.atan2(-(bz-az),bx-ax),ok=(x,z)=>lvl===undefined||Math.abs(gy(x,z)-lvl)<0.1;
+  for(let i=0;i<=n;i++){const t=i/n,x=lerp(ax,bx,t),z=lerp(az,bz,t),y=gy(x,z);if(!ok(x,z))continue;P.box(x,y+0.45,z,0.1,0.9,0.1,'#8ac85a');
+    if(i<n){const x1=lerp(ax,bx,(i+1)/n),z1=lerp(az,bz,(i+1)/n);if(ok(x1,z1)&&gy(x1,z1)===y)for(const hh of [0.3,0.7])P.box((x+x1)/2,y+hh,(z+z1)/2,L/n,0.07,0.07,'#a8d878',ry);}}}
+function ricePaddy(P,x,y,z,w,d,ry,rng){P.box(x,y+0.08,z,w+0.3,0.18,d+0.3,'#7a5a3a',ry);P.box(x,y+0.14,z,w,0.1,d,'#5a9ab8',ry);const cs=Math.cos(ry),sn=Math.sin(ry);
+  for(let i=0;i<Math.floor(w/0.5);i++)for(let j=0;j<Math.floor(d/0.5);j++){const ox=-w/2+0.3+i*0.5,oz=-d/2+0.3+j*0.5;P.box(x+ox*cs+oz*sn,y+0.36,z-ox*sn+oz*cs,0.07,0.4,0.07,'#9ac85a');}}
+function cropRow(P,x,y,z,len,ry,col,leaf){const cs=Math.cos(ry),sn=Math.sin(ry);P.box(x,y+0.08,z,len,0.16,0.6,'#7a5a3a',ry);for(let i=0;i<Math.floor(len/0.5);i++){const ox=-len/2+0.3+i*0.5;P.box(x+ox*cs,y+0.28,z-ox*sn,0.2,0.24,0.2,leaf);if(col)P.box(x+ox*cs,y+0.2,z-ox*sn+0.12,0.12,0.12,0.12,col);}}
+// what grows and lies around on open ground, by island
+function blosDecor(P,G,k,x,z,h,rng,beach){const r=rng();
+  if(beach||k==='coral'){if(r<0.04)shellPile(P,x,h,z,rng);else if(r<0.07)starfish(P,x,h,z,rng);else if(r<0.1)driftwood(P,x,h,z,rng);else if(r<0.125)rockPile(P,x,h,z,rng,k==='grotto'?DARKC:ROCKC);
+    else if(r<(k==='coral'||k==='lagoon'?0.21:0.165)&&k!=='grotto'&&k!=='moon'&&h>=1)palmTree(P,x,h,z,rng,0.85+rng()*0.3);return;}
+  if(k==='sakura'){if(r<0.04)tallGrass(P,x,h,z,rng);else if(r<0.065)fern(P,x,h,z,rng);else if(r<0.085)flowerBush(P,x,h,z,rng,AZALEA);else if(r<0.1)flowerBush(P,x,h,z,rng,HYDRA);else if(r<0.115)mushroom(P,G,x,h,z,rng,0.7+rng()*0.5);
+    else if(r<0.128)treeStump(P,x,h,z);else if(r<0.14)fallenLog(P,x,h,z,rng()*3);else if(r<0.16)petalPile(P,x,h,z,rng);else if(r<0.178)crag(P,x,h,z,rng,0.8+rng()*0.7);}
+  else if(k==='petal'){if(r<0.04)tallGrass(P,x,h,z,rng);else if(r<0.07)flowerBush(P,x,h,z,rng,AZALEA);else if(r<0.09)flowerBush(P,x,h,z,rng,HYDRA);else if(r<0.11)fern(P,x,h,z,rng);else if(r<0.125)tropTree(P,x,h,z,rng,0.8+rng()*0.3);else if(r<0.145)petalPile(P,x,h,z,rng);else if(r<0.16)crag(P,x,h,z,rng,0.7+rng()*0.6);}
+  else if(k==='moon'){if(r<0.05)tallGrass(P,x,h,z,rng);else if(r<0.08)flowerBush(P,x,h,z,rng,AZALEA);else if(r<0.1)crag(P,x,h,z,rng,0.7+rng()*0.5);else if(r<0.115)moonLantern(P,G,x,h,z);else if(r<0.13)petalPile(P,x,h,z,rng);}
+  else if(k==='lagoon'){if(r<0.04)tropTree(P,x,h,z,rng,0.8+rng()*0.3);else if(r<0.07)fern(P,x,h,z,rng);else if(r<0.095)flowerBush(P,x,h,z,rng,HYDRA);else if(r<0.12)glowFlower(P,G,x,h,z,rng);else if(r<0.14)tallGrass(P,x,h,z,rng);else if(r<0.155)crag(P,x,h,z,rng,0.7+rng()*0.5);}
+  else if(k==='grotto'){if(r<0.035)deadTree(P,x,h,z,rng);else if(r<0.07)mushroom(P,G,x,h,z,rng,0.9+rng()*0.8,true);else if(r<0.1)glowFlower(P,G,x,h,z,rng);else if(r<0.13)crag(P,x,h,z,rng,0.8+rng()*0.8,DARKC,rng()<0.5?'#f8b8d0':null);else if(r<0.15)rockPile(P,x,h,z,rng,DARKC);}
+  else if(k==='bamboo'){if(r<0.03)fern(P,x,h,z,rng);else if(r<0.05)tallGrass(P,x,h,z,rng);else if(r<0.06)treeStump(P,x,h,z);else if(r<0.07)mushroom(P,G,x,h,z,rng,0.7);else if(r<0.08)fallenLog(P,x,h,z,rng()*3);else if(r<0.095)flowerBush(P,x,h,z,rng,HYDRA);}
+  else if(k==='islet'){if(r<0.05)tallGrass(P,x,h,z,rng);else if(r<0.08)flowerBush(P,x,h,z,rng,AZALEA);else if(r<0.1)rockPile(P,x,h,z,rng);else if(r<0.12)fern(P,x,h,z,rng);}
+  else if(k==='village'){if(r<0.04)flowerBush(P,x,h,z,rng,AZALEA);else if(r<0.07)flowerBush(P,x,h,z,rng,HYDRA);else if(r<0.1)petalPile(P,x,h,z,rng);else if(r<0.12)tallGrass(P,x,h,z,rng);else if(r<0.135)fern(P,x,h,z,rng);else if(r<0.148)crag(P,x,h,z,rng,0.7+rng()*0.4);}}
+// the seabed close to the islands: weed, coral rocks, old stonework and vents of bubbles
+function blosBedDecor(S,x,z,h,rng){if(h>-0.7||h<-3.4)return;const r=rng();
+  if(h>-2.35){if(r<0.11)seaweed(S,x,h,z,rng);else if(r<0.17&&h<-1.3)coralRock(S,x,h,z,rng);else if(r<0.19)S.box(x,h+0.25,z,1+rng(),0.5,0.9,'#8a8a92',rng()*3);return;}
+  if(r<0.006)sunkenPillar(S,x,h,z,rng);else if(r<0.009)sunkenStatue(S,x,h,z,rng()*3);else if(r<0.02)seaweed(S,x,h,z,rng);else if(r<0.024&&BLOSFX.vents.length<18)BLOSFX.vents.push({x,z});}
+// rough ledges, outcrops and hanging green on every cliff face
+function cliffLedges(P,gx,gz,x,z,h,md,side,rng){let best=null,bh=h;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const nh=qHeightCell(gx+dx,gz+dz);if(nh<bh){bh=nh;best=[dx,dz];}}if(!best)return;
+  const nx=x+best[0]*2,nz=z+best[1]*2;if(deckY(nx,nz)!==null||deckY(x+best[0]*1.2,z+best[1]*1.2)!==null)return;
+  // above ground you can walk on, ledges only jut out overhead
+  const land=bh>=0.5,lo=land?bh+2.5:Math.max(bh,-0.3);if(h-lo<0.8)return;const n=h-lo>6?3:h-lo>3?2:1;
+  for(let i=0;i<n;i++){if(rng()<0.3)continue;const hh=0.6+rng()*0.7,yy=Math.min(h-hh/2,lo+hh/2+(h-lo-hh)*rng()),w=1.1+rng()*0.9,o=1.0+rng()*0.3;
+    P.box(x+best[0]*o,yy,z+best[1]*o,best[0]?0.9:w,hh,best[1]?0.9:w,shade(side,0.9+rng()*0.25));
+    if(rng()<0.3)P.box(x+best[0]*(o+0.1),yy+hh/2+0.08,z+best[1]*(o+0.1),best[0]?0.8:w*0.8,0.16,best[1]?0.8:w*0.8,pick(['#7cc45a','#6fae4f','#f8b8d0'],rng));
+    else if(rng()<0.2&&yy-lo>1.6)P.box(x+best[0]*1.06,yy-0.7,z+best[1]*1.06,best[0]?0.08:0.3,1.4,best[1]?0.08:0.3,'#4f9a3a');}}
+/* ---- nothing floats: everything that stands on the ground finds the ground first ---- */
+// keeps a small prop inside its own 2 m square of ground, so no part of it hangs over a ledge
+const seat=(x,z,r=0.4)=>{if(deckY(x,z)!==null)return {x,z};const cx=Math.floor(x/2)*2,cz=Math.floor(z/2)*2;return {x:clamp(x,cx+r,cx+2-r),z:clamp(z,cz+r,cz+2-r)};};
+function lanternG(P,G,x,z){const s=seat(x,z,0.3);lantern(P,G,s.x,gy(s.x,s.z),s.z);return s;}
+function stoneLanternG(P,G,x,z,col=true){const s=seat(x,z,0.4);stoneLantern(P,G,s.x,gy(s.x,s.z),s.z);if(col)CIRCCOL.push({x:s.x,z:s.z,r:0.36});return s;}
+// a torii whose two legs each run down to their own patch of ground
+function toriiG(P,x,z,ry,s=1,c='#d8322a'){const cs=Math.cos(ry),sn=Math.sin(ry),y=gy(x,z),put=(ox,oy,w,h,d,col)=>P.box(x+ox*cs,y+oy,z-ox*sn,w,h,d,col,ry);
+  for(const sd of[-1,1]){const lx=x+sd*1.75*s*cs,lz=z-sd*1.75*s*sn,g=Math.min(y,gy(lx,lz))-0.2,top=y+3.8*s;P.box(lx,(g+top)/2,lz,0.36*s,top-g,0.36*s,c,ry);P.box(lx,g+0.4,lz,0.52*s,0.5,0.52*s,'#2a2220',ry);CIRCCOL.push({x:lx,z:lz,r:0.24});}
+  put(0,3.72*s,4.9*s,0.34*s,0.44*s,c);put(0,4.0*s,5.6*s,0.22*s,0.58*s,'#2a2220');put(0,3.0*s,3.9*s,0.26*s,0.3*s,c);put(0,3.36*s,0.3*s,0.46*s,0.3*s,c);return y;}
+// paper lanterns on a cord between two poles
+function hangLanterns(P,G,a,b,n=10){const ya=gy(a.x,a.z),yb=gy(b.x,b.z),top=Math.max(ya,yb)+4.4,L=Math.hypot(b.x-a.x,b.z-a.z),ry=Math.atan2(-(b.z-a.z),b.x-a.x);
+  for(const [q,y0] of [[a,ya],[b,yb]]){P.box(q.x,(y0-0.2+top)/2,q.z,0.16,top-y0+0.2,0.16,'#5a3a22');P.box(q.x,top+0.06,q.z,0.3,0.12,0.3,'#3a2a1e');CIRCCOL.push({x:q.x,z:q.z,r:0.2});}
+  const pt=t=>({x:lerp(a.x,b.x,t),z:lerp(a.z,b.z,t),y:top-0.12-Math.sin(t*Math.PI)*0.75});
+  for(let k=0;k<n*2;k++){const p=pt(k/(n*2)),q=pt((k+1)/(n*2));P.box((p.x+q.x)/2,(p.y+q.y)/2,(p.z+q.z)/2,L/(n*2)+0.05,0.06+Math.abs(q.y-p.y),0.06,'#3a2a1e',ry);}
+  for(let k=1;k<n;k++){const p=pt(k/n);P.box(p.x,p.y-0.14,p.z,0.04,0.28,0.04,'#3a2a1e');P.box(p.x,p.y-0.27,p.z,0.22,0.05,0.22,'#3a2a1e');G.box(p.x,p.y-0.5,p.z,0.3,0.42,0.3,k%2?'#ff9a5a':'#ffb0c8');P.box(p.x,p.y-0.73,p.z,0.2,0.05,0.2,'#3a2a1e');}}
+function scarecrow(P,x,y,z,ry){P.box(x,y+0.9,z,0.12,1.8,0.12,'#6b4424');P.box(x,y+1.3,z,1.4,0.1,0.1,'#6b4424',ry);P.box(x,y+1.25,z,0.56,0.6,0.3,'#c8402a',ry);P.box(x,y+1.72,z,0.4,0.4,0.36,'#e8d090',ry);P.box(x,y+1.98,z,0.86,0.1,0.86,'#c8a040',ry);P.box(x,y+2.1,z,0.4,0.2,0.4,'#c8a040',ry);}
+function mineCart(P,G,x,y,z,ry,cols){const cs=Math.cos(ry),sn=Math.sin(ry);for(const sd of[-1,1])P.box(x-sn*sd*0.42,y+0.04,z-cs*sd*0.42,3.2,0.08,0.1,'#6a6a72',ry);for(let k=-2;k<=2;k++)P.box(x+cs*k*0.7,y+0.02,z-sn*k*0.7,0.2,0.05,1.2,'#5a3a22',ry);
+  P.box(x,y+0.62,z,1.3,0.7,0.9,'#5a4a3a',ry);P.box(x,y+0.98,z,1.4,0.08,1.0,'#3a3f46',ry);for(const [a,b] of [[-0.4,-0.42],[0.4,-0.42],[-0.4,0.42],[0.4,0.42]])P.box(x+cs*a+sn*b,y+0.2,z-sn*a+cs*b,0.34,0.34,0.1,'#3a3f46',ry);
+  for(let k=0;k<3;k++)G.box(x+(k-1)*0.3*cs,y+1.14,z-(k-1)*0.3*sn,0.26,0.3+k*0.08,0.26,cols[k%cols.length],k);CIRCCOL.push({x,z,r:0.8});}
+// a white tower with a red cap for the harbour mouth
+function harbourLight(P,G,x,z){const y=gy(x,z);P.box(x,y-0.3,z,3.2,1.4,3.2,'#8a8f96');for(let k=0;k<6;k++)P.box(x,y+1.0+k*1.2,z,2.1-k*0.12,1.2,2.1-k*0.12,k%2?'#d8322a':'#f8f4ec');
+  P.box(x,y+8.0,z,2.4,0.24,2.4,'#3a3f46');for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]])P.box(x+a*1.1,y+8.5,z+b*1.1,0.1,0.8,0.1,'#3a3f46');G.box(x,y+8.7,z,1.1,1.1,1.1,'#ffe8a0');P.box(x,y+9.5,z,1.8,0.5,1.8,'#d8322a');P.box(x,y+9.95,z,0.9,0.4,0.9,'#f8f4ec');CIRCCOL.push({x,z,r:1.7});}
+// rock, green and a wind-bent tree on top of one of the island peaks
+function peakDress(P,pk,rng,cols=ROCKC,cap='#86cc62'){const [x,z,r,H]=pk,top=gy(x,z);
+  for(let k=0;k<7;k++){const a=k/7*TAU+rng(),d=r*(0.7+rng()*0.4),px=x+Math.cos(a)*d,pz=z+Math.sin(a)*d,g=gy(px,pz),hh=g>top-1?1+rng()*1.6:H*(0.3+rng()*0.4),w=1.6+rng()*1.2;if(deckY(px,pz)!==null||g<0.5)continue;
+    P.box(px,g+hh/2-0.6,pz,w,hh+1.2,w*(0.8+rng()*0.3),pick(cols,rng),rng()*3);if(cap&&rng()<0.6)P.box(px,g+hh+0.08,pz,w*0.9,0.2,w*0.8,cap,rng()*3);if(g<top-2)CIRCCOL.push({x:px,z:pz,r:Math.min(1,w*0.42)});}
+  P.box(x+0.3,top+0.9,z-0.2,r*0.7,1.8,r*0.6,pick(cols,rng),rng()*3);if(cap)P.box(x+0.3,top+1.9,z-0.2,r*0.6,0.22,r*0.5,cap,rng()*3);}
+
 /* ---------- Blossom Islands builders ---------- */
 const BLOS_BUILT=new Set();
-const BLOSFX={falls:[],signs:[],lamps:[],dives:[],smoke:[]};
+const BLOSFX={falls:[],signs:[],lamps:[],dives:[],smoke:[],vents:[],steam:[],greens:[]};
 const BC_={grass:['#8fd46a','#9ade74','#86cc62','#7cc45a'],pink:['#fcc8dc','#f8b8d0','#fbd6e4'],sand:['#f8e4c0','#f2dcb4','#f6e8cc'],white:['#fbf6ea','#f6f0e0','#fffaf0'],
   rock:['#9a8f86','#a89d92','#8c8178'],dark:['#4a4458','#544c64','#3e3a4c'],cobble:['#d8cfc0','#cfc6b6','#e0d8ca'],path:['#d8c8a8','#cdbc9a','#e0d2b4'],bam:['#7dbb58','#86c460','#74b050']};
 const BLOS_BLD=[
@@ -2755,7 +2902,8 @@ const BLOS_BLD=[
   {id:'storage',name:'Storage Building',deg:38,rad:34,w:4.6,d:3.8,roof:'#6a7078',sign:'board'},
   {id:'h1',name:'',at:[22,-8],w:4.2,d:3.6,roof:'#2f5fa8'},{id:'h2',name:'',at:[-24,-6],w:4.2,d:3.6,roof:'#c8402a'}];
 for(const b of BLOS_BLD){const p=b.at?bvpt(b.at[0],b.at[1]):bayPt(b.deg,b.rad);b.x=p.x;b.z=p.z;b.ry=Math.atan2(BAY.x-p.x,BAY.z-p.z);b.door={x:p.x+Math.sin(b.ry)*(b.d/2+1.1),z:p.z+Math.cos(b.ry)*(b.d/2+1.1)};}
-const BV_SHRINE=bvpt(0,-25),BV_SQUARE=bayPt(0,29),BV_BOARD=bayPt(9,25.5),BV_FARM=bvpt(-13,-12);
+const BV_SHRINE=bvpt(0,-25),BV_SQUARE=bayPt(0,29),BV_BOARD=bayPt(9,25.5),BV_FARM=bvpt(-13,-15.5),BV_GARDEN=bvpt(12.5,-15.5);
+const nearPeak=(x,z,m)=>BPEAKS.some(p=>Math.hypot(x-p[0],z-p[1])<p[2]+m);
 // the winding path through the bamboo: from the dock, past the houses, round the hidden pond and out to the tea garden
 const BPATH=(()=>{const L={x:BAMBOO.x+Math.cos(BAM_L)*(BAMBOO.r-3),z:BAMBOO.z+Math.sin(BAM_L)*(BAMBOO.r-3)};
   return [L,{x:BAMBOO.x+11,z:BAMBOO.z+3},{x:BAMBOO.x+6,z:BAMBOO.z-7},{x:BAMBOO.x-2,z:BAMBOO.z-9},{x:BAMBOO.x-11,z:BAMBOO.z-6},{x:BAMBOO.x-14,z:BAMBOO.z+3},{x:BAMBOO.x-12,z:BAMBOO.z+12}];})();
@@ -2771,13 +2919,16 @@ function blosLandCol(x,z,h,md,rng){
     return L===0?[rng()<0.1?'#f0a8d0':pick(['#8a8494','#948ea0','#7e7888'],rng),'#5a5468']:L===1?[pick(['#5a4a78','#64528a','#50426c'],rng),'#3a2a52']:L===2?[rng()<0.2?'#8a9a92':pick(['#a8b4ac','#9caca4','#b2beb6'],rng),'#6a7a7a']:[pick(['#303a5c','#2a3454','#384468'],rng),'#1a2238'];}
   const k=blosIsle(x,z),cliff=md>=1.5?pick(BC_.rock,rng):'#8a6a4a';
   if(k==='rock')return [h>3&&rng()<0.4?pick(BC_.grass,rng):pick(BC_.rock,rng),pick(BC_.rock,rng)];
+  if(nearPeak(x,z,0)&&h>4)return [rng()<0.3?pick(k==='grotto'?BC_.pink:BC_.grass,rng):pick(k==='grotto'?BC_.dark:BC_.rock,rng),pick(k==='grotto'?BC_.dark:BC_.rock,rng)];
   if(btrailAt(x,z)!==null&&(k==='moon'||k==='petal'))return [pick(BC_.path,rng),pick(BC_.rock,rng)];
+  if(k==='sakura'&&h>1.6&&sakCorr(x,z)&&Math.hypot(x-SAKURA.x,z-SAKURA.z)<SAKURA.r-4)return [pick(BC_.path,rng),cliff];
+  if(k==='petal'&&h>1.2&&h<8.5){const e=Math.hypot(x-PETAL.x,z-PETAL.z);if(e>9&&e<19&&petCorr(Math.atan2(z-PETAL.z,x-PETAL.x),e))return [pick(BC_.path,rng),cliff];}
   if(k==='coral')return [pick(BC_.white,rng),'#e8dcc0'];
-  if(k==='grotto')return [h<=1.4?pick(['#b8b0c0','#a8a0b4','#c4bccc'],rng):rng()<0.07?pick(BC_.pink,rng):rng()<0.2?pick(['#5f8a4a','#6a9a52'],rng):pick(BC_.dark,rng),pick(BC_.dark,rng)];
-  if(k==='lagoon'&&h<=1.4)return [pick(BC_.white,rng),'#e8dcc0'];
+  if(k==='grotto')return [h<=1.6?pick(['#b8b0c0','#a8a0b4','#c4bccc'],rng):rng()<0.07?pick(BC_.pink,rng):rng()<0.2?pick(['#5f8a4a','#6a9a52'],rng):pick(BC_.dark,rng),pick(BC_.dark,rng)];
+  if(k==='lagoon'&&h<=1.6&&Math.hypot(x-LAGOON.x,z-LAGOON.z)<15.5)return [pick(BC_.white,rng),'#e8dcc0'];
   if(k==='moon'&&h>2.2)return [h>=MSUM.h-0.3?pick(BC_.cobble,rng):rng()<0.25?pick(BC_.grass,rng):pick(BC_.rock,rng),pick(BC_.rock,rng)];
   if(k==='village'){const db=Math.hypot(x-BAY.x,z-BAY.z),p=-((x-BLOSSOM.x)*BV_U.x+(z-BLOSSOM.z)*BV_U.z);
-    if(p<8||Math.abs((x-BLOSSOM.x)*BV_W.x+(z-BLOSSOM.z)*BV_W.z)<1.8&&p<24)return [rng()<0.1?'#c4baa8':pick(BC_.cobble,rng),db<BAY.r+2.2?'#8a8f96':cliff];}
+    if(p<8||Math.abs((x-BLOSSOM.x)*BV_W.x+(z-BLOSSOM.z)*BV_W.z)<2.4&&p<24)return [rng()<0.1?'#c4baa8':pick(BC_.cobble,rng),db<BAY.r+2.2?'#8a8f96':cliff];}
   if(k==='bamboo'&&bpathDist(x,z)<1.7)return [pick(BC_.path,rng),cliff];
   if(h<=1.3)return [pick(BC_.sand,rng),'#e0cca0'];
   if(k==='bamboo')return [rng()<0.12?'#b8a868':pick(BC_.bam,rng),cliff];
@@ -2789,11 +2940,16 @@ function blosCells(T,S,P,G,cx,cz,R,rng,extra={}){
   const g0x=Math.floor((cx-R)/2),g1x=Math.floor((cx+R)/2),g0z=Math.floor((cz-R)/2),g1z=Math.floor((cz+R)/2);
   for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const key=gx+','+gz;if(BLOS_BUILT.has(key))continue;BLOS_BUILT.add(key);
     const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
-    if(h<0.5){if(h<-7.5)continue;const sc=blosBedCol(x,z,h,rng);S.box(x,h-0.6,z,2,1.2,2,sc,0,0,0,0.07);if(extra.bedProp)extra.bedProp(x,z,h);continue;}
+    if(h<0.5){if(h<-7.5)continue;const sc=blosBedCol(x,z,h,rng);S.box(x,h-0.6,z,2,1.2,2,sc,0,0,0,0.07);if(extra.bedProp)extra.bedProp(x,z,h);if(extra.k&&!(extra.noBed&&extra.noBed(x,z)))blosBedDecor(S,x,z,h,rng);continue;}
     let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
     const [top,side]=blosLandCol(x,z,h,md,rng);
     T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
-    if(extra.prop&&deckY(x,z)===null)extra.prop(x,z,h,md);}}
+    if(extra.k&&md>=2.4&&!(extra.noLedge&&extra.noLedge(x,z)))cliffLedges(P,gx,gz,x,z,h,md,side,rng);
+    if(deckY(x,z)!==null)continue;const n0=P.parts.length+G.parts.length,c0=CIRCCOL.length;if(extra.prop)extra.prop(x,z,h,md);
+    // whatever the island left empty gets flowers, ferns, rocks, shells and driftwood
+    let mu=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]])mu=Math.max(mu,qHeightCell(gx+dx,gz+dz)-h);
+    if(extra.k&&md<0.6&&mu<0.6&&P.parts.length+G.parts.length===n0&&!nearPeak(x,z,1.6)&&extra.open&&extra.open(x,z,h))blosDecor(P,G,extra.k,x,z,h,rng,extra.beach?extra.beach(x,z,h):h<=1.1);
+    for(let q=c0;q<CIRCCOL.length;q++)CIRCCOL[q].soft=1;}}
 /* ---- things that stand on the islands ---- */
 function torii(P,x,y,z,ry,s=1,c='#d8322a'){const cs=Math.cos(ry),sn=Math.sin(ry),put=(ox,oy,w,h,d,col)=>P.box(x+ox*cs,y+oy,z-ox*sn,w,h,d,col,ry);
   for(const sd of[-1,1]){put(sd*1.75*s,1.9*s,0.36*s,3.8*s,0.36*s,c);put(sd*1.75*s,0.2*s,0.52*s,0.4*s,0.52*s,'#2a2220');}
@@ -2810,7 +2966,7 @@ function minka(P,G,x,y,z,ry,o={}){const w=o.w||5,d=o.d||4,wh=o.h||2.5,roof=o.roo
   put(P,w/2-0.3,wh-0.1,d/2+0.55,0.06,0.5,0.06,'#3a2a1e');put(G,w/2-0.3,wh-0.55,d/2+0.55,0.34,0.46,0.34,o.lamp||'#ff9a5a');
   if(o.sign){put(P,0,wh+0.3,d/2+0.95,1.3,0.9,0.12,'#7a4a22');BLOSFX.signs.push({kind:o.sign,x:x+(d/2+1.03)*sn,y:y+wh+0.3,z:z+(d/2+1.03)*cs,ry});}
   CIRCCOL.push({x,z,r:Math.min(w,d)*0.6});if(Math.max(w,d)>4.6){const e=(Math.max(w,d)-Math.min(w,d))/2+0.3;CIRCCOL.push({x:x+cs*e,z:z-sn*e,r:Math.min(w,d)*0.55},{x:x-cs*e,z:z+sn*e,r:Math.min(w,d)*0.55});}}
-function pagoda(P,G,x,y,z,tiers,s=1){for(let t=0;t<tiers;t++){const w=(4.2-t*0.8)*s,yy=y+t*1.9*s;P.box(x,yy+0.75*s,z,w*0.66,1.5*s,w*0.66,'#f4ecd8');P.box(x,yy+0.2*s,z,w*0.72,0.16*s,w*0.72,'#b8322a');
+function pagoda(P,G,x,y,z,tiers,s=1){P.box(x,y-0.5,z,3.4*s,1.4,3.4*s,'#9aa3a8');for(let t=0;t<tiers;t++){const w=(4.2-t*0.8)*s,yy=y+t*1.9*s;P.box(x,yy+0.75*s,z,w*0.66,1.5*s,w*0.66,'#f4ecd8');P.box(x,yy+0.2*s,z,w*0.72,0.16*s,w*0.72,'#b8322a');
     P.box(x,yy+1.62*s,z,w*1.25,0.2*s,w*1.25,'#3a3a44');P.box(x,yy+1.8*s,z,w*0.95,0.18*s,w*0.95,'#b8322a');for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]])P.box(x+a*w*0.64,yy+1.76*s,z+b*w*0.64,0.42*s,0.14*s,0.42*s,'#3a3a44');
     if(t===0)for(const [a,b] of [[0,1],[0,-1],[1,0],[-1,0]])G.box(x+a*w*0.335,yy+0.8*s,z+b*w*0.335,a?0.05:0.9*s,1.0*s,b?0.05:0.9*s,'#ffe2a0');}
   const top=y+tiers*1.9*s;P.box(x,top+0.6*s,z,0.16*s,1.4*s,0.16*s,'#e0a23f');G.box(x,top+1.4*s,z,0.3*s,0.3*s,0.3*s,'#ffe070');CIRCCOL.push({x,z,r:1.7*s});}
@@ -2826,134 +2982,193 @@ function jizo(P,x,y,z,ry=0){P.box(x,y+0.35,z,0.5,0.7,0.4,'#a8b0b4',ry);P.box(x,y
 function flowers(P,x,y,z,rng){for(let k=0;k<4;k++)P.box(x+rng()*1.4-0.7,y+0.12,z+rng()*1.4-0.7,0.22,0.24,0.22,pick(['#ff8ac0','#ffd24a','#ffffff','#c08aff','#ff6a6a'],rng),rng()*3);}
 function waterfall(P,x,z,yTop,yBot,ry,w=2.4){const hh=yTop-yBot;P.box(x,yBot+hh/2,z,w,hh,0.5,'#9fdcf4',ry);P.box(x,yBot+hh/2,z,w*0.5,hh,0.56,'#e8f8ff',ry);P.box(x,yBot+hh/2,z,w*0.16,hh,0.6,'#ffffff',ry);
   P.box(x,yTop+0.05,z,w+0.4,0.3,0.9,'#bfeaff',ry);BLOSFX.falls.push({x,y:yBot,z,w});}
-function chest(P,G,x,y,z,ry=0){P.box(x,y+0.35,z,1.1,0.7,0.8,'#8a5a2e',ry);P.box(x,y+0.72,z,1.14,0.14,0.84,'#ffd24a',ry);G.box(x,y+0.45,z,0.24,0.24,0.86,'#ffe070',ry);}
+function chest(P,G,x,y,z,ry=0){CIRCCOL.push({x,z,r:0.5});P.box(x,y+0.35,z,1.1,0.7,0.8,'#8a5a2e',ry);P.box(x,y+0.72,z,1.14,0.14,0.84,'#ffd24a',ry);G.box(x,y+0.45,z,0.24,0.24,0.86,'#ffe070',ry);}
 function blosDeck(P,d,rng){const o=d.o;if(o.stone){deckVisual(P,d,rng,{col:['#8a8494','#9a94a4'],noPosts:true,rail:'#5a5468'});return;}
   if(o.plat){P.box(d.x+d.ux*d.len/2,d.y,d.z+d.uz*d.len/2,d.len,0.18,d.hw*2,'#a36c3b');for(const [a,b] of [[0.2,-1],[0.2,1],[d.len-0.2,-1],[d.len-0.2,1]])P.box(d.x+d.ux*a,d.y-1.6,d.z+b*(d.hw-0.2),0.28,3.4,0.28,'#5a3a22');return;}
   deckVisual(P,d,rng,{rail:o.red?'#d8322a':o.rail?'#8a5a3a':null});}
 function blosDecksNear(P,cx,cz,R,rng){for(const d of BLOS_DECKS)if(Math.hypot(d.x+d.ux*d.len/2-cx,d.z+d.uz*d.len/2-cz)<R)blosDeck(P,d,rng);}
-function dockLamps(P,G,cx,cz,R){for(const s of BSHORES)if(Math.hypot(s.foot.x-cx,s.foot.z-cz)<R){const pz=Math.cos(s.yaw),px=Math.sin(s.yaw);lantern(P,G,s.foot.x-px*1.0,1.38,s.foot.z-pz*1.0);}}
+function dockLamps(P,G,cx,cz,R){for(const s of BSHORES)if(Math.hypot(s.foot.x-cx,s.foot.z-cz)<R){const lx=s.foot.x-Math.sin(s.yaw),lz=s.foot.z-Math.cos(s.yaw),dy=deckY(lx,lz);lantern(P,G,lx,dy!==null?dy+0.08:gy(lx,lz),lz);}}
 
-function buildBlosVillage(T,S,P,G,rng){const I=BLOSSOM;
+// a little sign and a lamp where every dock meets its island
+function dockSign(P,I,aL,side=1){const u={x:Math.cos(aL),z:Math.sin(aL)},x=I.x+u.x*(I.r-5.6)-u.z*2.4*side,z=I.z+u.z*(I.r-5.6)+u.x*2.4*side;if(gy(x,z)<0.5||deckY(x,z)!==null)return;signpost(P,x,gy(x,z),z,-aL+Math.PI/2);CIRCCOL.push({x,z,r:0.2});}
+// a boat pulled up on the sand beside a landing
+function beachBoat(P,I,aL,off,rad,c){const a=aL+off,x=I.x+Math.cos(a)*rad,z=I.z+Math.sin(a)*rad,g=gy(x,z);if(g<0.5||g>1.6||deckY(x,z)!==null)return;rowboat(P,x,g,z,-a+0.5,c);CIRCCOL.push({x,z,r:1.1});}
+function buildBlosVillage(T,S,P,G,rng){const I=BLOSSOM,ryW=Math.atan2(-BV_W.z,BV_W.x),toBay=(x,z)=>Math.atan2(BAY.x-x,BAY.z-z);
   const lat=(x,z)=>(x-I.x)*BV_W.x+(z-I.z)*BV_W.z,inl=(x,z)=>-((x-I.x)*BV_U.x+(z-I.z)*BV_U.z);
-  blosCells(T,S,P,G,I.x,I.z,I.r+22,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='village'||md>=1)return;const p=inl(x,z);if(p<9||Math.abs(lat(x,z))<3||nearBld(x,z,2.5)||Math.hypot(x-BV_SHRINE.x,z-BV_SHRINE.z)<6||Math.hypot(x-BV_FARM.x,z-BV_FARM.z)<7)return;
-    const r=rng();if(r<0.13)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.2)flowers(P,x,h,z,rng);else if(r<0.22)stoneLantern(P,G,x,h,z);},
+  // behind the town the hill is kept for three things: the farm terrace, the picnic garden and the shrine
+  const kept=(x,z)=>{const p=inl(x,z),l=lat(x,z);return (l>-26&&l<-3.6&&p>10.6&&p<20.4)||(l>5.4&&l<19.6&&p>11&&p<20)||(Math.abs(l)<8.6&&p>19);};
+  const free=(x,z)=>{if(blosIsle(x,z)!=='village')return false;const p=inl(x,z);return !(p<9||Math.abs(lat(x,z))<3.4||nearBld(x,z,2.5)||kept(x,z)||nearPeak(x,z,1.6));};
+  blosCells(T,S,P,G,I.x,I.z,I.r+22,rng,{k:'village',open:free,noLedge:(x,z)=>Math.hypot(x-BAY.x,z-BAY.z)<BAY.r+3.5,noBed:(x,z)=>Math.hypot(x-BAY.x,z-BAY.z)<BAY.r+3,
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z))return;const r=rng();if(r<0.13)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.19)flowers(P,x,h,z,rng);else if(r<0.21)stoneLantern(P,G,x,h,z);},
     bedProp:(x,z,h)=>{if(Math.hypot(x-BAY.x,z-BAY.z)<BAY.r&&rng()<0.05)P.box(x+rng()-0.5,0.04,z+rng()-0.5,0.5,0.05,0.4,pick(BC_.pink,rng),rng()*3);}});
   blosDecksNear(P,BAY.x,BAY.z,30,rng);
-  for(const b of BLOS_BLD){const h=qHeightAt(b.x,b.z);minka(P,G,b.x,h,b.z,b.ry,{w:b.w,d:b.d,roof:b.roof,sign:b.sign,lamp:b.id==='tea'?'#ffb0c8':undefined});}
+  for(const b of BLOS_BLD)minka(P,G,b.x,gy(b.x,b.z),b.z,b.ry,{w:b.w,d:b.d,roof:b.roof,sign:b.sign,lamp:b.id==='tea'?'#ffb0c8':undefined});
   // a great torii welcomes boats at the head of the pier, with lanterns round the harbour
-  {const p=bayPt(0,18.6);torii(P,p.x,1.6,p.z,Math.atan2(-BV_W.z,BV_W.x),1.25);}
-  for(const dg of [-78,-34,-12,12,34,58,80]){const p=bayPt(dg,17.6);if(qHeightAt(p.x,p.z)>=1.5&&deckY(p.x,p.z)===null)lantern(P,G,p.x,1.6,p.z);}
+  {const p=bayPt(0,18.6);toriiG(P,p.x,p.z,ryW,1.25);}
+  for(const dg of [-78,-34,-12,12,34,58,80]){const p=bayPt(dg,17.6);if(gy(p.x,p.z)>=1.5&&deckY(p.x,p.z)===null)lanternG(P,G,p.x,p.z);}
   dockLamps(P,G,BAY.x,BAY.z,30);
   // the village square: an old cherry tree, benches and the quest board
-  {const q=BV_SQUARE;sakura(P,q.x,1.6,q.z,rng,2.1);for(let k=0;k<10;k++){const a=k/10*TAU;P.box(q.x+Math.cos(a)*1.5,1.75,q.z+Math.sin(a)*1.5,0.5,0.3,0.5,'#9aa3a8',a);}
-    for(const s of[-1,1]){const b=bayPt(s*7,27);P.box(b.x,1.95,b.z,1.8,0.14,0.5,'#8a5a3a',Math.atan2(BV_W.x,BV_W.z));P.box(b.x,1.75,b.z,1.6,0.3,0.14,'#5a3a22',Math.atan2(BV_W.x,BV_W.z));}
-    const p=BV_BOARD,r=Math.atan2(BAY.x-p.x,BAY.z-p.z);for(const s of[-0.8,0.8])P.box(p.x+Math.cos(r)*s,2.3,p.z-Math.sin(r)*s,0.16,1.4,0.16,'#5a3a22');P.box(p.x,3.0,p.z,2.0,1.2,0.14,'#8a5a3a',r);
-    for(let k=0;k<3;k++)P.box(p.x+Math.cos(r)*(-0.5+k*0.5)+Math.sin(r)*0.08,3.05,p.z-Math.sin(r)*(-0.5+k*0.5)+Math.cos(r)*0.08,0.36,0.46,0.06,pick(['#f4ecd8','#fcd8e4'],rng),r);P.box(p.x,3.72,p.z,2.3,0.16,0.5,'#2f5fa8',r);CIRCCOL.push({x:p.x,z:p.z,r:0.9});}
-  // market stalls, crates and barrels on the quay, and nets by the Boat Works
-  {const b=BLOS_BLD.find(k=>k.id==='market');for(let k=0;k<3;k++){const t=(k-1)*1.4+3.6,x=b.door.x+Math.cos(b.ry)*t,z=b.door.z-Math.sin(b.ry)*t;P.box(x,2.05,z,1.1,0.9,0.8,'#8a5a3a',b.ry);P.box(x,2.55,z,1.1,0.1,0.8,'#f4ecd8',b.ry);P.box(x,2.66,z,0.5,0.12,0.2,['#f08a9a','#e07a4a','#8aa0b8'][k],b.ry);P.box(x,3.5,z,1.4,0.1,1.2,k%2?'#c8402a':'#f4ecd8',b.ry);
-      for(const s of[-1,1])P.box(x+Math.cos(b.ry)*s*0.6,2.8,z-Math.sin(b.ry)*s*0.6,0.08,1.4,0.08,'#5a3a22');}}
-  for(const [dg,rd] of [[-66,19],[-8,19.5],[68,19.5],[40,19]]){const p=bayPt(dg,rd);if(deckY(p.x,p.z)!==null||qHeightAt(p.x,p.z)<1.5)continue;rng()<0.5?crate(P,p.x,1.6,p.z,rng()*3,false):barrel(P,p.x,1.6,p.z);}
-  // the stone steps up to the small shrine among the cherry trees
-  {const s=BV_SHRINE,h=qHeightAt(s.x,s.z),ry=Math.atan2(BV_U.x,BV_U.z);pagoda(P,G,s.x,h,s.z,2,0.9);const t=bvpt(0,-18);torii(P,t.x,qHeightAt(t.x,t.z),t.z,Math.atan2(-BV_W.z,BV_W.x),1);
-    for(const sd of[-1,1]){const l=bvpt(sd*2.6,-20.5);stoneLantern(P,G,l.x,qHeightAt(l.x,l.z),l.z);const m=bvpt(sd*2.6,-11);stoneLantern(P,G,m.x,qHeightAt(m.x,m.z),m.z);}
-    const o=bvpt(0,-22.2);P.box(o.x,h+0.4,o.z,1.2,0.8,0.7,'#7a4a26',ry);P.box(o.x,h+0.84,o.z,1.3,0.1,0.8,'#5a3a22',ry);BLOSFX.vshrine=o;}
-  // a small farm with rice, tea and vegetables
-  {const f=BV_FARM,ry=Math.atan2(BV_W.x,BV_W.z);for(let i=0;i<3;i++)for(let j=0;j<2;j++){const p=bvpt(-13+(i-1)*2.6,-12+(j-0.5)*2.6),h=qHeightAt(p.x,p.z);P.box(p.x,h+0.08,p.z,2.2,0.16,2.2,'#7a5a3a',ry);
-      for(let k=0;k<4;k++)P.box(p.x+(k%2-0.5)*0.9,h+0.34,p.z+((k>>1)-0.5)*0.9,0.3,0.4,0.3,[['#9ac85a','#3f9a4a','#6fc24b'][i]][0],ry);}
-    const s=bvpt(-17.4,-12),h=qHeightAt(s.x,s.z);P.box(s.x,h+0.9,s.z,0.12,1.8,0.12,'#6b4424');P.box(s.x,h+1.3,s.z,1.4,0.1,0.1,'#6b4424',ry);P.box(s.x,h+1.4,s.z,0.5,0.5,0.4,'#e8d090',ry);P.box(s.x,h+1.76,s.z,0.8,0.12,0.8,'#c8a040',ry);BLOSFX.farm=f;}
-  // strings of paper lanterns across the main street
-  for(const [a,b] of [[bayPt(-24,20.5),bayPt(24,20.5)],[bayPt(-13,31),bayPt(13,31)]]){for(const q of [a,b])P.box(q.x,3.4,q.z,0.14,3.6,0.14,'#5a3a22');
-    for(let k=1;k<8;k++){const t=k/8,x=lerp(a.x,b.x,t),z=lerp(a.z,b.z,t),y=5.0-Math.sin(t*Math.PI)*0.7;G.box(x,y,z,0.3,0.4,0.3,k%2?'#ff9a5a':'#ffb0c8');}}
+  {const q=BV_SQUARE,g=gy(q.x,q.z);sakura(P,q.x,g,q.z,rng,2.1);for(let k=0;k<10;k++){const a=k/10*TAU,x=q.x+Math.cos(a)*1.5,z=q.z+Math.sin(a)*1.5;P.box(x,gy(x,z)+0.12,z,0.5,0.34,0.5,'#9aa3a8',a);}
+    for(const s of[-1,1]){const b=bayPt(s*7,27),y=gy(b.x,b.z),r=toBay(b.x,b.z);P.box(b.x,y+0.4,b.z,1.8,0.14,0.5,'#8a5a3a',r);P.box(b.x,y+0.17,b.z,1.6,0.34,0.14,'#5a3a22',r);CIRCCOL.push({x:b.x,z:b.z,r:0.5});}
+    const p=BV_BOARD,y=gy(p.x,p.z),r=toBay(p.x,p.z);for(const s of[-0.8,0.8])P.box(p.x+Math.cos(r)*s,y+0.7,p.z-Math.sin(r)*s,0.16,1.5,0.16,'#5a3a22');P.box(p.x,y+1.45,p.z,2.0,1.2,0.14,'#8a5a3a',r);
+    for(let k=0;k<3;k++)P.box(p.x+Math.cos(r)*(-0.5+k*0.5)+Math.sin(r)*0.08,y+1.5,p.z-Math.sin(r)*(-0.5+k*0.5)+Math.cos(r)*0.08,0.36,0.46,0.06,pick(['#f4ecd8','#fcd8e4'],rng),r);P.box(p.x,y+2.17,p.z,2.3,0.16,0.5,'#2f5fa8',r);CIRCCOL.push({x:p.x,z:p.z,r:0.9});}
+  // market tables, crates and barrels on the quay, nets and an anchor by the Boat Works
+  {const b=BLOS_BLD.find(k=>k.id==='market');for(let k=0;k<3;k++){const t=(k-1)*1.4+3.6,x=b.door.x+Math.cos(b.ry)*t,z=b.door.z-Math.sin(b.ry)*t,y=gy(x,z);P.box(x,y+0.45,z,1.1,0.9,0.8,'#8a5a3a',b.ry);P.box(x,y+0.95,z,1.1,0.1,0.8,'#f4ecd8',b.ry);P.box(x,y+1.06,z,0.5,0.12,0.2,['#f08a9a','#e07a4a','#8aa0b8'][k],b.ry);P.box(x,y+1.9,z,1.4,0.1,1.2,k%2?'#c8402a':'#f4ecd8',b.ry);
+      for(const s of[-1,1])P.box(x+Math.cos(b.ry)*s*0.6,y+1.0,z-Math.sin(b.ry)*s*0.6,0.08,1.8,0.08,'#5a3a22');CIRCCOL.push({x,z,r:0.6});}
+    for(let k=0;k<3;k++){const t=-3.4-k*0.75,x=b.door.x+Math.cos(b.ry)*t,z=b.door.z-Math.sin(b.ry)*t;basket(P,x,gy(x,z),z,rng);}}
+  for(const [dg,rd] of [[-66,19],[-8,19.5],[68,19.5],[40,19]]){const p=bayPt(dg,rd);if(deckY(p.x,p.z)!==null||gy(p.x,p.z)<1.5)continue;rng()<0.5?crate(P,p.x,gy(p.x,p.z),p.z,rng()*3,false):barrel(P,p.x,gy(p.x,p.z),p.z);CIRCCOL.push({x:p.x,z:p.z,r:0.45});}
+  {const b=BLOS_BLD.find(k=>k.id==='works'),sx=Math.cos(b.ry),sz=-Math.sin(b.ry),n={x:b.door.x+sx*4.2,z:b.door.z+sz*4.2},a={x:b.door.x-sx*3.6,z:b.door.z-sz*3.6};
+    if(gy(n.x,n.z)>=1.5&&deckY(n.x,n.z)===null){netRack(P,n.x,gy(n.x,n.z),n.z,b.ry);CIRCCOL.push({x:n.x,z:n.z,r:0.9});}if(gy(a.x,a.z)>=1.5)anchorProp(P,a.x,gy(a.x,a.z),a.z,b.ry+0.6);}
+  {const b=BLOS_BLD.find(k=>k.id==='store'),sx=Math.cos(b.ry),sz=-Math.sin(b.ry),c={x:b.door.x+sx*3.6,z:b.door.z+sz*3.6};handCart(P,c.x,gy(c.x,c.z),c.z,b.ry+0.3);const d={x:b.door.x-sx*3.2,z:b.door.z-sz*3.2};daruma(P,d.x,gy(d.x,d.z),d.z,b.ry);}
+  // the festival: stalls along the main street, a float, carp banners and red umbrellas
+  for(const [dg,c] of [[-30.5,'#d8322a'],[-18.5,'#2f5fa8'],[19.5,'#e0a23f'],[31,'#c8327a']]){const p=bayPt(dg,28.5);if(gy(p.x,p.z)<1.5||nearBld(p.x,p.z,1.2))continue;festivalStall(P,G,p.x,gy(p.x,p.z),p.z,toBay(p.x,p.z),c);}
+  for(const q of [bayPt(60,27),bayPt(64,25.5),bayPt(-62,27)]){if(gy(q.x,q.z)!==1.5||nearBld(q.x,q.z,2.6))continue;festivalFloat(P,G,q.x,gy(q.x,q.z),q.z,toBay(q.x,q.z));break;}
+  for(const dg of [-86,88]){const p=bayPt(dg,18.8);if(gy(p.x,p.z)>=1.5&&deckY(p.x,p.z)===null)carpBanner(P,p.x,gy(p.x,p.z),p.z,rng);}
+  {const b=BLOS_BLD.find(k=>k.id==='tea'),sx=Math.cos(b.ry),sz=-Math.sin(b.ry);for(const s of[-1,1]){const x=b.door.x+sx*s*3.3,z=b.door.z+sz*s*3.3;if(Math.abs(lat(x,z))>3)umbrellaBench(P,x,gy(x,z),z,b.ry);}}
+  // a white harbour light on the west head of the bay
+  for(const q of [bvpt(-24,20),bvpt(-23,17.5),bvpt(-21.5,15)]){if(gy(q.x,q.z)!==1.5||gy(q.x+1.5,q.z)!==1.5||gy(q.x-1.5,q.z)!==1.5||gy(q.x,q.z+1.5)!==1.5||gy(q.x,q.z-1.5)!==1.5||nearBld(q.x,q.z,3))continue;harbourLight(P,G,q.x,q.z);break;}
+  // paper lanterns on cords: across the head of the harbour and over the foot of the shrine steps
+  hangLanterns(P,G,bayPt(-37,20.3),bayPt(37,20.3),12);hangLanterns(P,G,bvpt(-4.3,-8.3),bvpt(4.3,-8.3),5);
+  // the stone steps up to the small shrine among the cherry trees, guarded by two foxes
+  {const s=BV_SHRINE,h=gy(s.x,s.z),ry=Math.atan2(BV_U.x,BV_U.z);pagoda(P,G,s.x,h,s.z,2,0.9);const t=bvpt(0,-18);toriiG(P,t.x,t.z,ryW,1);
+    for(const sd of[-1,1]){const l=bvpt(sd*3,-20.8);stoneLanternG(P,G,l.x,l.z);const m=bvpt(sd*3,-11.2);stoneLanternG(P,G,m.x,m.z);const f=bvpt(sd*2.5,-23.2);foxStatue(P,f.x,gy(f.x,f.z),f.z,ry);}
+    const o=bvpt(0,-22.2);P.box(o.x,gy(o.x,o.z)+0.4,o.z,1.2,0.8,0.7,'#7a4a26',ry);P.box(o.x,gy(o.x,o.z)+0.84,o.z,1.3,0.1,0.8,'#5a3a22',ry);CIRCCOL.push({x:o.x,z:o.z,r:0.6});BLOSFX.vshrine={x:o.x+BV_U.x*1.5,z:o.z+BV_U.z*1.5};
+    const w=bvpt(6,-22.6);waterBasin(P,G,w.x,gy(w.x,w.z),w.z,ry);const pb=bvpt(-6,-22.8);prayerBoard(P,pb.x,gy(pb.x,pb.z),pb.z,ryW,rng);const d=bvpt(1.5,-22.4);daruma(P,d.x,gy(d.x,d.z),d.z,ry);}
+  // the farm terrace: rice paddies, vegetable rows, a greenhouse and a scarecrow
+  {const L=gy(BV_FARM.x,BV_FARM.z),on=p=>gy(p.x,p.z)===L&&gy(p.x+1.4,p.z)===L&&gy(p.x-1.4,p.z)===L&&gy(p.x,p.z+1.4)===L&&gy(p.x,p.z-1.4)===L;
+    for(const lx of [-18.2,-22.6]){const p=bvpt(lx,-15.6);if(on(p))ricePaddy(P,p.x,L,p.z,3.4,4.6,ryW,rng);}
+    [['#e0503f','#4fb14a'],['#f4f0f0','#5cbf46'],['#7a4a9a','#4fb14a'],[null,'#3f9a4a']].forEach(([c,lf],k)=>{const p=bvpt(-11.6,-13.3-k*1.5);if(gy(p.x,p.z)===L)cropRow(P,p.x,L,p.z,5,ryW,c,lf);});
+    {const p=bvpt(-6.6,-17.4);if(on(p))greenhouse(P,G,p.x,L,p.z,Math.atan2(BV_U.x,BV_U.z));}
+    {const p=bvpt(-15.2,-12.6);if(gy(p.x,p.z)===L){scarecrow(P,p.x,L,p.z,ryW);CIRCCOL.push({x:p.x,z:p.z,r:0.25});}}
+    for(const [lx,lz] of [[-8.2,-12.6],[-14.6,-18.4],[-9.2,-18.9]]){const p=bvpt(lx,lz);if(gy(p.x,p.z)===L)basket(P,p.x,L,p.z,rng);}
+    {const a=bvpt(-24.5,-12.5),b=bvpt(-4.4,-12.5);bambooFence(P,a.x,a.z,b.x,b.z,L);}BLOSFX.farm=BV_FARM;}
+  // the picnic garden on the other side of the steps
+  {const g=BV_GARDEN,L=gy(g.x,g.z),ok=p=>gy(p.x,p.z)===L;
+    {const p=bvpt(10,-14);if(ok(p))umbrellaBench(P,p.x,L,p.z,Math.atan2(BV_U.x,BV_U.z));}{const p=bvpt(15.6,-16.6);if(ok(p)){tableSet(P,p.x,L,p.z,ryW);CIRCCOL.push({x:p.x,z:p.z,r:0.8});}}
+    for(const [lx,lz,c] of [[7.4,-18.6,AZALEA],[9.4,-18.8,HYDRA],[11.4,-18.9,AZALEA],[13.6,-18.9,HYDRA],[17.6,-18.4,AZALEA],[18.4,-13.2,HYDRA],[7,-12.8,HYDRA]]){const p=bvpt(lx,lz);if(ok(p))flowerBush(P,p.x,L,p.z,rng,c);}
+    {const p=bvpt(18.2,-15.4);if(ok(p))carpBanner(P,p.x,L,p.z,rng);}{const p=bvpt(12.6,-13);if(ok(p))stoneLanternG(P,G,p.x,p.z);}}
+  for(const pk of BPEAKS.slice(0,2)){peakDress(P,pk,rng);const t=gy(pk[0],pk[1]);jpine(P,pk[0]-0.6,t+1.9,pk[1]+0.5,rng,1.1);}
 }
-function buildSakura(T,S,P,G,rng){const I=SAKURA;const lx={x:I.x+Math.cos(SAK_L)*I.r,z:I.z+Math.sin(SAK_L)*I.r};
-  const shr={x:I.x-Math.cos(SAK_L)*6+Math.sin(SAK_L)*7,z:I.z-Math.sin(SAK_L)*6-Math.cos(SAK_L)*7},view={x:I.x-Math.cos(SAK_L)*(I.r-6),z:I.z-Math.sin(SAK_L)*(I.r-6)};
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='sakura'||md>=1||h<1.4)return;if(Math.hypot(x-lx.x,z-lx.z)<9||Math.hypot(x-shr.x,z-shr.z)<5||Math.hypot(x-view.x,z-view.z)<5)return;
-    if(segDist(x,z,lx.x,lx.z,view.x,view.z)<2.2)return;const r=rng();if(r<0.17)sakura(P,x,h,z,rng,0.9+rng()*0.5);else if(r<0.2)maple(P,x,h,z,rng,0.9+rng()*0.3);else if(r<0.225)bambooClump(P,x,h,z,rng);else if(r<0.3)flowers(P,x,h,z,rng);else if(r<0.32)bush(P,x,h,z,0.8,rng);}});
-  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);
-  {const t={x:lx.x-Math.cos(SAK_L)*6,z:lx.z-Math.sin(SAK_L)*6};torii(P,t.x,qHeightAt(t.x,t.z),t.z,-SAK_L+Math.PI/2,1);}
-  // a hill shrine in the forest and a viewpoint at the high end of the island
-  {const h=qHeightAt(shr.x,shr.z);P.box(shr.x,h+0.7,shr.z,2,1.4,1.8,'#f4ecd8');P.box(shr.x,h+1.55,shr.z,2.8,0.24,2.6,'#3a3a44');P.box(shr.x,h+1.74,shr.z,2.0,0.16,1.8,'#b8322a');G.box(shr.x,h+0.8,shr.z+0.92,0.6,0.7,0.05,'#ffe2a0');CIRCCOL.push({x:shr.x,z:shr.z,r:1.5});
-    for(const s of[-1,1])stoneLantern(P,G,shr.x+s*2,h,shr.z+2.4);BLOSFX.hillShrine={x:shr.x,z:shr.z+2.6};}
-  {const h=qHeightAt(view.x,view.z);P.box(view.x,h+0.12,view.z,4.4,0.2,4.4,'#a36c3b',SAK_L);for(let k=0;k<8;k++){const a=k/8*TAU;P.box(view.x+Math.cos(a)*2.3,h+0.6,view.z+Math.sin(a)*2.3,0.14,1,0.14,'#6b4424');}
-    P.box(view.x,h+0.5,view.z,1.6,0.16,0.5,'#8a5a3a',SAK_L);lantern(P,G,view.x+1.6,h+0.2,view.z+1.6);BLOSFX.sakView=view;}
+function buildSakura(T,S,P,G,rng){const I=SAKURA,u={x:Math.cos(SAK_L),z:Math.sin(SAK_L)},w={x:-u.z,z:u.x},at=(p,l)=>({x:I.x-u.x*p+w.x*l,z:I.z-u.z*p+w.z*l});
+  const lx={x:I.x+u.x*I.r,z:I.z+u.z*I.r},shr=at(6,-7),view=at(I.r-6,0),arch=at(9.6,0),flat=q=>{const h=gy(q.x,q.z);return h>=8&&[[2.9,0],[-2.9,0],[0,2.9],[0,-2.9],[2.1,2.1],[-2.1,2.1],[2.1,-2.1],[-2.1,-2.1]].every(([a,b])=>gy(q.x+a,q.z+b)===h);},
+    spr=[at(22.6,-9.4),at(22,-11.5),at(23.2,-7.6),at(21,-13),at(20.5,8.5)].find(flat)||null;
+  const free=(x,z,h)=>blosIsle(x,z)==='sakura'&&h>=1.4&&!(Math.hypot(x-lx.x,z-lx.z)<9||Math.hypot(x-shr.x,z-shr.z)<5.4||Math.hypot(x-view.x,z-view.z)<5.4||(spr&&Math.hypot(x-spr.x,z-spr.z)<5.2)||Math.hypot(x-arch.x,z-arch.z)<5||segDist(x,z,lx.x,lx.z,view.x,view.z)<3.2);
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'sakura',open:(x,z,h)=>free(x,z,h)||(blosIsle(x,z)==='sakura'&&h<1.4&&Math.hypot(x-lx.x,z-lx.z)>5.5),
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z,h))return;const r=rng();if(r<0.16)sakura(P,x,h,z,rng,0.9+rng()*0.5);else if(r<0.19)maple(P,x,h,z,rng,0.9+rng()*0.3);else if(r<0.21)bambooClump(P,x,h,z,rng);else if(r<0.26)flowers(P,x,h,z,rng);else if(r<0.275)bush(P,x,h,z,0.8,rng);}});
+  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);dockSign(P,I,SAK_L);beachBoat(P,I,SAK_L,0.3,I.r-1.6,'#8a5a3a');
+  {const t={x:lx.x-u.x*6,z:lx.z-u.z*6};toriiG(P,t.x,t.z,-SAK_L+Math.PI/2,1);}
+  // a hill shrine in the forest with its foxes, and a viewpoint at the high end of the island
+  {const h=gy(shr.x,shr.z);P.box(shr.x,h+0.3,shr.z,2.6,1.6,2.4,'#9aa3a8');P.box(shr.x,h+1.3,shr.z,2,1.4,1.8,'#f4ecd8');P.box(shr.x,h+2.15,shr.z,2.8,0.24,2.6,'#3a3a44');P.box(shr.x,h+2.34,shr.z,2.0,0.16,1.8,'#b8322a');G.box(shr.x,h+1.4,shr.z+0.92,0.6,0.7,0.05,'#ffe2a0');CIRCCOL.push({x:shr.x,z:shr.z,r:1.6});
+    for(const s of[-1,1]){stoneLanternG(P,G,shr.x+s*2.3,shr.z+2.6);const fx=shr.x+s*1.3,fz=shr.z+3.4;foxStatue(P,fx,gy(fx,fz),fz,0);}
+    {const x=shr.x-3.6,z=shr.z+1.2;prayerBoard(P,x,gy(x,z),z,Math.PI/2,rng);}BLOSFX.hillShrine={x:shr.x,z:shr.z+3.6};}
+  {const h=gy(view.x,view.z);P.box(view.x,h-0.5,view.z,4.4,1.5,4.4,'#a36c3b',SAK_L);P.box(view.x,h+0.2,view.z,4.6,0.12,4.6,'#b87c46',SAK_L);
+    for(let k=0;k<8;k++){const a=k/8*TAU+SAK_L,x=view.x+Math.cos(a)*2.05,z=view.z+Math.sin(a)*2.05;if(Math.abs(angDiff(a,SAK_L))<0.5)continue;P.box(x,h+0.7,z,0.14,1,0.14,'#6b4424');}
+    P.box(view.x-u.x*0.9,h+0.62,view.z-u.z*0.9,1.6,0.16,0.5,'#8a5a3a',-SAK_L+Math.PI/2);lantern(P,G,view.x+w.x*1.5-u.x*1.2,h+0.22,view.z+w.z*1.5-u.z*1.2);BLOSFX.sakView=view;
+    {const b=at(I.r-11.5,3.6);if(gy(b.x,b.z)>=9.5)umbrellaBench(P,b.x,gy(b.x,b.z),b.z,Math.atan2(u.x,u.z));}}
   // the creek ends in a little waterfall
-  {const u=unit2(SCREEK.x1-SCREEK.x0,SCREEK.z1-SCREEK.z0),x=SCREEK.x1+u.x*2.6,z=SCREEK.z1+u.z*2.6,h=qHeightAt(x+u.x,z+u.z);waterfall(P,x,z,Math.max(2,h),0,Math.atan2(-u.x,-u.z),2.2);}
+  {const c=unit2(SCREEK.x1-SCREEK.x0,SCREEK.z1-SCREEK.z0),x=SCREEK.x1+c.x*2.6,z=SCREEK.z1+c.z*2.6,h=gy(x+c.x,z+c.z);waterfall(P,x,z,Math.max(2,h),0,Math.atan2(-c.x,-c.z),2.2);}
+  // a natural rock arch over the highland path and a steaming hot spring on the top step
+  rockArch(P,arch.x,gy(arch.x,arch.z),arch.z,-SAK_L+Math.PI/2,3.3,4.3,rng);
+  if(spr){const h=gy(spr.x,spr.z);{hotSpringPool(P,G,spr.x,h,spr.z,2.3,rng);for(const [a,b] of [[3.6,1.6],[-3.4,2.4]]){const x=spr.x+a,z=spr.z+b;if(gy(x,z)===h)stoneLanternG(P,G,x,z);}
+      {const x=spr.x+1.2,z=spr.z-3.8;if(gy(x,z)===h){P.box(x,h+0.3,z,1.6,0.14,0.5,'#8a5a3a',0.3);basket(P,x+1.3,h,z+0.2,rng);}}BLOSFX.spring=spr;}}
+  {const pk=BPEAKS[2];peakDress(P,pk,rng);const t=gy(pk[0],pk[1]);sakura(P,pk[0]+0.2,t+1.9,pk[1],rng,1.5);}
 }
-function buildMoon(T,S,P,G,rng){const I=MOON;
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='moon')return;const e=Math.hypot(x-I.x,z-I.z);if(e>21.5&&md<1&&h>=1.4){if(Math.abs(angDiff(Math.atan2(z-I.z,x-I.x),MOON_L))<0.42)return;const r=rng();if(r<0.16)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.2)jpine(P,x,h,z,rng);else if(r<0.27)flowers(P,x,h,z,rng);}
+function buildMoon(T,S,P,G,rng){const I=MOON,foot=(x,z)=>Math.hypot(x-I.x,z-I.z)>21.5&&Math.abs(angDiff(Math.atan2(z-I.z,x-I.x),MOON_L))>=0.42;
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'moon',open:(x,z,h)=>blosIsle(x,z)==='moon'&&foot(x,z),
+    prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='moon')return;const e=Math.hypot(x-I.x,z-I.z);if(e>21.5&&md<1&&h>=1.4){if(!foot(x,z))return;const r=rng();if(r<0.15)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.19)jpine(P,x,h,z,rng);else if(r<0.24)flowers(P,x,h,z,rng);}
       else if(e<21&&e>9&&btrailAt(x,z)===null&&rng()<0.05)jpine(P,x,h,z,rng,0.7);}});
-  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);
-  // torii gates and stone lanterns all the way up the trail
-  for(let i=8;i<MTRAIL.length-6;i+=18){const a=MTRAIL[i],b=MTRAIL[i+1],ry=Math.atan2(b.x-a.x,b.z-a.z);torii(P,a.x,a.h,a.z,ry,0.92);const j=Math.min(MTRAIL.length-1,i+9),c=MTRAIL[j],o=unit2(c.x-I.x,c.z-I.z);stoneLantern(P,G,c.x+o.x*1.9,c.h,c.z+o.z*1.9);}
+  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);dockSign(P,I,MOON_L);
+  // torii gates and stone lanterns all the way up the trail; every one stands on the stones of the path
+  for(let i=8;i<MTRAIL.length-6;i+=18){const a=MTRAIL[i],b=MTRAIL[i+1],ry=Math.atan2(b.x-a.x,b.z-a.z);toriiG(P,a.x,a.z,ry,0.92);const j=Math.min(MTRAIL.length-1,i+9),c=MTRAIL[j],o=unit2(c.x-I.x,c.z-I.z);
+    let q=null;for(const d of [1.5,1.0,0.5,-1.2]){const x=c.x+o.x*d,z=c.z+o.z*d;if(btrailAt(Math.floor(x/2)*2+1,Math.floor(z/2)*2+1)!==null){q={x,z};break;}}if(q)stoneLanternG(P,G,q.x,q.z);}
   // two long waterfalls tumble down the mountain into the sea
   for(const aw of [MOON_L+2.2,MOON_L-2.6]){for(let r=9.4;r<21;r+=1.1){const x=I.x+Math.cos(aw)*r,z=I.z+Math.sin(aw)*r;if(btrailAt(x,z)!==null)continue;const y1=moonCone(r-0.55),y0=moonCone(r+0.55);P.box(x,(y0+y1)/2,z,2.2,Math.max(0.4,y1-y0),1.3,'#9fdcf4',-aw+Math.PI/2);P.box(x,(y0+y1)/2,z,0.9,Math.max(0.4,y1-y0),1.4,'#e8f8ff',-aw+Math.PI/2);}
-    for(let r=21;r<I.r+1;r+=1.2)P.box(I.x+Math.cos(aw)*r,1.66,I.z+Math.sin(aw)*r,1.8,0.14,1.3,'#9fdcf4',-aw+Math.PI/2);BLOSFX.falls.push({x:I.x+Math.cos(aw)*21,y:1.6,z:I.z+Math.sin(aw)*21,w:2});}
+    for(let r=21;r<I.r+1;r+=1.2){const x=I.x+Math.cos(aw)*r,z=I.z+Math.sin(aw)*r;if(gy(x,z)>=0.5)P.box(x,gy(x,z)+0.08,z,1.8,0.14,1.3,'#9fdcf4',-aw+Math.PI/2);}BLOSFX.falls.push({x:I.x+Math.cos(aw)*21,y:1.6,z:I.z+Math.sin(aw)*21,w:2});}
   // a ring of cloud around the middle of the peak
   for(let k=0;k<11;k++){const a=k/11*TAU+rng(),r=22+rng()*9,y=MSUM.h*(0.5+rng()*0.14);for(let j=0;j<3;j++)P.box(I.x+Math.cos(a)*r+j*2.2-2,y+(j===1?0.6:0),I.z+Math.sin(a)*r+rng()*2,3.6+rng()*2,1.3,2.6+rng(),'#ffffff',0,0,0,0.02);}
   // the summit: Moonview Shrine, the sacred tree, the ancient bell, the moon pond and a viewpoint
-  {const h=MSUM.h,at=(dx,dz)=>({x:I.x+dx,z:I.z+dz});
-    {const p=at(-1.2,-4.4);pagoda(P,G,p.x,h,p.z,3,0.95);for(const s of[-1,1])stoneLantern(P,G,p.x+s*2.6,h,p.z+2.9);BLOSFX.moonShrine=at(-1.2,-1.4);}
-    {const e=MTRAIL[MTRAIL.length-1],b=MTRAIL[MTRAIL.length-4];torii(P,e.x,h,e.z,Math.atan2(e.x-b.x,e.z-b.z),1.05);}
-    {const p=at(-3.6,4.4);sakura(P,p.x,h,p.z,rng,2.3);P.box(p.x,h+1.3,p.z,1.1,0.18,1.1,'#f4ecd8');for(let k=0;k<6;k++){const a=k/6*TAU;P.box(p.x+Math.cos(a)*0.6,h+1.05,p.z+Math.sin(a)*0.6,0.12,0.3,0.05,'#ffffff',a);}BLOSFX.sacred=p;}
-    {const p=at(-6.0,0.2);for(const s of[-1,1])P.box(p.x,h+1.3,p.z+s*1.0,0.26,2.6,0.26,'#6a4226');P.box(p.x,h+2.7,p.z,0.4,0.26,2.8,'#3a3a44');P.box(p.x,h+2.92,p.z,0.9,0.14,3.2,'#b8322a');P.box(p.x,h+1.7,p.z,0.9,1.3,0.9,'#8a7a3a');P.box(p.x,h+2.4,p.z,0.6,0.2,0.6,'#6a5a2a');
-      P.box(p.x+1.1,h+1.6,p.z,1.6,0.16,0.16,'#6b4424');CIRCCOL.push({x:p.x,z:p.z,r:1.0});BLOSFX.bell={x:p.x+1.6,z:p.z};}
-    {const p=MPOND;P.box(p.x,h+0.02,p.z,4.1,0.1,4.1,'#3fb8d8');G.box(p.x,h+0.09,p.z,2.2,0.03,2.2,'#bfeaff');for(let k=0;k<12;k++){const a=k/12*TAU;P.box(p.x+Math.cos(a)*2.5,h+0.16,p.z+Math.sin(a)*2.5,1,0.34,0.8,pick(['#9aa3a8','#8a9398','#a9b1b5'],rng),a);}
-      for(let k=0;k<3;k++)P.box(p.x+rng()*2-1,h+0.1,p.z+rng()*2-1,0.5,0.05,0.5,'#5aa84a',rng()*3);}
-    {const p=at(-4.6,-6.0);chest(P,G,p.x,h,p.z,0.6);BLOSFX.moonChest=p;}
-    {const p=at(3.4,-6.6);P.box(p.x,h+0.7,p.z,0.14,1.4,0.14,'#3a3f46');P.box(p.x,h+1.5,p.z,0.34,0.34,1.3,'#c8a040',0.5,-0.3);CIRCCOL.push({x:p.x,z:p.z,r:0.35});BLOSFX.moonScope=p;}
-    for(let k=0;k<14;k++){const a=k/14*TAU;if(Math.abs(angDiff(a,Math.atan2(MTRAIL[MTRAIL.length-1].z-I.z,MTRAIL[MTRAIL.length-1].x-I.x)))<0.55)continue;P.box(I.x+Math.cos(a)*8.1,h+0.45,I.z+Math.sin(a)*8.1,0.2,0.9,0.2,'#b8322a');}}
+  {const at=(dx,dz)=>({x:I.x+dx,z:I.z+dz}),H=p=>gy(p.x,p.z),h=H(at(0,0));
+    {const p=at(-1.2,-4.4);pagoda(P,G,p.x,H(p),p.z,3,0.95);for(const s of[-1,1]){stoneLanternG(P,G,p.x+s*2.8,p.z+2.9);const f=at(-1.2+s*1.7,-0.4);foxStatue(P,f.x,H(f),f.z,0);}BLOSFX.moonShrine=at(-1.2,-1.4);}
+    {const e=MTRAIL[MTRAIL.length-1],b=MTRAIL[MTRAIL.length-4];toriiG(P,e.x,e.z,Math.atan2(e.x-b.x,e.z-b.z),1.05);}
+    {const p=at(-3.6,4.4),y=H(p);sakura(P,p.x,y,p.z,rng,2.3);P.box(p.x,y+1.3,p.z,1.1,0.18,1.1,'#f4ecd8');for(let k=0;k<6;k++){const a=k/6*TAU;P.box(p.x+Math.cos(a)*0.6,y+1.05,p.z+Math.sin(a)*0.6,0.12,0.3,0.05,'#ffffff',a);}BLOSFX.sacred=p;}
+    {const p=at(-6.0,0.2),y=H(p);for(const s of[-1,1]){const g=Math.min(y,gy(p.x,p.z+s))-0.2;P.box(p.x,(g+y+2.6)/2,p.z+s*1.0,0.26,y+2.6-g,0.26,'#6a4226');}P.box(p.x,y+2.7,p.z,0.4,0.26,2.8,'#3a3a44');P.box(p.x,y+2.92,p.z,0.9,0.14,3.2,'#b8322a');P.box(p.x,y+1.7,p.z,0.9,1.3,0.9,'#8a7a3a');P.box(p.x,y+2.4,p.z,0.6,0.2,0.6,'#6a5a2a');
+      P.box(p.x,y+2.56,p.z,0.08,0.3,0.08,'#3a3a44');P.box(p.x+1.1,y+1.6,p.z,1.6,0.16,0.16,'#6b4424');for(const s of[-1,1])P.box(p.x+1.2,y+2.1,p.z+s*0.3,0.04,1.0,0.04,'#c8b890');CIRCCOL.push({x:p.x,z:p.z,r:1.0});BLOSFX.bell={x:p.x+1.6,z:p.z};}
+    {const p=MPOND;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let a=-4;a<=4;a+=2)for(let b=-4;b<=4;b+=2){const cx=Math.floor((p.x+a)/2)*2+1,cz=Math.floor((p.z+b)/2)*2+1;if(qHeightAt(cx,cz)<0.5){x0=Math.min(x0,cx-1);x1=Math.max(x1,cx+1);z0=Math.min(z0,cz-1);z1=Math.max(z1,cz+1);}}
+      // the pond lies flush in the stone of the summit, edged all the way round
+      const mx=(x0+x1)/2,mz=(z0+z1)/2,w=x1-x0+0.4,d=z1-z0+0.4;P.box(mx,h-0.02,mz,w,0.14,d,'#3fb8d8');G.box(mx,h+0.07,mz,w*0.5,0.03,d*0.5,'#bfeaff');
+      for(let k=0;k<16;k++){const a=k/16*TAU,x=mx+clamp(Math.cos(a)*1.5,-1,1)*(w/2+0.2),z=mz+clamp(Math.sin(a)*1.5,-1,1)*(d/2+0.2),g=gy(x,z);P.box(x,(g<h-1?h:g)+0.12,z,1,0.5,0.8,pick(['#9aa3a8','#8a9398','#a9b1b5'],rng),a);}
+      for(let k=0;k<3;k++)P.box(mx+rng()*2-1,h+0.08,mz+rng()*2-1,0.5,0.05,0.5,'#5aa84a',rng()*3);}
+    {const p=at(-4.6,-6.0);chest(P,G,p.x,H(p),p.z,0.6);BLOSFX.moonChest=p;}
+    {const p=at(3.4,-6.6),y=H(p);P.box(p.x,y+0.7,p.z,0.14,1.4,0.14,'#3a3f46');P.box(p.x,y+1.5,p.z,0.34,0.34,1.3,'#c8a040',0.5,-0.3);CIRCCOL.push({x:p.x,z:p.z,r:0.35});BLOSFX.moonScope=p;}
+    for(const [dx,dz] of [[5.6,-4.2],[1.4,6.6],[-6.6,-3.6],[6.2,3.8]]){const p=seat(I.x+dx,I.z+dz,0.35);if(gy(p.x,p.z)>=h)moonLantern(P,G,p.x,gy(p.x,p.z),p.z);}
+    for(let k=0;k<14;k++){const a=k/14*TAU;if(Math.abs(angDiff(a,Math.atan2(MTRAIL[MTRAIL.length-1].z-I.z,MTRAIL[MTRAIL.length-1].x-I.x)))<0.55)continue;const x=I.x+Math.cos(a)*8.1,z=I.z+Math.sin(a)*8.1,g=gy(x,z);if(g<h-1.2)continue;P.box(x,g+0.45,z,0.2,0.9,0.2,'#b8322a');}}
 }
 function buildPetal(T,S,P,G,rng){const I=PETAL;
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='petal'||md>=1||h<1.4||btrailAt(x,z)!==null)return;const e=Math.hypot(x-I.x,z-I.z),a=Math.atan2(z-I.z,x-I.x);if(Math.abs(angDiff(a,PET_L))<0.45&&e>15)return;
-      const r=rng();if(e<12){if(r<0.25)flowers(P,x,h,z,rng);return;}if(r<0.12)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.14)maple(P,x,h,z,rng);else if(r<0.34)flowers(P,x,h,z,rng);else if(r<0.36)bush(P,x,h,z,0.8,rng);},
+  const free=(x,z,h)=>{if(blosIsle(x,z)!=='petal'||h<1.4||btrailAt(x,z)!==null)return false;const e=Math.hypot(x-I.x,z-I.z),a=Math.atan2(z-I.z,x-I.x);return !(Math.abs(angDiff(a,PET_L))<0.45&&e>15)&&!petCorr(a,e)&&!(h>8.5&&Math.abs(angDiff(a,PET_N))<0.5&&e<19);};
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'petal',open:(x,z,h)=>free(x,z,h)||(blosIsle(x,z)==='petal'&&h<1.4&&Math.abs(angDiff(Math.atan2(z-I.z,x-I.x),PET_L))>0.2),
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z,h))return;const e=Math.hypot(x-I.x,z-I.z),r=rng();if(e<12){if(r<0.2)flowers(P,x,h,z,rng);return;}if(r<0.12)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.14)maple(P,x,h,z,rng);else if(r<0.3)flowers(P,x,h,z,rng);else if(r<0.32)bush(P,x,h,z,0.8,rng);},
     bedProp:(x,z,h)=>{if(Math.hypot(x-I.x,z-I.z)<I.r+6&&rng()<0.1)P.box(x+rng()-0.5,0.04,z+rng()-0.5,0.5,0.05,0.4,pick(BC_.pink,rng),rng()*3);}});
-  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);
+  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);dockSign(P,I,PET_L);beachBoat(P,I,PET_L,-0.32,I.r-1.6,'#3a6a8a');
   // twin waterfalls drop from the high rocks into the pool, fed by streams across the plateau
   for(const da of [-0.32,0.3]){const a=PET_N+da,x=I.x+Math.cos(a)*9.2,z=I.z+Math.sin(a)*9.2;waterfall(P,x,z,9.05,0,-a+Math.PI/2,2.8);
     for(let r=10.6;r<17.6;r+=1.2)P.box(I.x+Math.cos(a)*r,9.06,I.z+Math.sin(a)*r,1.9,0.14,1.3,'#9fdcf4',-a+Math.PI/2);
-    const b={x:I.x+Math.cos(a)*14,z:I.z+Math.sin(a)*14};P.box(b.x,9.34,b.z,1.2,0.16,3.6,'#a36c3b',-a+Math.PI/2);for(const s of[-1,1])P.box(b.x-Math.sin(a)*s*1.7,9.6,b.z+Math.cos(a)*s*1.7,1.2,0.5,0.12,'#d8322a',-a+Math.PI/2);}
+    const b={x:I.x+Math.cos(a)*14,z:I.z+Math.sin(a)*14};P.box(b.x,9.2,b.z,1.2,0.44,3.6,'#a36c3b',-a+Math.PI/2);for(const s of[-1,1])P.box(b.x-Math.sin(a)*s*1.7,9.45,b.z+Math.cos(a)*s*1.7,1.2,0.9,0.12,'#d8322a',-a+Math.PI/2);}
   {const a=PET_N-0.05,x=I.x+Math.cos(a)*(I.r-0.6),z=I.z+Math.sin(a)*(I.r-0.6);waterfall(P,x,z,9,0,-a-Math.PI/2,2.2);}
-  // a torii and lanterns at the top, a rail along the cliff path and the cave behind the falls
-  {const e=PTRAIL[PTRAIL.length-1],b=PTRAIL[PTRAIL.length-3];torii(P,e.x,9,e.z,Math.atan2(e.x-b.x,e.z-b.z),0.95);const t={x:I.x+Math.cos(PET_N)*15,z:I.z+Math.sin(PET_N)*15};
-    P.box(t.x,9.5,t.z,1.6,0.16,0.5,'#8a5a3a',-PET_N);lantern(P,G,t.x+1.4,9,t.z+1);BLOSFX.petalTop=t;}
-  for(let i=2;i<PTRAIL.length;i+=3){const a=PTRAIL[i],o=unit2(a.x-I.x,a.z-I.z);P.box(a.x+o.x*2.1,a.h+0.5,a.z+o.z*2.1,0.14,1,0.14,'#6b4424');}
-  {const a=PET_N+0.78,x=I.x+Math.cos(a)*9.3,z=I.z+Math.sin(a)*9.3;for(let k=0;k<=6;k++){const t=k/6*Math.PI;P.box(x+Math.cos(a+Math.PI/2)*Math.cos(t)*1.3-Math.cos(a)*0.2,1.5+Math.sin(t)*1.9,z+Math.sin(a+Math.PI/2)*Math.cos(t)*1.3-Math.sin(a)*0.2,0.8,0.8,1,pick(BC_.rock,rng),-a);}
-    P.box(x+Math.cos(a)*0.3,2.3,z+Math.sin(a)*0.3,2,1.8,0.3,'#1d1a24',-a+Math.PI/2);BLOSFX.passage={x:x-Math.cos(a)*1.2,z:z-Math.sin(a)*1.2};}
-  // lily pads and a small fishing jetty look on the pool
+  // a torii, a bench and a lamp at the top, posts along the cliff path and the cave behind the falls
+  {const e=PTRAIL[PTRAIL.length-1],b=PTRAIL[PTRAIL.length-3];toriiG(P,e.x,e.z,Math.atan2(e.x-b.x,e.z-b.z),0.95);const t={x:I.x+Math.cos(PET_N)*15,z:I.z+Math.sin(PET_N)*15},y=gy(t.x,t.z);
+    P.box(t.x,y+0.42,t.z,1.6,0.16,0.5,'#8a5a3a',-PET_N);P.box(t.x,y+0.18,t.z,1.3,0.36,0.14,'#5a3a22',-PET_N);lanternG(P,G,t.x+1.4,t.z+1);BLOSFX.petalTop=t;
+    {const x=I.x+Math.cos(PET_N-0.3)*19.4,z=I.z+Math.sin(PET_N-0.3)*19.4;if(gy(x,z)>=8.5&&btrailAt(x,z)===null)umbrellaBench(P,x,gy(x,z),z,-PET_N-Math.PI/2);}}
+  for(let i=2;i<PTRAIL.length;i+=3){const a=PTRAIL[i],o=unit2(a.x-I.x,a.z-I.z),x=a.x+o.x*2.1,z=a.z+o.z*2.1,g=gy(x,z);if(g<1||Math.abs(g-a.h)>1.2)continue;P.box(x,g+0.5,z,0.14,1,0.14,'#6b4424');P.box(x,g+1.04,z,0.2,0.08,0.2,'#d8322a');}
+  {const a=PET_N+0.78,x=I.x+Math.cos(a)*9.3,z=I.z+Math.sin(a)*9.3,g=gy(I.x+Math.cos(a)*10.6,I.z+Math.sin(a)*10.6);for(let k=0;k<=6;k++){const t=k/6*Math.PI;P.box(x+Math.cos(a+Math.PI/2)*Math.cos(t)*1.3-Math.cos(a)*0.2,g+Math.sin(t)*1.9-(k===0||k===6?0.6:0),z+Math.sin(a+Math.PI/2)*Math.cos(t)*1.3-Math.sin(a)*0.2,0.8,k===0||k===6?2:0.8,1,pick(BC_.rock,rng),-a);}
+    P.box(x+Math.cos(a)*0.3,g+0.8,z+Math.sin(a)*0.3,2,1.8,0.3,'#1d1a24',-a+Math.PI/2);BLOSFX.passage={x:x-Math.cos(a)*1.2,z:z-Math.sin(a)*1.2};}
+  // lily pads on the pool
   for(let k=0;k<7;k++){const a=rng()*TAU,d=1+rng()*5;P.box(I.x+Math.cos(a)*d,0.05,I.z+Math.sin(a)*d,0.8,0.05,0.8,'#5aa84a',rng()*3);}
 }
-function buildLagoon(T,S,P,G,rng){const I=LAGOON,back=LAG_G+Math.PI;
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='lagoon'||md>=1)return;const r=rng();if(h<=1.4){if(r<0.05)P.box(x,h+0.1,z,0.5,0.2,0.4,pick(['#f4c8d8','#ffffff','#f8e0a0'],rng),rng()*3);return;}
-      if(r<0.17)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.2)jpine(P,x,h,z,rng,0.8);else if(r<0.28)flowers(P,x,h,z,rng);},
+function buildLagoon(T,S,P,G,rng){const I=LAGOON,back=LAG_G+Math.PI,bch=(x,z,h)=>h<=1.6&&Math.hypot(x-I.x,z-I.z)<15.2;
+  const spots=[[back-0.7,12.8,2.4],[back-1.5,13.6,3],[back+0.5,13,3],[back+1.5,12.9,3]].map(([a,r,m])=>({x:I.x+Math.cos(a)*r,z:I.z+Math.sin(a)*r,m}));
+  const free=(x,z)=>blosIsle(x,z)==='lagoon'&&!(Math.abs(angDiff(Math.atan2(z-I.z,x-I.x),LAG_G))<0.6&&Math.hypot(x-I.x,z-I.z)>13)&&!spots.some(q=>Math.hypot(x-q.x,z-q.z)<q.m)&&!BLOS_DECKS.some(d=>Math.hypot(x-d.x,z-d.z)<3.4);
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'lagoon',open:free,beach:bch,
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z)||bch(x,z,h))return;const r=rng();if(r<0.16)sakura(P,x,h,z,rng,0.9+rng()*0.4);else if(r<0.19)jpine(P,x,h,z,rng,0.8);else if(r<0.25)flowers(P,x,h,z,rng);},
     bedProp:(x,z,h)=>{if(Math.hypot(x-I.x,z-I.z)<11&&rng()<0.14){const c=pick(['#ff8a5a','#ffd24a','#5ad0ff','#ff8ad0','#8aff9a'],rng),ry=rng()*3;S.box(x+rng()-0.5,-0.9-rng(),z+rng()-0.5,0.7,0.26,0.24,c,ry);}}});
   blosDecksNear(P,I.x,I.z,I.r+10,rng);dockLamps(P,G,I.x,I.z,I.r+8);
   // a waterfall at the back of the lagoon, a treasure chest on the white beach and a secret cave in the cliff
-  {const x=I.x+Math.cos(back+0.5)*14.3,z=I.z+Math.sin(back+0.5)*14.3;waterfall(P,x,z,qHeightAt(I.x+Math.cos(back+0.5)*16,I.z+Math.sin(back+0.5)*16),1.3,-(back+0.5)-Math.PI/2,2);
-    for(let r=11.2;r<14;r+=1)P.box(I.x+Math.cos(back+0.5)*r,1.34,I.z+Math.sin(back+0.5)*r,1.4,0.1,1.1,'#9fdcf4',-(back+0.5)+Math.PI/2);}
-  {const a=back-0.7,x=I.x+Math.cos(a)*12.8,z=I.z+Math.sin(a)*12.8;chest(P,G,x,1.3,z,-a);BLOSFX.lagChest={x,z};}
-  {const a=back-1.5,x=I.x+Math.cos(a)*14.4,z=I.z+Math.sin(a)*14.4;for(let k=0;k<=6;k++){const t=k/6*Math.PI;P.box(x-Math.sin(a)*Math.cos(t)*1.4,1.3+Math.sin(t)*2,z+Math.cos(a)*Math.cos(t)*1.4,0.8,0.8,1,pick(BC_.rock,rng),-a);}
-    P.box(x+Math.cos(a)*0.3,2.1,z+Math.sin(a)*0.3,2.2,1.7,0.3,'#1d1a24',-a+Math.PI/2);G.box(x+Math.cos(a)*0.2,1.7,z+Math.sin(a)*0.2,0.5,0.4,0.2,'#8fe8ff',-a+Math.PI/2);BLOSFX.lagCave={x:x-Math.cos(a)*1.3,z:z-Math.sin(a)*1.3};}
-  for(const s of[-1,1]){const a=LAG_G+s*0.42,x=I.x+Math.cos(a)*(I.r-3),z=I.z+Math.sin(a)*(I.r-3);stoneLantern(P,G,x,qHeightAt(x,z),z);}
+  {const a=back+0.5,x=I.x+Math.cos(a)*14.3,z=I.z+Math.sin(a)*14.3,g=gy(I.x+Math.cos(a)*12.8,I.z+Math.sin(a)*12.8);waterfall(P,x,z,gy(I.x+Math.cos(a)*16,I.z+Math.sin(a)*16),g,-a-Math.PI/2,2);
+    for(let r=11.2;r<14;r+=1)P.box(I.x+Math.cos(a)*r,g+0.05,I.z+Math.sin(a)*r,1.4,0.1,1.1,'#9fdcf4',-a+Math.PI/2);}
+  {const q=spots[0];chest(P,G,q.x,gy(q.x,q.z),q.z,-(back-0.7));BLOSFX.lagChest={x:q.x,z:q.z};}
+  {const a=back-1.5,x=I.x+Math.cos(a)*14.4,z=I.z+Math.sin(a)*14.4,g=gy(I.x+Math.cos(a)*13,I.z+Math.sin(a)*13);for(let k=0;k<=6;k++){const t=k/6*Math.PI;P.box(x-Math.sin(a)*Math.cos(t)*1.4,g+Math.sin(t)*2-(k===0||k===6?0.5:0),z+Math.cos(a)*Math.cos(t)*1.4,0.8,k===0||k===6?1.8:0.8,1,pick(BC_.rock,rng),-a);}
+    P.box(x+Math.cos(a)*0.3,g+0.8,z+Math.sin(a)*0.3,2.2,1.7,0.3,'#1d1a24',-a+Math.PI/2);G.box(x+Math.cos(a)*0.2,g+0.4,z+Math.sin(a)*0.2,0.5,0.4,0.2,'#8fe8ff',-a+Math.PI/2);BLOSFX.lagCave={x:x-Math.cos(a)*1.3,z:z-Math.sin(a)*1.3};}
+  for(const s of[-1,1]){const a=LAG_G+s*0.42,x=I.x+Math.cos(a)*(I.r-3),z=I.z+Math.sin(a)*(I.r-3);if(gy(x,z)>=1)stoneLanternG(P,G,x,z,false);}
+  // a beach umbrella and a boat pulled up on the white sand
+  {const q=spots[3],g=gy(q.x,q.z);if(g<=1.6&&g>=1)umbrellaBench(P,q.x,g,q.z,-(back+1.5)-Math.PI/2);}
+  {const a=back+1.05,x=I.x+Math.cos(a)*12.9,z=I.z+Math.sin(a)*12.9,g=gy(x,z);if(g>=1&&g<=1.6){rowboat(P,x,g,z,-a+1.3,'#c8402a');CIRCCOL.push({x,z,r:1.1});}}
+  {const pk=BPEAKS[3];peakDress(P,pk,rng);const t=gy(pk[0],pk[1]);jpine(P,pk[0],t+1.9,pk[1]+0.3,rng,1.1);}
 }
-function buildCoral(T,S,P,G,rng){const I=CORAL;
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h)=>{if(blosIsle(x,z)!=='coral')return;const m=CORAL_ISL[0];if(Math.hypot(x-m.x,z-m.z)<3.2)return;if(rng()<0.1)P.box(x,h+0.1,z,0.5,0.2,0.4,pick(['#f4c8d8','#ffffff','#ff9aa8'],rng),rng()*3);else if(rng()<0.06&&h>=1.4)jpine(P,x,h,z,rng,0.6);},
+function buildCoral(T,S,P,G,rng){const I=CORAL,m=CORAL_ISL[0];
+  const free=(x,z)=>blosIsle(x,z)==='coral'&&Math.hypot(x-m.x,z-m.z)>3.4&&!BLOS_DECKS.some(d=>segDist(x,z,d.x,d.z,d.x+d.ux*d.len,d.z+d.uz*d.len)<2.6);
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'coral',open:free,
+    prop:(x,z,h)=>{if(!free(x,z))return;const r=rng();if(r<0.07)P.box(x,h+0.1,z,0.5,0.2,0.4,pick(['#f4c8d8','#ffffff','#ff9aa8'],rng),rng()*3);else if(r<0.11&&h>=1.4)jpine(P,x,h,z,rng,0.6);},
     bedProp:(x,z,h)=>{const e=Math.hypot(x-I.x,z-I.z);if(e>I.r+3||h<-4)return;const r=rng();
-      if(r<0.3){const n=1+((rng()*3)|0);for(let k=0;k<n;k++){const hh=0.3+rng()*0.7;S.box(x+rng()*1.4-0.7,h+hh/2,z+rng()*1.4-0.7,0.3+rng()*0.4,hh,0.3+rng()*0.4,pick(['#ff6a8a','#ff9a4a','#ffd24a','#c08aff','#5ad0ff','#ff8ad0','#7affc0'],rng),rng()*3);}}
-      else if(r<0.38)for(let k=0;k<3;k++)S.box(x+rng()-0.5,h+0.4,z+rng()-0.5,0.08,0.8,0.08,'#3f9a5a',0,(rng()-0.5)*0.4);
+      if(r<0.3){const n=1+((rng()*3)|0);for(let k=0;k<n;k++){const hh=Math.min(0.3+rng()*0.7,-h-0.15);S.box(x+rng()*1.4-0.7,h+hh/2,z+rng()*1.4-0.7,0.3+rng()*0.4,hh,0.3+rng()*0.4,pick(['#ff6a8a','#ff9a4a','#ffd24a','#c08aff','#5ad0ff','#ff8ad0','#7affc0'],rng),rng()*3);}}
+      else if(r<0.38)for(let k=0;k<3;k++)S.box(x+rng()-0.5,h+0.35,z+rng()-0.5,0.08,0.7,0.08,'#3f9a5a',0,(rng()-0.5)*0.4);
       else if(r<0.4)S.box(x,h+0.3,z,1+rng(),0.6,0.9,'#b8b0a0',rng()*3);}});
   blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);
-  // a diver's hut on the big sand islet, two rock arches on the reef and sunken ruins in the middle
-  {const m=CORAL_ISL[0];minka(P,G,m.x-Math.cos(m.a)*1.2,1.5,m.z-Math.sin(m.a)*1.2,Math.atan2(Math.cos(m.a),Math.sin(m.a)),{w:3.2,d:2.8,h:2.1,roof:'#2f9ab8'});}
-  for(const [a,r] of [[CORAL_ISL[0].a+0.75,24],[CORAL_ISL[0].a-2.35,23]]){const x=I.x+Math.cos(a)*r,z=I.z+Math.sin(a)*r;for(let k=0;k<=10;k++){const t=k/10*Math.PI;P.box(x-Math.sin(a)*Math.cos(t)*3.4,-0.6+Math.sin(t)*4.2,z+Math.cos(a)*Math.cos(t)*3.4,1.5,1.5,1.9,pick(BC_.rock,rng),-a);}
+  // a diver's hut on the big sand islet with nets and baskets, two rock arches on the reef and sunken ruins in the middle
+  {const hx=m.x-Math.cos(m.a)*1.2,hz=m.z-Math.sin(m.a)*1.2;minka(P,G,hx,gy(hx,hz),hz,Math.atan2(Math.cos(m.a),Math.sin(m.a)),{w:3.2,d:2.8,h:2.1,roof:'#2f9ab8'});
+    for(const [a,d,kind] of [[m.a+1.9,4.6,'net'],[m.a-1.9,4.4,'bask'],[m.a-2.4,4.8,'boat']]){const x=m.x+Math.cos(a)*d,z=m.z+Math.sin(a)*d,g=gy(x,z);if(g<1||deckY(x,z)!==null||BLOS_DECKS.some(k=>segDist(x,z,k.x,k.z,k.x+k.ux*k.len,k.z+k.uz*k.len)<2.2))continue;
+      if(kind==='net'){netRack(P,x,g,z,-a);CIRCCOL.push({x,z,r:0.8});}else if(kind==='bask'){basket(P,x,g,z,rng);basket(P,x+0.7,gy(x+0.7,z+0.3),z+0.3,rng);}else{rowboat(P,x,g,z,-a+1.2,'#2f9ab8');CIRCCOL.push({x,z,r:1.1});}}}
+  for(const [a,r] of [[m.a+0.75,24],[m.a-2.35,23]]){const x=I.x+Math.cos(a)*r,z=I.z+Math.sin(a)*r;for(let k=0;k<=10;k++){const t=k/10*Math.PI,ft=k===0||k===10;P.box(x-Math.sin(a)*Math.cos(t)*3.4,-0.6+Math.sin(t)*4.2-(ft?0.8:0),z+Math.cos(a)*Math.cos(t)*3.4,1.5,ft?3.1:1.5,1.9,pick(BC_.rock,rng),-a);}
     P.box(x,3.75,z,2.2,0.3,2,pick(BC_.grass,rng),-a);}
   for(const [u,v,hh] of [[-4,-5,2.2],[3,-6,1.2],[5,4,2.6],[-5,5,0.9]]){S.box(I.x+u,-3.2+hh/2,I.z+v,0.9,hh,0.9,'#c8c2aa');S.box(I.x+u,-3.2+hh+0.1,I.z+v,1.2,0.2,1.2,'#b4ae96');}
-  S.box(I.x+1,-2.9,I.z-9,3.2,0.6,1.3,'#6a4a2a',0.6,0,0.3);
+  S.box(I.x+1,-2.9,I.z-9,3.2,0.6,1.3,'#6a4a2a',0.6,0,0.3);sunkenStatue(S,I.x-7.5,-3.2,I.z+1,1.2);
   BLOSFX.dives.push({x:I.x,z:I.z,name:'the coral gardens'},{x:CORAL_ISL[2].x,z:CORAL_ISL[2].z,name:'the outer reef'},{x:CORAL_ISL[3].x,z:CORAL_ISL[3].z,name:'the rock arch'});
-  {P.box(I.x+2.6,0.2,I.z+2.2,0.1,2.2,0.1,'#6b4424');P.box(I.x+2.6,0.2,I.z+1.6,0.1,2.2,0.1,'#6b4424');for(let k=0;k<5;k++)P.box(I.x+2.6,-0.6+k*0.4,I.z+1.9,0.1,0.08,0.6,'#6b4424');lantern(P,G,I.x-2.4,1.3,I.z-2.4);}
+  // a ladder and a lamp on the diving platform
+  {P.box(I.x+2.6,0.2,I.z+2.2,0.1,2.2,0.1,'#6b4424');P.box(I.x+2.6,0.2,I.z+1.6,0.1,2.2,0.1,'#6b4424');for(let k=0;k<5;k++)P.box(I.x+2.6,-0.6+k*0.4,I.z+1.9,0.1,0.08,0.6,'#6b4424');lantern(P,G,I.x-2.4,gy(I.x-2.4,I.z-2.4)+0.08,I.z-2.4);}
 }
-function buildGrottoIsle(T,S,P,G,rng){const I=GROTTO,back=GRO_G+Math.PI;
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='grotto'||md>=1)return;const a=Math.atan2(z-I.z,x-I.x);if(h<=1.4){if(rng()<0.08&&Math.abs(angDiff(a,back))>0.5)iceShard(P,G,x,h,z,0.8+rng()*1.2,rng,['#c08aff','#ff8ad8','#8a6ae0']);return;}
-      const r=rng();if(r<0.13)sakura(P,x,h,z,rng,0.9+rng()*0.5);else if(r<0.2)iceShard(P,G,x,h,z,1.2+rng()*2.2,rng,['#c08aff','#ff8ad8','#8a6ae0']);else if(r<0.22)P.box(x,h+0.4,z,1,0.8,0.9,pick(BC_.dark,rng),rng()*3);},
+function buildGrottoIsle(T,S,P,G,rng){const I=GROTTO,back=GRO_G+Math.PI,cols=['#c08aff','#ff8ad8','#8a6ae0'],bch=(x,z,h)=>h<=1.6&&Math.hypot(x-I.x,z-I.z)<15.2;
+  const free=(x,z)=>{if(blosIsle(x,z)!=='grotto')return false;const a=Math.atan2(z-I.z,x-I.x),e=Math.hypot(x-I.x,z-I.z);return !(e<17&&Math.abs(angDiff(a,back))<0.62)&&!(e>13&&Math.abs(angDiff(a,GRO_G))<0.6)&&!BLOS_DECKS.some(d=>Math.hypot(x-d.x,z-d.z)<3.6);};
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'grotto',open:free,beach:bch,
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z))return;if(bch(x,z,h)){if(rng()<0.07)iceShard(P,G,x,h,z,0.8+rng()*1.2,rng,cols);return;}
+      const r=rng();if(r<0.12)sakura(P,x,h,z,rng,0.9+rng()*0.5);else if(r<0.18)iceShard(P,G,x,h,z,1.2+rng()*2.2,rng,cols);else if(r<0.2)P.box(x,h+0.2,z,1,1.2,0.9,pick(BC_.dark,rng),rng()*3);},
     bedProp:(x,z,h)=>{if(Math.hypot(x-I.x,z-I.z)<11&&rng()<0.1)G.box(x+rng()-0.5,h+0.3,z+rng()-0.5,0.26,0.5+rng(),0.26,pick(['#c08aff','#ff8ad8','#8fe8ff'],rng),rng()*3);}});
   blosDecksNear(P,I.x,I.z,I.r+10,rng);dockLamps(P,G,I.x,I.z,I.r+8);
   // the great cave mouth at the back of the cove, glowing violet
@@ -2961,37 +3176,52 @@ function buildGrottoIsle(T,S,P,G,rng){const I=GROTTO,back=GRO_G+Math.PI;
     for(let k=0;k<=18;k++){const t=k/18*Math.PI,ox=Math.cos(t)*6.6,oy=Math.sin(t)*9.6;P.box(x+tx*ox,oy+1.0,z+tz*ox,2.1,2.1,3.4,pick(BC_.dark,rng),ya);if(k%3===1)iceShard(P,G,x+tx*ox*0.84-bx*1.6,oy+0.2,z+tz*ox*0.84-bz*1.6,1.4,rng,['#c08aff','#ff8ad8']);}
     P.box(x+bx*0.9,5,z+bz*0.9,11.8,9.8,0.5,'#0c0816',ya);G.box(x+bx*0.6,4.0,z+bz*0.6,8,6,0.2,'#7a3ad0',ya);G.box(x+bx*0.5,2.8,z+bz*0.5,4.4,3,0.2,'#ff8ad8',ya);G.box(x+bx*0.4,2.2,z+bz*0.4,1.8,1.6,0.2,'#ffd0f0',ya);
     for(let k=0;k<10;k++)G.box(x+tx*rand(-3.8,3.8)+bx*0.2,rand(1.6,6.8),z+tz*rand(-3.8,3.8)+bz*0.2,0.2,0.5,0.2,pick(['#ff8ad8','#c08aff','#8fe8ff'],rng));
-    for(const s of[-1,1])stoneLantern(P,G,x+tx*s*4.4-bx*1.4,1.3,z+tz*s*4.4-bz*1.4);BLOSFX.grotMouth={x:I.x+bx*12.2,z:I.z+bz*12.2};}
-  {const d=BLOS_DECKS.find(k=>Math.hypot(k.x-I.x,k.z-I.z)<14),t={x:d.x-d.ux*1.4,z:d.z-d.uz*1.4};torii(P,t.x,1.3,t.z,Math.atan2(d.uz,-d.ux)+Math.PI/2,0.9);}
-  {const a=back-0.95,x=I.x+Math.cos(a)*14.3,z=I.z+Math.sin(a)*14.3;waterfall(P,x,z,qHeightAt(I.x+Math.cos(a)*16.5,I.z+Math.sin(a)*16.5),1.3,-a-Math.PI/2,2);}
+    for(const s of[-1,1]){const lx=x+tx*s*4.4-bx*1.4,lz=z+tz*s*4.4-bz*1.4;if(gy(lx,lz)>=1)stoneLanternG(P,G,lx,lz);const fx=x+tx*s*3-bx*2.6,fz=z+tz*s*3-bz*2.6;if(gy(fx,fz)>=1)foxStatue(P,fx,gy(fx,fz),fz,Math.atan2(-bx,-bz));}
+    BLOSFX.grotMouth={x:I.x+bx*12.2,z:I.z+bz*12.2};}
+  {const d=BLOS_DECKS.find(k=>Math.hypot(k.x-I.x,k.z-I.z)<14),t={x:d.x-d.ux*1.4,z:d.z-d.uz*1.4};toriiG(P,t.x,t.z,Math.atan2(d.uz,-d.ux)+Math.PI/2,0.9);}
+  {const a=back-0.95,x=I.x+Math.cos(a)*14.3,z=I.z+Math.sin(a)*14.3;waterfall(P,x,z,gy(I.x+Math.cos(a)*16.5,I.z+Math.sin(a)*16.5),gy(I.x+Math.cos(a)*12.8,I.z+Math.sin(a)*12.8),-a-Math.PI/2,2);}
+  {const pk=BPEAKS[4];peakDress(P,pk,rng,DARKC,'#f8b8d0');const t=gy(pk[0],pk[1]);iceShard(P,G,pk[0]+0.3,t+1.8,pk[1],3.2,rng,cols);}
 }
-function buildBamboo(T,S,P,G,rng){const I=BAMBOO;const HS=[[9,-4,0.6],[-6,-13,2.2],[-17,-1,-1.2]].map(([u,v,ry])=>({x:I.x+u,z:I.z+v,ry}));const shr={x:I.x-1,z:I.z-5.4},tea={x:I.x-10,z:I.z+13};
-  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{prop:(x,z,h,md)=>{if(blosIsle(x,z)!=='bamboo'||md>=1||h<1.4)return;if(bpathDist(x,z)<2.5||Math.hypot(x-BPOND.x,z-BPOND.z)<BPOND.r+2.4||segDist(x,z,BSTREAM.x0,BSTREAM.z0,BSTREAM.x1,BSTREAM.z1)<3.6)return;
-      if(HS.some(q=>Math.hypot(x-q.x,z-q.z)<4.6)||Math.hypot(x-shr.x,z-shr.z)<2.6||Math.hypot(x-tea.x,z-tea.z)<4.2)return;const r=rng();if(r<0.42)bambooClump(P,x,h,z,rng);else if(r<0.47)bush(P,x,h,z,0.8,rng);else if(r<0.5)flowers(P,x,h,z,rng);},
+function buildBamboo(T,S,P,G,rng){const I=BAMBOO;const HS=[[9,-4,0.6],[-6,-13,2.2],[-17,-1,-1.2]].map(([u,v,ry])=>({x:I.x+u,z:I.z+v,ry}));const shr={x:I.x-1,z:I.z-5.4},tea={x:I.x-10,z:I.z+13},lx={x:I.x+Math.cos(BAM_L)*I.r,z:I.z+Math.sin(BAM_L)*I.r};
+  const free=(x,z,h)=>{if(blosIsle(x,z)!=='bamboo'||h<1.4)return false;if(bpathDist(x,z)<2.5||Math.hypot(x-BPOND.x,z-BPOND.z)<BPOND.r+2.4||segDist(x,z,BSTREAM.x0,BSTREAM.z0,BSTREAM.x1,BSTREAM.z1)<3.6)return false;
+    return !(HS.some(q=>Math.hypot(x-q.x,z-q.z)<4.6)||Math.hypot(x-shr.x,z-shr.z)<3||Math.hypot(x-tea.x,z-tea.z)<5.4||Math.hypot(x-BHILL.x,z-BHILL.z)<3.2);};
+  blosCells(T,S,P,G,I.x,I.z,I.r+18,rng,{k:'bamboo',open:(x,z,h)=>free(x,z,h)||(blosIsle(x,z)==='bamboo'&&h<1.4&&h>=0.5&&Math.hypot(x-lx.x,z-lx.z)>5.5),
+    prop:(x,z,h,md)=>{if(md>=1||!free(x,z,h))return;const r=rng();if(r<0.4)bambooClump(P,x,h,z,rng);else if(r<0.44)bush(P,x,h,z,0.8,rng);else if(r<0.47)flowers(P,x,h,z,rng);},
     bedProp:(x,z,h)=>{if(Math.hypot(x-BPOND.x,z-BPOND.z)<BPOND.r&&rng()<0.4)P.box(x+rng()-0.5,0.05,z+rng()-0.5,0.8,0.05,0.8,'#5aa84a',rng()*3);}});
-  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);
-  for(const q of HS)minka(P,G,q.x,qHeightAt(q.x,q.z),q.z,q.ry,{w:3.8,d:3.2,h:2.2,roof:'#5a6a4a',wall:'#e8dcc0'});
+  blosDecksNear(P,I.x,I.z,I.r+16,rng);dockLamps(P,G,I.x,I.z,I.r+18);dockSign(P,I,BAM_L);beachBoat(P,I,BAM_L,-0.3,I.r-1.6,'#6a8a4a');
+  for(const q of HS){minka(P,G,q.x,gy(q.x,q.z),q.z,q.ry,{w:3.8,d:3.2,h:2.2,roof:'#5a6a4a',wall:'#e8dcc0'});const bx=q.x+Math.sin(q.ry)*2.4+Math.cos(q.ry)*1.9,bz=q.z+Math.cos(q.ry)*2.4-Math.sin(q.ry)*1.9;if(gy(bx,bz)>=1.4&&bpathDist(bx,bz)>1.2)basket(P,bx,gy(bx,bz),bz,rng);}
   // lanterns and stone statues along the path, a small shrine and the tea garden
-  for(let i=1;i<BPATH.length;i++){const a=BPATH[i-1],b=BPATH[i],u=unit2(b.x-a.x,b.z-a.z),m={x:(a.x+b.x)/2-u.z*2.1,z:(a.z+b.z)/2+u.x*2.1};if(qHeightAt(m.x,m.z)<1.4)continue;if(i%2)lantern(P,G,m.x,qHeightAt(m.x,m.z),m.z);else jizo(P,m.x,qHeightAt(m.x,m.z),m.z,Math.atan2(u.z,-u.x));}
-  {const h=qHeightAt(shr.x,shr.z);P.box(shr.x,h+0.5,shr.z,1.2,1,1,'#f4ecd8');P.box(shr.x,h+1.12,shr.z,1.8,0.2,1.6,'#3a3a44');P.box(shr.x,h+1.28,shr.z,1.3,0.14,1.1,'#b8322a');G.box(shr.x,h+0.55,shr.z+0.52,0.4,0.5,0.05,'#ffe2a0');CIRCCOL.push({x:shr.x,z:shr.z,r:0.9});BLOSFX.bamShrine={x:shr.x,z:shr.z+1.8};}
-  for(let i=0;i<3;i++)for(let j=0;j<4;j++){const x=tea.x+(i-1)*1.7,z=tea.z+(j-1.5)*1.3,h=qHeightAt(x,z);if(h<1.4)continue;P.box(x,h+0.3,z,1.3,0.6,0.9,pick(['#3f9a4a','#4aa854','#368a40'],rng));}
+  for(let i=1;i<BPATH.length;i++){const a=BPATH[i-1],b=BPATH[i],u=unit2(b.x-a.x,b.z-a.z),m={x:(a.x+b.x)/2-u.z*2.1,z:(a.z+b.z)/2+u.x*2.1};if(gy(m.x,m.z)<1.4||deckY(m.x,m.z)!==null)continue;if(i%2)lanternG(P,G,m.x,m.z);else{const s=seat(m.x,m.z,0.4);jizo(P,s.x,gy(s.x,s.z),s.z,Math.atan2(u.z,-u.x));}}
+  {const h=gy(shr.x,shr.z);P.box(shr.x,h+0.2,shr.z,1.6,1.2,1.4,'#9aa3a8');P.box(shr.x,h+0.9,shr.z,1.2,1,1,'#f4ecd8');P.box(shr.x,h+1.52,shr.z,1.8,0.2,1.6,'#3a3a44');P.box(shr.x,h+1.68,shr.z,1.3,0.14,1.1,'#b8322a');G.box(shr.x,h+0.95,shr.z+0.52,0.4,0.5,0.05,'#ffe2a0');CIRCCOL.push({x:shr.x,z:shr.z,r:0.95});
+    {const fx=shr.x+1.5,fz=shr.z+0.9;foxStatue(P,fx,gy(fx,fz),fz,0);}BLOSFX.bamShrine={x:shr.x,z:shr.z+1.9};}
+  for(let i=0;i<3;i++)for(let j=0;j<4;j++){const x=tea.x+(i-1)*1.7,z=tea.z+(j-1.5)*1.3,h=gy(x,z);if(h<1.4)continue;P.box(x,h+0.3,z,1.3,0.6,0.9,pick(['#3f9a4a','#4aa854','#368a40'],rng));}
+  {const L=gy(tea.x,tea.z);bambooFence(P,tea.x+3.5,tea.z-3.2,tea.x+3.5,tea.z+3.7,L);bambooFence(P,tea.x-3.4,tea.z+3.7,tea.x+3.5,tea.z+3.7,L);
+    {const x=tea.x+4.6,z=tea.z+0.6;if(gy(x,z)===L&&bpathDist(x,z)>2.2){tableSet(P,x,L,z,0);CIRCCOL.push({x,z,r:0.8});}}{const x=tea.x+0.4,z=tea.z+5.6;if(gy(x,z)>=1.4)umbrellaBench(P,x,gy(x,z),z,Math.PI);}}
   BLOSFX.teaGarden=tea;
-  {const p={x:BPOND.x+BPOND.r+1.4,z:BPOND.z-1.5},h=qHeightAt(p.x,p.z);P.box(p.x,h+0.3,p.z,1.6,0.16,0.5,'#8a5a3a',0.4);stoneLantern(P,G,BPOND.x-BPOND.r-1.2,qHeightAt(BPOND.x-BPOND.r-1.2,BPOND.z+1),BPOND.z+1);}
+  {const p={x:BPOND.x+BPOND.r+1.4,z:BPOND.z-1.5},h=gy(p.x,p.z);P.box(p.x,h+0.4,p.z,1.6,0.16,0.5,'#8a5a3a',0.4);P.box(p.x,h+0.17,p.z,1.3,0.34,0.14,'#5a3a22',0.4);stoneLanternG(P,G,BPOND.x-BPOND.r-1.4,BPOND.z+1);}
+  // a lookout on top of the bamboo hill
+  {const x=Math.floor(BHILL.x/2)*2+1,z=Math.floor(BHILL.z/2)*2+1;watchTower(P,G,x,gy(x,z),z);BLOSFX.lookout={x:x+2.2,z:z+0.4};}
 }
 function buildIslets(T,S,P,G,rng,ids){
-  for(const I of ISLETS){const id=I.id;if(!ids.includes(id))continue;blosCells(T,S,P,G,I.x,I.z,I.r+12,rng,{prop:(x,z,h,md)=>{const d=Math.hypot(x-I.x,z-I.z);if(d>I.r||h<1.3||md>=1)return;const r=rng();
-      if(id==='t1'){if(r<0.5&&d>1.5)sakura(P,x,h,z,rng,1);else if(r<0.7)flowers(P,x,h,z,rng);return;}if(d<3.2)return;if(r<0.14)sakura(P,x,h,z,rng,0.9);else if(r<0.2)jpine(P,x,h,z,rng,0.8);else if(r<0.26)bambooClump(P,x,h,z,rng);else if(r<0.34)flowers(P,x,h,z,rng);}});
-    const h=qHeightAt(I.x,I.z);
-    if(id==='e1'){minka(P,G,I.x-1.6,h,I.z-1.4,0.5,{w:3.4,d:2.8,h:2.1,roof:'#2f5fa8'});for(let k=0;k<4;k++){P.box(I.x+2.6,h+0.9,I.z+1+k*0.6,0.08,1.8,0.08,'#6b4424');P.box(I.x+2.6,h+1.5,I.z+1+k*0.6,0.5,0.16,0.08,'#c8d0d8');}P.box(I.x+2.6,h+1.8,I.z+1.9,0.08,0.08,2.2,'#6b4424');crate(P,I.x+1.2,h,I.z+3.4,0.4,false);}
-    else if(id==='e2'){for(let k=0;k<4;k++)P.box(I.x,h+0.5+k*1.0,I.z,1.5-k*0.16,1.0,1.5-k*0.16,k%2?'#b8322a':'#f4ecd8');P.box(I.x,h+4.4,I.z,1.9,0.2,1.9,'#3a3a44');G.box(I.x,h+5.0,I.z,0.9,0.9,0.9,'#ffe2a0');P.box(I.x,h+5.6,I.z,1.5,0.3,1.5,'#b8322a');CIRCCOL.push({x:I.x,z:I.z,r:1.0});}
-    else if(id==='e3'){chest(P,G,I.x,h,I.z,0.4);BLOSFX.isleChest={x:I.x,z:I.z};for(let k=0;k<5;k++){const a=k/5*TAU;P.box(I.x+Math.cos(a)*1.6,h+0.2,I.z+Math.sin(a)*1.6,0.6,0.4,0.6,pick(BC_.rock,rng),a);}}
-    else if(id==='e4'){for(let k=0;k<=7;k++){const t=k/7*Math.PI;P.box(I.x+Math.cos(t)*1.7,h+Math.sin(t)*2.3,I.z-1.4,0.9,0.9,1.4,pick(BC_.rock,rng));}P.box(I.x,h+1.1,I.z-1.8,2.6,2.2,0.3,'#1d1a24');G.box(I.x,h+0.7,I.z-1.6,0.5,0.4,0.2,'#c08aff');BLOSFX.isleCave={x:I.x,z:I.z+0.4};CIRCCOL.push({x:I.x,z:I.z-2.2,r:1.6});}
-    else if(id==='t2'){P.box(I.x,h+0.5,I.z,1.1,1,0.9,'#f4ecd8');P.box(I.x,h+1.1,I.z,1.7,0.2,1.5,'#3a3a44');P.box(I.x,h+1.26,I.z,1.2,0.14,1,'#b8322a');CIRCCOL.push({x:I.x,z:I.z,r:0.9});const u={x:Math.cos(I.dock),z:Math.sin(I.dock)};torii(P,I.x+u.x*2.6,qHeightAt(I.x+u.x*2.6,I.z+u.z*2.6),I.z+u.z*2.6,-I.dock+Math.PI/2,0.8);BLOSFX.isletShrine={x:I.x+u.x*1.4,z:I.z+u.z*1.4};}}
+  for(const I of ISLETS){const id=I.id;if(!ids.includes(id))continue;const dk=BLOS_DECKS.filter(d=>Math.hypot(d.x-I.x,d.z-I.z)<I.r+1),keep=id==='t1'?1.5:3.4;
+    const free=(x,z,h)=>{const d=Math.hypot(x-I.x,z-I.z);return d<=I.r&&h>=1&&d>=keep&&!dk.some(k=>segDist(x,z,k.x,k.z,k.x+k.ux*k.len,k.z+k.uz*k.len)<2.4);};
+    blosCells(T,S,P,G,I.x,I.z,I.r+12,rng,{k:'islet',open:free,beach:(x,z,h)=>h<=1.1||id==='e3',prop:(x,z,h,md)=>{if(md>=1||h<1.3||!free(x,z,h))return;const r=rng();
+      if(id==='t1'){if(r<0.5)sakura(P,x,h,z,rng,1);else if(r<0.7)flowers(P,x,h,z,rng);return;}if(id==='e3'){if(r<0.2)palmTree(P,x,h,z,rng,0.9+rng()*0.3);return;}
+      if(r<0.14)sakura(P,x,h,z,rng,0.9);else if(r<0.2)jpine(P,x,h,z,rng,0.8);else if(r<0.26)bambooClump(P,x,h,z,rng);else if(r<0.32)flowers(P,x,h,z,rng);}});
+    const h=gy(I.x,I.z);
+    if(id==='e1'){minka(P,G,I.x-1.6,gy(I.x-1.6,I.z-1.4),I.z-1.4,0.5,{w:3.4,d:2.8,h:2.1,roof:'#2f5fa8'});{const x=I.x+3,z=I.z+1.6;netRack(P,x,gy(x,z),z,Math.PI/2);CIRCCOL.push({x,z,r:0.9});}
+      {const x=I.x+1.2,z=I.z+3.4;crate(P,x,gy(x,z),z,0.4,false);basket(P,x-1,gy(x-1,z+0.3),z+0.3,rng);CIRCCOL.push({x,z,r:0.45});}{const x=I.x-4.6,z=I.z+3.8,g=gy(x,z);if(g>=0.5&&g<=1.6&&deckY(x,z)===null)rowboat(P,x,g,z,0.9,'#2f5fa8');}}
+    else if(id==='e2'){P.box(I.x,h-0.3,I.z,2.2,1.2,2.2,'#8a8f96');for(let k=0;k<4;k++)P.box(I.x,h+0.8+k*1.0,I.z,1.5-k*0.16,1.0,1.5-k*0.16,k%2?'#b8322a':'#f4ecd8');P.box(I.x,h+4.7,I.z,1.9,0.2,1.9,'#3a3a44');G.box(I.x,h+5.3,I.z,0.9,0.9,0.9,'#ffe2a0');P.box(I.x,h+5.9,I.z,1.5,0.3,1.5,'#b8322a');CIRCCOL.push({x:I.x,z:I.z,r:1.2});}
+    else if(id==='e3'){chest(P,G,I.x,h,I.z,0.4);BLOSFX.isleChest={x:I.x,z:I.z};for(let k=0;k<5;k++){const a=k/5*TAU,x=I.x+Math.cos(a)*1.6,z=I.z+Math.sin(a)*1.6;P.box(x,gy(x,z)+0.1,z,0.6,0.5,0.6,pick(BC_.rock,rng),a);}}
+    else if(id==='e4'){const g=gy(I.x,I.z-0.6);for(let k=0;k<=7;k++){const t=k/7*Math.PI,ft=k===0||k===7;P.box(I.x+Math.cos(t)*1.7,g+Math.sin(t)*2.3-(ft?0.5:0),I.z-1.4,0.9,ft?1.9:0.9,1.4,pick(BC_.rock,rng));}P.box(I.x,g+1.1,I.z-1.8,2.6,2.2,0.3,'#1d1a24');G.box(I.x,g+0.7,I.z-1.6,0.5,0.4,0.2,'#c08aff');BLOSFX.isleCave={x:I.x,z:I.z+0.4};CIRCCOL.push({x:I.x,z:I.z-2.2,r:1.6});
+      const pk=BPEAKS[5];peakDress(P,pk,rng);jpine(P,pk[0],gy(pk[0],pk[1])+1.9,pk[1],rng,0.9);}
+    else if(id==='t2'){P.box(I.x,h+0.1,I.z,1.5,1.0,1.3,'#9aa3a8');P.box(I.x,h+0.9,I.z,1.1,1,0.9,'#f4ecd8');P.box(I.x,h+1.5,I.z,1.7,0.2,1.5,'#3a3a44');P.box(I.x,h+1.66,I.z,1.2,0.14,1,'#b8322a');CIRCCOL.push({x:I.x,z:I.z,r:0.95});const u={x:Math.cos(I.dock),z:Math.sin(I.dock)};
+      toriiG(P,I.x+u.x*2.8,I.z+u.z*2.8,-I.dock+Math.PI/2,0.8);{const fx=I.x-u.z*1.7,fz=I.z+u.x*1.7;foxStatue(P,fx,gy(fx,fz),fz,Math.atan2(u.x,u.z));}BLOSFX.isletShrine={x:I.x+u.x*1.6,z:I.z+u.z*1.6};}}
   for(const d of BLOS_DECKS)if(ISLETS.some(I=>ids.includes(I.id)&&Math.hypot(d.x-I.x,d.z-I.z)<I.r+1))blosDeck(P,d,rng);
-  for(const s of BSHORES)if(ids.includes(s.id.slice(2))){const pz=Math.cos(s.yaw),px=Math.sin(s.yaw);lantern(P,G,s.foot.x-px,1.38,s.foot.z-pz);}}
+  for(const s of BSHORES)if(ids.includes(s.id.slice(2))){const lx=s.foot.x-Math.sin(s.yaw),lz=s.foot.z-Math.cos(s.yaw),dy=deckY(lx,lz);lantern(P,G,lx,dy!==null?dy+0.08:gy(lx,lz),lz);}}
 // the rock stacks out in the channels, some with a cap of grass and a lonely tree
 function buildBlosRocks(T,S,P,G,rng){
-  for(const r of BROCKS){blosCells(T,S,P,G,r[0],r[1],5,rng);P.box(r[0],r[3]*0.5,r[1],r[2]*2.6,r[3]*0.5,r[2]*2.4,pick(BC_.rock,rng),rng()*3);P.box(r[0]+rng()-0.5,r[3]+0.4,r[1]+rng()-0.5,r[2]*1.3,0.9,r[2]*1.2,pick(BC_.rock,rng),rng()*3);
+  for(const r of BROCKS){if(r[4])continue;blosCells(T,S,P,G,r[0],r[1],5,rng);P.box(r[0],r[3]*0.5,r[1],r[2]*2.6,r[3]*0.5,r[2]*2.4,pick(BC_.rock,rng),rng()*3);P.box(r[0]+rng()-0.5,r[3]+0.4,r[1]+rng()-0.5,r[2]*1.3,0.9,r[2]*1.2,pick(BC_.rock,rng),rng()*3);
     if(rng()<0.6){P.box(r[0],r[3]+0.95,r[1],r[2]*1.1,0.2,r[2]*1.1,pick(BC_.grass,rng),rng()*3);const th=1.4;P.box(r[0],r[3]+1+th/2,r[1],0.26,th,0.26,'#5a3a2a');for(let k=0;k<4;k++)P.box(r[0]+rng()-0.5,r[3]+1+th+rng()*0.6,r[1]+rng()-0.5,1.1,0.8,1.1,pick(['#f8b8d0','#f4a0c0','#fcd0e0'],rng),rng()*2);}}
 }
 /* ---------- the Spirit Grotto cave levels ---------- */
@@ -3009,12 +3239,16 @@ function buildGrotLevel(L,T,S,P,G,rng){const C=GROT[L];
     for(const v of [26,14,-18,-30])torii(P,C.x,2,C.z+v,0,0.95);
     for(const [u,v] of [[3,30],[-3,20],[-12,8],[10,12],[-18,-12],[16,-10],[3,-24],[-3,-34],[-26,4],[26,-2]])if(free(u,v))stoneLantern(P,G,C.x+u,2,C.z+v);
     for(const s of[-1,1]){const u=s*31,x=C.x+u,z=C.z+7*Math.sin(u/8.5);for(let y=2;y<20;y+=1.2)P.box(x+rand(-0.4,0.4),y,z+rand(-1.2,1.2),2.4,1.3,2.6,pick(['#9fdcf4','#bfeaff','#e8f8ff'],rng));BLOSFX.falls.push({x:x-s*1.5,y:0,z,w:2});}
+    for(const s of[-1,1]){if(free(s*3.2,24.6))foxStatue(P,C.x+s*3.2,2,C.z+24.6,0);}
+    for(let k=0;k<26;k++){const u=rand(-30,30),v=rand(-30,30);if(!free(u,v)||Math.abs(u)<3.6||!free(u+1.2,v)||!free(u-1.2,v)||!free(u,v+1.2)||!free(u,v-1.2))continue;const x=C.x+u,z=C.z+v;if(k%3===0)crag(P,x,2,z,rng,0.8+rng()*0.7,DARKC,rng()<0.5?'#f8b8d0':null);else if(k%3===1)mushroom(P,G,x,2,z,rng,0.8+rng()*0.9,true);else rockPile(P,x,2,z,rng,DARKC);}
     for(let k=0;k<46;k++){const u=rand(-30,30),v=rand(-30,30);if(!free(u,v))continue;const x=C.x+u,z=C.z+v;if(k%3){P.box(x,2.25,z,0.12,0.5,0.12,'#5a8a6a');G.box(x,2.6,z,0.34,0.26,0.34,pick(['#ff8ad8','#ffb0e8','#f8a8ff'],rng));}else sakura(P,x,2,z,rng,0.7);}}
   else if(L===1){// Crystal Gardens: towering pink, purple and blue crystals, glowing mushrooms and fishing pools
     for(const [u,v,r,hh] of GROT_B2_CRYS){const x=C.x+u,z=C.z+v,cs=pick([['#ff8ad8','#e06ac0'],['#8a6ae0','#7a5ad0'],['#5a8ae8','#4a7ad8']],rng);let y=2,w=r*2.2;for(let k=0;y<hh+6;k++){const sh=1.6+rng();P.box(x,y+sh/2,z,w,sh,w,cs[k%2],k*0.4);
         if(k%2)G.box(x,y+sh/2,z,w*0.5,sh*0.9,w*1.03,pick(['#ffd0f0','#c08aff','#8fe8ff'],rng),k*0.4);y+=sh;w*=0.86;}CIRCCOL.push({x,z,r:r+0.3});}
     for(let k=0;k<34;k++){const u=rand(-30,30),v=rand(-28,28);if(!free(u,v))continue;const x=C.x+u,z=C.z+v,hh=0.5+rng()*1.6;if(k%4===0){iceShard(P,G,x,2,z,1+rng()*2,rng,['#ff8ad8','#c08aff','#8fb0ff']);continue;}
       P.box(x,2+hh/2,z,0.18,hh,0.18,'#e8d8f0');G.box(x,2+hh+0.1,z,0.9,0.25,0.9,pick(['#ff8ad8','#8fe8ff','#c08aff','#ffd0f0'],rng));}
+    for(const [u,v,ry] of [[-24,14,0.4],[23,-9,2.1]])if(free(u,v)&&free(u+1.4,v)&&free(u-1.4,v))mineCart(P,G,C.x+u,2,C.z+v,ry,['#ff8ad8','#c08aff','#8fe8ff']);
+    for(let k=0;k<18;k++){const u=rand(-29,29),v=rand(-27,27);if(!free(u,v)||Math.abs(u)<3.6)continue;mushroom(P,G,C.x+u,2,C.z+v,rng,1.1+rng()*1.3,true);}
     for(const p of [[-13,-6,6.5,4.5],[13,8,6,4.2],[2,-25,4.2,3.2]])for(let k=0;k<16;k++){const a=k/16*TAU;G.box(C.x+p[0]+Math.cos(a)*(p[2]+0.3),2.1,C.z+p[1]+Math.sin(a)*(p[3]+0.3),0.3,0.12,0.3,'#ff8ad8');}}
   else if(L===2){// Sunken Shrine: broken torii, statues, pillars, flooded rooms and a treasure chamber
     for(const [u,v] of GROT_B3_PILLARS){const x=C.x+u,z=C.z+v;P.box(x,5.5,z,2.4,7,2.4,'#9aa8a0');P.box(x,9.2,z,3,0.5,3,'#b2beb6');G.box(x+1.22,5,z,0.06,2,0.3,'#6fe8d8');}
@@ -3022,6 +3256,8 @@ function buildGrotLevel(L,T,S,P,G,rng){const C=GROT[L];
     torii(P,C.x,2,C.z+12,0,1.1,'#8a3a34');torii(P,C.x,2,C.z-14,0,1.1,'#8a3a34');
     for(const [u,v,rz] of [[-17,-12,0.5],[16,13,-0.4],[-15,14,0.3]]){const x=C.x+u,z=C.z+v;P.box(x-1.6,-1.2,z,0.4,5,0.4,'#8a3a34',0,0,rz);P.box(x+1.6,-0.4,z,0.4,5.6,0.4,'#8a3a34',0,0,rz*0.4);P.box(x,1.6,z,4.6,0.34,0.44,'#8a3a34',0,0,rz*0.7);}
     for(const [u,v,ry] of [[-20,-6,0.4],[19,7,-2.6],[-8,15,3],[9,-15,-0.6]]){const x=C.x+u,z=C.z+v;P.box(x,-1.8,z,1.6,3.4,1.2,'#8a9a8a',ry);P.box(x,0.5,z,1.2,1.3,0.9,'#9aaa9a',ry);P.box(x,1.5,z,0.8,0.8,0.8,'#a8b8a8',ry);G.box(x,1.52,z,0.5,0.12,0.82,'#6fe8d8',ry);}
+    for(const [u,v] of [[-5,5.2],[5.5,-5.4],[-6.5,-4.6],[6.8,4.4]])if(free(u,v))sunkenPillar(P,C.x+u,2,C.z+v,rng,true);
+    for(let k=0;k<30;k++){const u=rand(-26,26),v=rand(-20,20);if(grotHeight(C.x+u,C.z+v)>=0)continue;const r=rng();if(r<0.4)seaweed(S,C.x+u,-3.6,C.z+v,rng);else if(r<0.6)sunkenPillar(S,C.x+u,-3.6,C.z+v,rng);else if(r<0.72)sunkenStatue(S,C.x+u,-3.6,C.z+v,rng()*3);}
     {const x=C.x+29.5,z=C.z;for(let k=0;k<3;k++)P.box(x+1.6,2.5+k*1.6+0.8,z,0.6,1.6,7,'#a8b4ac');G.box(x+1.1,5.9,z,0.1,0.3,5,'#ffd24a');chest(P,G,x-0.4,2.5,z,Math.PI/2);BLOSFX.chest3={x:x-1.6,z};}
     {const x=C.x-29.5,z=C.z;P.box(x-1.4,4.1,z,0.5,3.2,6,'#8a9a92');for(let k=0;k<7;k++)G.box(x-1.1,3+(k%3)*0.8,z-2.4+k*0.8,0.04,0.3,0.5,'#6fe8d8');G.box(x-1.1,4.6,z,0.04,1.4,1.4,'#ff8ad8');BLOSFX.mural={x:x+0.6,z};}}
   else{// Spirit Depths: a huge black lake, bioluminescent plants, purple crystals and ancient pillars
@@ -3029,9 +3265,36 @@ function buildGrotLevel(L,T,S,P,G,rng){const C=GROT[L];
     for(let k=0;k<70;k++){const a=rng()*TAU,d=26+rng()*6;G.box(C.x+Math.cos(a)*d,2+rng()*13,C.z+Math.sin(a)*d,0.2,0.2,0.2,pick(['#6fe8f8','#c08aff','#ff8ad8'],rng));}
     for(let i=0;i<10;i++){const a=i/10*TAU+0.3,x=C.x+Math.cos(a)*28.5,z=C.z-5+Math.sin(a)*21.5;if(grotHeight(x,z)!==2)continue;let y=2,w=1.8;for(let k=0;k<4;k++){const sh=1.2+rng();P.box(x,y+sh/2,z,w,sh,w,pick(['#5a3aa0','#6a4ab8'],rng),k);if(k%2)G.box(x,y+sh/2,z,w*0.5,sh*0.9,w*1.02,'#c08aff',k);y+=sh;w*=0.78;}CIRCCOL.push({x,z,r:1});}
     for(const [u,v] of [[-9,20],[9,20],[-14,26],[14,26]]){const x=C.x+u,z=C.z+v;if(grotHeight(x,z)!==2)continue;P.box(x,5,z,1.6,6,1.6,'#2a3050');P.box(x,8.2,z,2.2,0.4,2.2,'#343c60');G.box(x,4.5,z+0.82,0.3,1.6,0.05,'#6fe8f8');CIRCCOL.push({x,z,r:1});}
-    torii(P,C.x,2,C.z+18.5,0,1.2,'#5a2a8a');for(const s of[-1,1])stoneLantern(P,G,C.x+s*2.4,2.3,C.z+7.2);
+    torii(P,C.x,2,C.z+18.5,0,1.2,'#5a2a8a');for(const s of[-1,1])stoneLantern(P,G,C.x+s*1.15,gy(C.x+s*1.15,C.z+7.4)+0.08,C.z+7.4);
+    for(const [u,v,ry] of [[-6,22,0.5],[6.5,23,-0.5]])if(free(u,v))sunkenStatue(P,C.x+u,2,C.z+v,ry);
+    for(let k=0;k<14;k++){const u=rand(-30,30),v=rand(14,30);if(!free(u,v)||Math.abs(u)<3.6)continue;k%2?mushroom(P,G,C.x+u,2,C.z+v,rng,0.9+rng(),true):crag(P,C.x+u,2,C.z+v,rng,0.7+rng()*0.5,['#2a3050','#343c60','#20264a'],null);}
     for(let k=0;k<26;k++){const u=rand(-30,30),v=rand(14,30);if(!free(u,v))continue;P.box(C.x+u,2.3,C.z+v,0.1,0.6,0.1,'#2a5a6a');G.box(C.x+u,2.7,C.z+v,0.3,0.3,0.3,pick(['#6fe8f8','#8fffd0','#c08aff'],rng));}}
 }
+// ---- every place stays reachable: after the islands are built, walk the whole archipelago from the docks. If a scattered tree or rock has
+// sealed off a pocket of ground (or made a spot you could drop into and not leave), it loses its collision and can be walked through.
+function blosUnblock(){const X0=BLOS_BOX.x0,Z0=BLOS_BOX.z0,S=0.5,W=Math.round((BLOS_BOX.x1-X0)/S),H=Math.round((BLOS_BOX.z1-Z0)/S),N=W*H,PR=0.35;
+  const g=new Float32Array(N),land=new Uint8Array(N),hard=new Uint8Array(N),soft=new Uint8Array(N);
+  for(let gz=Math.floor(Z0/2);gz<=Math.floor(BLOS_BOX.z1/2);gz++)for(let gx=Math.floor(X0/2);gx<=Math.floor(BLOS_BOX.x1/2);gx++){const h=qHeightCell(gx,gz);if(h<0.5)continue;
+    for(let b=0;b<4;b++)for(let a=0;a<4;a++){const i=Math.round((gx*2+a*S-X0)/S),j=Math.round((gz*2+b*S-Z0)/S);if(i>=0&&j>=0&&i<W&&j<H){land[j*W+i]=1;g[j*W+i]=h;}}}
+  for(const d of BLOS_DECKS){if(d.x>1900)continue;for(let t=0;t<=d.len;t+=0.25)for(let w=-d.hw;w<=d.hw;w+=0.25){const i=Math.round((d.x+d.ux*t-d.uz*w-X0)/S),j=Math.round((d.z+d.uz*t+d.ux*w-Z0)/S);if(i<0||j<0||i>=W||j>=H)continue;
+      const k=j*W+i,x=X0+i*S,z=Z0+j*S;if(deckY(x,z)===null)continue;land[k]=1;g[k]=groundAt(x,z);}}
+  const stamp=(m,cx,cz,rx,rz,circ)=>{const i0=Math.max(0,Math.ceil((cx-rx-X0)/S)),i1=Math.min(W-1,Math.floor((cx+rx-X0)/S)),j0=Math.max(0,Math.ceil((cz-rz-Z0)/S)),j1=Math.min(H-1,Math.floor((cz+rz-Z0)/S));
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){if(circ){const dx=X0+i*S-cx,dz=Z0+j*S-cz;if(dx*dx+dz*dz>=rx*rx)continue;}m[j*W+i]=1;}};
+  for(const b of BOXCOL)stamp(hard,b.x,b.z,b.hw+PR,b.hd+PR,false);
+  const softs=[];for(const c of CIRCCOL){if(c.x<X0-3||c.x>BLOS_BOX.x1+3||c.z<Z0-3||c.z>BLOS_BOX.z1+3)continue;if(c.soft)softs.push(c);else stamp(hard,c.x,c.z,c.r+PR,c.r+PR,true);}
+  const seeds=BSHORES.filter(s=>s.foot.x<1900).map(s=>Math.round((s.foot.z-Z0)/S)*W+Math.round((s.foot.x-X0)/S));
+  const flood=(useSoft,rev)=>{const v=new Uint8Array(N),st=[];const ok=k=>land[k]&&!hard[k]&&!(useSoft&&soft[k]);for(const k of seeds)if(k>=0&&k<N&&ok(k)&&!v[k]){v[k]=1;st.push(k);}
+    while(st.length){const k=st.pop(),i=k%W;for(const q of [k+1,k-1,k+W,k-W]){if(q<0||q>=N||v[q]||!ok(q))continue;if(q===k+1&&i===W-1||q===k-1&&i===0)continue;if((rev?g[k]-g[q]:g[q]-g[k])>0.62)continue;v[q]=1;st.push(q);}}return v;};
+  const f0=flood(false,false),r0=flood(false,true);let removed=0,left=0;
+  for(let pass=0;pass<6;pass++){soft.fill(0);for(const c of softs)if(!c.gone)stamp(soft,c.x,c.z,c.r+PR,c.r+PR,true);
+    const f1=flood(true,false),r1=flood(true,true),bad=[];for(let k=0;k<N;k++)if(f0[k]&&r0[k]&&!soft[k]&&!(f1[k]&&r1[k]))bad.push(k);left=bad.length;if(!left)break;
+    // drop the collision of every scattered thing that touches a cut-off spot
+    const near=new Uint8Array(N);for(const k of bad)near[k]=1;
+    for(const c of softs){if(c.gone)continue;const R=c.r+PR+0.8,i0=Math.max(0,Math.ceil((c.x-R-X0)/S)),i1=Math.min(W-1,Math.floor((c.x+R-X0)/S)),j0=Math.max(0,Math.ceil((c.z-R-Z0)/S)),j1=Math.min(H-1,Math.floor((c.z+R-Z0)/S));let hit=false;
+      for(let j=j0;j<=j1&&!hit;j++)for(let i=i0;i<=i1;i++)if(near[j*W+i]&&Math.hypot(X0+i*S-c.x,Z0+j*S-c.z)<R){hit=true;break;}if(hit){c.gone=1;removed++;}}}
+  if(removed){for(let i=CIRCCOL.length-1;i>=0;i--)if(CIRCCOL[i].gone)CIRCCOL.splice(i,1);}
+  let lost=0;for(let k=0;k<N;k++)if(land[k]&&!hard[k]&&!(f0[k]&&r0[k]))lost++;
+  return {removed,left,lost};}
 function buildBlossomIslands(){const rng=mulberry32(909);
   const mk=(key,o,R,fn)=>{const T=new Batch(0.5),S=new Batch(0.5),P=new Batch(0.35),Gb=new Batch(0.2);fn(T,S,P,Gb,rng);const grp=new THREE.Group();
     if(T.parts.length)grp.add(T.mesh());if(S.parts.length)grp.add(S.mesh(MAT.bed,false));if(P.parts.length)grp.add(P.mesh());
@@ -3043,21 +3306,22 @@ function buildBlossomIslands(){const rng=mulberry32(909);
   mk('brocks',BLOSC,150,buildBlosRocks);
   for(let L=0;L<4;L++)mk('grot'+L,GROT[L],-400,(T,S,P,G,r)=>buildGrotLevel(L,T,S,P,G,r));
   for(const s of BLOSFX.signs){const m=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.62),new THREE.MeshStandardMaterial({map:signTexture(s.kind),roughness:0.9}));m.position.set(s.x,s.y,s.z);m.rotation.y=s.ry;scene.add(m);}
+  BLOSFX.access=blosUnblock();
   Blossom.init();}
 
 /* ---------- Blossom Islands: quests, the Petal Wind, the Spirit Grotto and everything you can do there ---------- */
 const BQUESTS=[
   {id:'arrive',title:'Petals on the Harbour',text:'Sail into the harbour of Blossom Village, tie up at the Main Port and meet Elder Hana at the Fish Market.',on:(t,d)=>t==='bmeet'&&d==='hana',at:()=>BLOS_BLD.find(b=>b.id==='market').door,rw:{coins:200}},
-  {id:'sakura',title:'Under the Cherry Trees',text:'Sail north-west to the Sakura Highlands and gather 3 Cherry Blossom Petals.',need:3,on:(t,d)=>t==='res'&&d==='petals',at:()=>SAKURA,rw:{coins:250,pearls:1}},
-  {id:'bamboo',title:'The Quiet Isle',text:'Visit Bamboo Isle in the west and catch a fish in its hidden pond or its stream.',on:(t,d)=>t==='catch'&&d.zone==='bamboo',at:()=>BPOND,rw:{coins:300,res:{tealeaf:1}}},
+  {id:'sakura',title:'Under the Cherry Trees',text:'Sail north-west to the Sakura Highlands and gather 3 Cherry Blossom Petals.',need:3,on:(t,d)=>t==='res'&&d==='petals',at:()=>{const p=Blossom.pos?Blossom.pos():SAKURA;let b=null,bd=1e9;for(const n of Blossom.nodes||[]){if(n.type!=='petals'||n.wind||Blossom.taken(n)||Math.hypot(n.x-SAKURA.x,n.z-SAKURA.z)>SAKURA.r+4)continue;const dd=Math.hypot(n.x-p.x,n.z-p.z);if(dd<bd){bd=dd;b=n;}}return b||SAKURA;},rw:{coins:250,pearls:1}},
+  {id:'bamboo',title:'The Quiet Isle',text:'Visit Bamboo Isle in the west and catch a fish in its hidden pond or its stream.',on:(t,d)=>t==='catch'&&d.zone==='bamboo',at:()=>({x:BPOND.x+5.6,z:BPOND.z+2.2}),rw:{coins:300,res:{tealeaf:1}}},
   {id:'petal',title:'Where the Water Falls',text:'Sail east to Petal Falls and catch a fish in the pool below the waterfalls.',on:(t,d)=>t==='catch'&&d.zone==='petalfalls',at:()=>PETAL,rw:{coins:350}},
   {id:'moon',title:'The Moonview Bell',text:'Climb the torii trail to the top of Moonview Peak and ring the Ancient Bell.',on:t=>t==='bell',at:()=>MSUM,rw:{pearls:3}},
   {id:'lagoon',title:'A Gap in the Cliffs',text:'Monk Ren spoke of a lagoon hidden inside the eastern cliffs. Find the narrow entrance and sail inside.',on:t=>t==='lagoonIn',at:()=>LAGOON,rw:{coins:400,pearls:1}},
   {id:'coral',title:'Beneath the Atoll',text:'Sail to the Coral Atoll in the south-east and dive at one of its diving spots.',on:t=>t==='dive',at:()=>CORAL,rw:{coins:400,res:{coralpiece:1}}},
-  {id:'isles',title:'The Scattered Isles',text:'Explore the Eastern Isles and open the treasure chest hidden on one of them.',on:t=>t==='isleChest',at:()=>EISLES,rw:{coins:300,pearls:2}},
-  {id:'grotto',title:'The Violet Cave',text:'Sail into the cove of the Spirit Grotto and step through the great cave mouth.',on:(t,d)=>t==='grot'&&d===0,at:()=>GROTTO,rw:{coins:500}},
-  {id:'gardens',title:'Crystal Gardens',text:'Go down to B2 and gather 2 Spirit Crystals among the giant crystals.',need:2,on:(t,d)=>t==='res'&&d==='spiritcrystal'&&Blossom.level===1,at:()=>GROT_EXIT(0),rw:{coins:500,res:{mooncrystal:1}}},
-  {id:'shrine',title:'The Sunken Shrine',text:'Get a Spirit Diving Mask from Daichi at the Boat Works, dive down to B3 and study the glowing mural.',on:t=>t==='mural',at:()=>Blossom.canDive()?GROT_EXIT(1):BLOS_BLD.find(b=>b.id==='works').door,rw:{pearls:3}},
+  {id:'isles',title:'The Scattered Isles',text:'Explore the Eastern Isles and open the treasure chest hidden on one of them.',on:t=>t==='isleChest',at:()=>BLOSFX.isleChest||EISLES,rw:{coins:300,pearls:2}},
+  {id:'grotto',title:'The Violet Cave',text:'Sail into the cove of the Spirit Grotto and step through the great cave mouth.',on:(t,d)=>t==='grot'&&d===0,at:()=>BLOSFX.grotMouth||GROTTO,rw:{coins:500}},
+  {id:'gardens',title:'Crystal Gardens',text:'Go down to B2 and gather 2 Spirit Crystals among the giant crystals.',need:2,on:(t,d)=>t==='res'&&d==='spiritcrystal'&&Blossom.level===1,at:()=>Blossom.nodes.find(n=>n.type==='spiritcrystal'&&grotLevel(n.x,n.z)===1&&!Blossom.taken(n))||GROT[1],rw:{coins:500,res:{mooncrystal:1}}},
+  {id:'shrine',title:'The Sunken Shrine',text:'Get a Spirit Diving Mask from Daichi at the Boat Works, dive down to B3 and study the glowing mural.',on:t=>t==='mural',at:()=>Blossom.canDive()?(BLOSFX.mural||GROT[2]):BLOS_BLD.find(b=>b.id==='works').door,rw:{pearls:3}},
   {id:'depths',title:'Spirit Depths',text:'Descend to B4, the Spirit Depths.',on:(t,d)=>t==='grot'&&d===3,at:()=>GROT_EXIT(2),rw:{coins:800}},
   {id:'legend',title:'The Shadow in the Deep',text:'Something vast circles in the black lake. Cast a Legend Lure from the stone pier and face it.',on:(t,d)=>t==='boss'&&d==='ryujin',at:()=>BOSSES.find(b=>b.id==='ryujin'),rw:{coins:5000,pearls:10}},
   {id:'done',title:'Friend of the Blossom Islands',text:'Every quest is done. Keep sailing, fishing and exploring!',at:()=>null}];
@@ -3084,6 +3348,10 @@ const Blossom={t:0,ready:false,nodes:[],inCave:false,level:-1,k:0,region:false,w
       for(const [x,w,d] of [[-9,3,1.4],[-6,5,2.6],[-2,6,3.6],[3,6,3.2],[8,5,2.2],[12,4,1.2],[15.5,3.4,3.4]]){const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);p.rotation.x=-Math.PI/2;p.position.set(x,0,0);p.renderOrder=2;g.add(p);}
       for(const s of[-1,1]){const e=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.3),new THREE.MeshBasicMaterial({color:0xffe070,transparent:true,opacity:0.9,depthWrite:false}));e.rotation.x=-Math.PI/2;e.position.set(-8.6,0.02,s*0.5);e.renderOrder=3;g.add(e);}
       g.visible=false;scene.add(g);this.shadow={g,mat,t:0};}
+    // the pink arrow that hovers over the goal of your Blossom Islands quest, with a beam you can see from far away
+    {const b=new Batch(0.08),c='#ff8ac0';for(let i=0;i<4;i++){const w=1.0-i*0.28;b.box(0,-i*0.24,0,w,0.24,0.24,c);}b.box(0,0.5,0,0.34,0.7,0.24,c);
+      const g=b.mesh(new THREE.MeshBasicMaterial({vertexColors:true,fog:false}),false);g.receiveShadow=false;g.visible=false;scene.add(g);
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(0.7,70,0.7),new THREE.MeshBasicMaterial({color:0xff9ad0,transparent:true,opacity:0.3,fog:false,depthWrite:false}));beam.visible=false;scene.add(beam);this.mark={g,beam};}
     this.buildNodes(rng);
     const qe=Quest.event.bind(Quest);Quest.event=(t,d)=>{qe(t,d);try{BlosQ.event(t,d);if(t==='catch'&&d&&FISH[d.id]&&FISH[d.id].petal&&G.stats.pwBounty!==G.day&&Blossom.petalWind()){G.stats.pwBounty=G.day;G.coins+=250;UI.coins();Pearls.add(1,'Petal Wind bounty');UI.toast('Petal Wind bounty! Elder Hana pays 250 coins for a fish that dances with the petals.','gold');}}catch(e){}};
     {const t0=talk;talk=n=>n.d.blos?Blossom.talk(n):t0(n);}
@@ -3097,7 +3365,7 @@ const Blossom={t:0,ready:false,nodes:[],inCave:false,level:-1,k:0,region:false,w
   buildNodes(rng){const N=this.nodes,add=(type,x,z,o)=>{let p=o&&o.boat?[x,z]:this.spot(x,z);if(!p)return;N.push(Object.assign({id:'b'+type+N.length,type,x:p[0],z:p[1]},o||{}));};
     const ring=(I,type,n,r0,r1,ph,o)=>{for(let k=0;k<n;k++){const a=ph+k/n*TAU,d=lerp(r0,r1,(k*0.618)%1);add(type,I.x+Math.cos(a)*d,I.z+Math.sin(a)*d,o);}};
     ring(SAKURA,'petals',6,8,20,0.4);ring(SAKURA,'sakurawood',3,10,18,1.6);ring(SAKURA,'wildherb',3,12,22,2.9);add('rareflower',SAKURA.x-Math.cos(SAK_L)*17,SAKURA.z-Math.sin(SAK_L)*17);
-    for(const [lx,lz,t] of [[-9,-17,'petals'],[9,-19,'petals'],[14,-12,'wildherb'],[6,-27,'rareflower']]){const p=bvpt(lx,lz);add(t,p.x,p.z,t==='rareflower'?{wind:true}:null);}
+    for(const [lx,lz,t] of [[-11,-23.5,'petals'],[11,-24,'petals'],[21,-13.5,'wildherb'],[6,-27.5,'rareflower']]){const p=bvpt(lx,lz);add(t,p.x,p.z,t==='rareflower'?{wind:true}:null);}
     ring(MOON,'rareflower',2,23,26,MOON_L+1.4);add('mooncrystal',MOON.x+1.6,MOON.z+5.6);ring(MOON,'petals',2,23,26,MOON_L+3.2);
     ring(PETAL,'petals',3,13,20,PET_C-1.6);ring(PETAL,'wildherb',2,14,20,PET_C+1.2);add('rareflower',PETAL.x+Math.cos(PET_N)*17.5,PETAL.z+Math.sin(PET_N)*17.5);add('rareflower',PETAL.x+Math.cos(PET_N+0.4)*14,PETAL.z+Math.sin(PET_N+0.4)*14,{wind:true});
     {const b=LAG_G+Math.PI;add('pearlshell',LAGOON.x+Math.cos(b+0.9)*12.8,LAGOON.z+Math.sin(b+0.9)*12.8);add('pearlshell',LAGOON.x+Math.cos(b-1.2)*12.8,LAGOON.z+Math.sin(b-1.2)*12.8);add('rareflower',LAGOON.x+Math.cos(b)*19,LAGOON.z+Math.sin(b)*19);add('rareflower',LAGOON.x+Math.cos(b+1.3)*19,LAGOON.z+Math.sin(b+1.3)*19,{wind:true});}
@@ -3145,6 +3413,12 @@ const Blossom={t:0,ready:false,nodes:[],inCave:false,level:-1,k:0,region:false,w
     // fireflies at night, spray under the waterfalls
     if(this.k>0.3&&night>0.5&&Math.random()<dt*9){const x=cx+rand(-16,16),z=cz+rand(-16,16);if(qHeightAt(x,z)>=0.5)Particles.spawn(x,groundAt(x,z)+rand(0.4,2.6),z,rand(-0.3,0.3),rand(-0.1,0.3),rand(-0.3,0.3),Math.random()<0.7?'#e8ff8a':'#b8ffb0',0.1,rand(1.6,3),0);}
     for(const f of BLOSFX.falls)if(near(f,70)&&Math.random()<dt*10)Particles.spawn(f.x+rand(-f.w,f.w)*0.5,f.y+0.2,f.z+rand(-0.8,0.8),rand(-0.8,0.8),rand(1,2.4),rand(-0.8,0.8),'#f4fcff',0.16,0.7,3);
+    for(const s of BLOSFX.steam)if(near(s,60)&&Math.random()<dt*12)Particles.spawn(s.x+rand(-s.r,s.r)*0.7,s.y,s.z+rand(-s.r,s.r)*0.7,rand(-0.15,0.15),rand(0.5,1.1),rand(-0.15,0.15),'#ffffff',rand(0.14,0.26),rand(1.2,2.2),0);
+    for(const v of BLOSFX.vents)if(near(v,45)&&Math.random()<dt*5)Particles.spawn(v.x+rand(-0.5,0.5),0.06,v.z+rand(-0.5,0.5),rand(-0.2,0.2),rand(0.3,0.8),rand(-0.2,0.2),'#e8fbff',rand(0.08,0.16),rand(0.5,1),0);
+    // the quest arrow
+    {const M=this.mark,t=this.questTarget();if(!t||this.tour){M.g.visible=false;M.beam.visible=false;}else{const far=Math.hypot(camera.position.x-t.x,camera.position.z-t.z),sc=clamp(far/18,1,9),pd=Math.hypot(pp.x-t.x,pp.z-t.z),y0=Math.max(t.y,0);
+        M.g.visible=pd>2.2;M.g.scale.setScalar(sc);M.g.position.set(t.x,y0+(t.y>0.5?3.4:4)+sc*0.6+Math.sin(this.t*3)*0.25,t.z);M.g.rotation.y=this.t*1.5;
+        M.beam.visible=pd>28&&!this.inCave;if(M.beam.visible){M.beam.position.set(t.x,y0+35,t.z);M.beam.material.opacity=0.2+0.1*Math.sin(this.t*2.4);}}}
     // resources: rare flowers open in a Petal Wind
     for(const n of this.nodes){const vis=near(n,200)&&!this.taken(n)&&(!n.wind||pw);n.g.visible=vis;if(vis){if(n.boat)n.g.position.y=waveH(n.x,n.z,Time.t)*0.9;n.glow.scale.setScalar(1+0.18*Math.sin(this.t*3+n.x));
       if(Math.random()<dt*0.6&&near(n,40))Particles.spawn(n.x+rand(-0.5,0.5),n.g.position.y+rand(0.4,1.2),n.z+rand(-0.5,0.5),0,0.5,0,'#ffffff',0.08,0.8,0);}}
@@ -3185,6 +3459,8 @@ const Blossom={t:0,ready:false,nodes:[],inCave:false,level:-1,k:0,region:false,w
     at(BV_BOARD,2.8,'Read the Blossom Islands quest board',()=>UI.openPanel('blosquests'));
     at(BLOSFX.farm,4.2,'Tend your farm plots',()=>{if(typeof farmOpen==='function'&&farmOpen())UI.openPanel('farm');else UI.toast('Finish the farm quest on the Starting Island first, then you can tend your plots from here.');},1.2);
     for(const [k,name] of [['vshrine','the village shrine'],['hillShrine','the hill shrine'],['bamShrine','the bamboo shrine'],['isletShrine','the islet shrine'],['moonShrine','Moonview Shrine']])at(BLOSFX[k],2.6,'Pray at '+name,()=>this.pray(k,name));
+    at(BLOSFX.spring,3.4,'Soak in the hot spring',()=>{Cam.orbitT=6;G.stamina=100;Buffs.add('stamina',240);UI.bars&&UI.bars();UI.toast('The hot water melts every ache away. Stamina restored and boosted.','good');});
+    at(BLOSFX.lookout,2.8,'Look out from the bamboo hill',()=>{Cam.orbitT=7;UI.toast('Bamboo all the way down to the pond, and the sea beyond.','good');});
     at(BLOSFX.sakView,3,'Enjoy the view',()=>{Cam.orbitT=6;UI.toast('Cherry trees all the way down to the sea.','good');});
     at(BLOSFX.bell,2.4,'Ring the Ancient Bell',()=>this.bell());at(BLOSFX.moonChest,2.4,'Open the shrine chest',()=>this.chest('moon',[500,0,0],['mooncrystal'],2,'Moonview Shrine',true));
     at(BLOSFX.moonScope,2.2,'Look through the telescope',()=>{Cam.orbitT=7;UI.toast((Env.night||0)>0.5?'The moon hangs huge behind the shrine, and its light runs across the water.':'You can see every island from here. Come back at night for the moon.','good');});
@@ -3238,7 +3514,33 @@ const Blossom={t:0,ready:false,nodes:[],inCave:false,level:-1,k:0,region:false,w
     if(id[0]==='g'){const L=+id.slice(1)-1;if(G.mode==='boat'){scene.add(Player.model.root);G.mode='walk';UI.boatHud(false);UI.depth();}this.moorAt('b_grotto');this.gotoLevel(L);return;}
     const s=SHORES.find(k=>k.id===id);if(!s)return;if(!G.flags.boat){UI.toast('You need a boat to travel around the Blossom Islands.','warn');return;}
     this.fade(()=>{this.moorAt(s.id);if(G.mode!=='boat'){Player.pos.set(s.boat.x,1,s.boat.z);Boat.enter(true);}G.time=(G.time+0.5)%24;},'You sailed to '+s.name+'.');},
-  drawTarget(g,sx,sz,W,full){if(!this.region||!G.flags.blossom||Snowy.region)return;const q=BlosQ.cur(),t=q.at&&q.at();if(!t)return;let X=sx(t.x),Z=sz(t.z);const R=W/2-10,dx=X-W/2,dz=Z-W/2,l=Math.hypot(dx,dz);
+  dockFor(x,z){let k=blosIsle(x,z),id=null;if(k==='islet'||k==='rock'){let bd=1e9,bi=null;for(const I of ISLETS){const d=Math.hypot(x-I.x,z-I.z);if(d<bd){bd=d;bi=I;}}if(bd<60)id='b_'+({e2:'e1',e4:'e3'}[bi.id]||bi.id);}else id='b_'+k;
+    return BSHORES.find(s=>s.id===id)||null;},
+  questTarget(map){if(!this.ready||!started||!G.flags.blossom||Snowy.region)return null;const q=BlosQ.cur(),t0=q.at&&q.at();if(!t0)return null;let t={x:t0.x,z:t0.z};
+    if(this.inCave){const L=this.level;if(L<0)return null;const tl=t.x>1900?grotLevel(t.x,t.z):-1;if(tl!==L)t=tl>L?GROT_EXIT(L):GROT_ENTRY(L);return {x:t.x,y:groundAt(t.x,t.z),z:t.z};}
+    if(!this.region)return null;if(t.x>1900)t=BLOSFX.grotMouth;
+    if(!map&&G.mode==='boat'&&walkable(t.x,t.z)){const s=this.dockFor(t.x,t.z);if(s)return {x:s.boat.x,y:0,z:s.boat.z,dock:s};}
+    return {x:t.x,y:walkable(t.x,t.z)?groundAt(t.x,t.z):0,z:t.z};},
+  // the minimap of the Blossom Islands: the painted islands with their docks and shops, and a plan of each grotto level
+  caveMap(L){const key='_cm'+L;if(this[key])return this[key];const N=140,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d'),im=g.createImageData(N,N),C=GROT[L];
+    const FL=[[150,142,164],[104,86,142],[176,190,182],[58,70,112]][L],WT=[[84,124,168],[92,60,170],[60,120,124],[14,20,52]][L],WL=[26,20,40];
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=C.x-N/2+i+0.5,z=C.z-N/2+j+0.5,h=grotHeight(x,z);let col=h>=8?WL:h<0.5?WT:FL;if(h>=8&&h<20)col=L===1?[255,138,216]:[120,130,128];
+      if(h>=0.5&&h<8&&[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>grotHeight(x+a,z+b)>=8))col=col.map(v=>v*0.72);const q=(j*N+i)*4;im.data[q]=col[0];im.data[q+1]=col[1];im.data[q+2]=col[2];im.data[q+3]=255;}
+    g.putImageData(im,0,0);g.strokeStyle='#c8c2d2';g.lineCap='butt';for(const d of BLOS_DECKS){if(Math.hypot(d.x-C.x,d.z-C.z)>60)continue;g.lineWidth=d.hw*2;g.beginPath();g.moveTo(d.x-C.x+N/2,d.z-C.z+N/2);g.lineTo(d.x+d.ux*d.len-C.x+N/2,d.z+d.uz*d.len-C.z+N/2);g.stroke();}
+    return this[key]=c;},
+  mini(g,cx,cz,view,W,sx,sz){if(!this.ready)return;const k=W/view;
+    if(cx>1900){const L=grotLevel(cx,cz);if(L<0)return;const c=this.caveMap(L),C=GROT[L];g.fillStyle='#1a1428';g.fillRect(0,0,W,W);g.imageSmoothingEnabled=false;g.drawImage(c,sx(C.x-70),sz(C.z-70),140*k,140*k);
+      const st=(p,up,col)=>{const X=sx(p.x),Z=sz(p.z);if(X<6||Z<6||X>W-6||Z>W-6)return;g.fillStyle=col;g.strokeStyle='#1d1030';g.lineWidth=2;g.beginPath();g.arc(X,Z,7.5,0,TAU);g.fill();g.stroke();g.fillStyle='#fff';g.beginPath();const s=up?-1:1;g.moveTo(X,Z+4.5*s);g.lineTo(X-4,Z-2.5*s);g.lineTo(X+4,Z-2.5*s);g.closePath();g.fill();};
+      st(GROT_ENTRY(L),true,'#e0a23f');if(L<3)st(GROT_EXIT(L),false,'#8a4ad0');
+      for(const n of this.nodes){if(grotLevel(n.x,n.z)!==L||this.taken(n))continue;const X=sx(n.x),Z=sz(n.z);if(X<4||Z<4||X>W-4||Z>W-4)continue;g.fillStyle=RES[n.type].col;g.strokeStyle='#1d1030';g.lineWidth=1.5;g.beginPath();g.arc(X,Z,3.2,0,TAU);g.fill();g.stroke();}return;}
+    const M=BLOSMAP;if(cx+view/2<M.x0||cx-view/2>M.x1||cz+view/2<M.z0||cz-view/2>M.z1)return;
+    if(!M.mini){if(!this._miniQ){this._miniQ=true;setTimeout(()=>buildBlosMapBase(true),60);}return;}
+    const x0=Math.max(M.x0,cx-view/2),x1=Math.min(M.x1,cx+view/2),z0=Math.max(M.z0,cz-view/2),z1=Math.min(M.z1,cz+view/2);if(x1<=x0||z1<=z0)return;
+    g.imageSmoothingEnabled=true;g.drawImage(M.mini,(x0-M.x0)*M.k,(z0-M.z0)*M.k,(x1-x0)*M.k,(z1-z0)*M.k,sx(x0),sz(z0),(x1-x0)*k,(z1-z0)*k);g.imageSmoothingEnabled=false;
+    if(!G.flags.blossom)return;
+    if(!this._icons){this._icons=BLOS_ICONS().filter(i=>['dock','cave','special'].includes(i[0])).map(i=>[i[0],i[1],i[2]]);for(const b of BLOS_BLD)if(b.name)this._icons.push([b.id==='house'?'village':b.id==='storage'?'wreck':'shop',b.x,b.z]);this._icons.push(['quest',BV_BOARD.x,BV_BOARD.z]);}
+    for(const [kind,x,z] of this._icons){const X=sx(x),Z=sz(z);if(X<7||Z<7||X>W-7||Z>W-7)continue;drawSnowIcon(g,kind,X,Z,kind==='dock'?5.6:4.8);}},
+  drawTarget(g,sx,sz,W,full){if(full&&(!this.region||!G.flags.blossom||Snowy.region))return;const t=full?(BlosQ.cur().at&&BlosQ.cur().at()):this.questTarget(true);if(!t)return;let X=sx(t.x),Z=sz(t.z);const R=W/2-10,dx=X-W/2,dz=Z-W/2,l=Math.hypot(dx,dz);
     if(!full&&l>R){X=W/2+dx/l*R;Z=W/2+dz/l*R;}if(full&&(X<0||Z<0||X>W||Z>W))return;g.fillStyle='#ff9ac8';g.strokeStyle='#7a1e4a';g.lineWidth=2;g.beginPath();
     for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,r=i%2?3.5:(full?8:7);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();},
   // Elder Hana's welcome and the tour of the village
@@ -3314,16 +3616,16 @@ const BLOS_INTRO={
 const BLOSMAP={x0:-606,z0:-54,x1:-270,z1:238,W:900,H:782,base:null};
 BLOSMAP.k=BLOSMAP.W/(BLOSMAP.x1-BLOSMAP.x0);
 const bmx=x=>(x-BLOSMAP.x0)*BLOSMAP.k,bmz=z=>(z-BLOSMAP.z0)*BLOSMAP.k;
-function buildBlosMapBase(){const {W,H,k}=BLOSMAP,S=2,cw=Math.ceil(W/S),ch=Math.ceil(H/S);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+function buildBlosMapBase(mini){const {W,H,k}=BLOSMAP,S=2,cw=Math.ceil(W/S),ch=Math.ceil(H/S);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   const hs=new Float32Array((cw+2)*(ch+2));const wx=i=>BLOSMAP.x0+(i-0.5)*S/k,wz=j=>BLOSMAP.z0+(j-0.5)*S/k;
   for(let j=0;j<ch+2;j++)for(let i=0;i<cw+2;i++)hs[j*(cw+2)+i]=rawHeight(wx(i),wz(j));
   const img=g.createImageData(cw,ch),d=img.data;const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
-  const shallow=[190,244,236],mid=[70,204,216],deep=[28,128,196];
+  const shallow=mini?[95,214,232]:[190,244,236],mid=mini?[40,150,215]:[70,204,216],deep=mini?[27,103,178]:[28,128,196];
   for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const h=hs[(j+1)*(cw+2)+i+1],x=wx(i+1),z=wz(j+1);let col;
-    if(h<0.5){const dep=Math.max(0,-h);col=mix(mix(shallow,mid,clamp((dep-0.4)/2.6,0,1)),deep,clamp((dep-3.2)/5,0,1));
+    if(h<0.5){const dep=Math.max(0,-h);col=mini?mix(mix(shallow,mid,clamp((dep-0.4)/2.8,0,1)),deep,clamp((dep-3.2)/5.8,0,1)):mix(mix(shallow,mid,clamp((dep-0.4)/2.6,0,1)),deep,clamp((dep-3.2)/5,0,1));
       if(Math.hypot(x-GROTTO.x,z-GROTTO.z)<12)col=mix(col,[110,60,190],0.6);if(Math.hypot(x-CORAL.x,z-CORAL.z)<CORAL.r&&(i*5+j*11)%13===0)col=mix(col,[255,130,160],0.7);
       const nb=Math.max(hs[(j+1)*(cw+2)+i],hs[(j+1)*(cw+2)+i+2],hs[j*(cw+2)+i+1],hs[(j+2)*(cw+2)+i+1]);if(nb>=0.5)col=mix(col,[255,255,255],0.6);
-      if((i*7+j*3)%31===0)col=mix(col,[255,255,255],0.16);}
+      if(!mini&&(i*7+j*3)%31===0)col=mix(col,[255,255,255],0.16);}
     else{const kk=blosIsle(x,z),dx=hs[(j+1)*(cw+2)+i+2]-hs[(j+1)*(cw+2)+i],dz=hs[(j+2)*(cw+2)+i+1]-hs[j*(cw+2)+i+1],steep=Math.hypot(dx,dz);let base;
       if(kk==='coral')base=[252,246,228];else if(kk==='grotto')base=h<=1.4?[196,188,208]:steep>3?[70,62,86]:[104,96,124];else if(kk==='rock')base=[150,140,130];
       else if(btrailAt(x,z)!==null)base=[226,210,176];else if(h<=1.3)base=[248,230,192];else if(steep>3.2)base=[152,142,132];
@@ -3336,10 +3638,14 @@ function buildBlosMapBase(){const {W,H,k}=BLOSMAP,S=2,cw=Math.ceil(W/S),ch=Math.
   // blossom, bamboo and pine canopies
   for(const [x,z] of TREES){if(x<BLOSMAP.x0||x>BLOSMAP.x1||z<BLOSMAP.z0||z>BLOSMAP.z1)continue;const X=bmx(x),Z=bmz(z),bam=Math.hypot(x-BAMBOO.x,z-BAMBOO.z)<BAMBOO.r+4;
     g.fillStyle=bam?'#4f9a3a':((x*13+z*7|0)%6===0?'#e8703a':'#f6a6c6');g.beginPath();g.arc(X,Z,bam?3:4.4,0,TAU);g.fill();g.fillStyle=bam?'#6fba52':'#fcd2e2';g.beginPath();g.arc(X-1,Z-1.2,bam?1.6:2.4,0,TAU);g.fill();}
+  for(const [x,z] of BLOSFX.greens){const X=bmx(x),Z=bmz(z);g.fillStyle='#3f9a3a';g.beginPath();g.arc(X,Z,3.8,0,TAU);g.fill();g.fillStyle='#62c04e';g.beginPath();g.arc(X-1,Z-1.2,2,0,TAU);g.fill();}
   // roofs, shrines and waterfalls
   for(const b of BLOS_BLD){g.save();g.translate(bmx(b.x),bmz(b.z));g.rotate(-b.ry);g.fillStyle=b.roof;g.fillRect(-7,-6,14,12);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(-7,-1,14,2);g.restore();}
   for(const p of [BV_SHRINE,MSUM]){g.fillStyle='#c8322a';g.fillRect(bmx(p.x)-6,bmz(p.z)-6,12,12);g.fillStyle='#3a3a44';g.fillRect(bmx(p.x)-3,bmz(p.z)-3,6,6);}
   for(const f of BLOSFX.falls){if(f.x>0)continue;g.fillStyle='#ffffff';g.beginPath();g.arc(bmx(f.x),bmz(f.z),4,0,TAU);g.fill();g.fillStyle='#8fdcf4';g.beginPath();g.arc(bmx(f.x),bmz(f.z),2.2,0,TAU);g.fill();}
+  if(mini){// the minimap copy melts into the sea chart around it
+    g.globalCompositeOperation='destination-out';const F=34;for(const [x0,y0,x1,y1,rx,ry,rw,rh] of [[0,0,F,0,0,0,F,H],[W,0,W-F,0,W-F,0,F,H],[0,0,0,F,0,0,W,F],[0,H,0,H-F,0,H-F,W,F]]){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(rx,ry,rw,rh);}
+    g.globalCompositeOperation='source-over';BLOSMAP.mini=c;return;}
   // soft pink vignette
   const vg=g.createRadialGradient(W/2,H/2,H*0.36,W/2,H/2,H*0.88);vg.addColorStop(0,'rgba(255,255,255,0)');vg.addColorStop(1,'rgba(255,220,236,0.5)');g.fillStyle=vg;g.fillRect(0,0,W,H);
   BLOSMAP.base=c;}
@@ -5573,8 +5879,8 @@ const QUESTS=[
   {id:'utility',title:'Heat Proof',text:'Buy the Utility Boat from Captain Rosa. Only a Tier 4 hull can take the boiling water around Volcano Isles.',target:npcPos('rosa'),on:(t,d)=>t==='buyBoat'&&BOATS[d].tier>=4,enter:()=>Object.keys(G.boats).some(k=>BOATS[k].tier>=4)},
   {id:'volcano',title:'Fire and Water',text:'Sail far to the north-east, toward the smoking peak of Volcano Isles.',target:()=>new V3(VOLCANO.x,0,VOLCANO.z),on:(t,d)=>t==='discover'&&d==='volcano',enter:()=>!!G.flags.volcano},
   {id:'lavacatch',title:'Hot Catch',text:'Catch a fish in the volcanic waters around Volcano Isles.',target:()=>new V3(VOLCANO.x,0,VOLCANO.z),on:(t,d)=>t==='catch'&&d.zone==='volcano',reward:()=>{G.coins+=120;UI.coins();}},
-  {id:'blossom',title:'Petals on the Water',text:'Sail far to the west, to the calm lagoons of the Blossom Islands.',target:()=>new V3(BLOSSOM.x,0,BLOSSOM.z),on:(t,d)=>t==='discover'&&d==='blossom',enter:()=>!!G.flags.blossom},
-  {id:'koi',title:'Koi Pond',text:'Catch a Koi at the Blossom Islands. Koi love Bread Balls from Nana Pia. The Moon Pond and Bamboo Isle are full of them.',target:()=>new V3(BLOSSOM.x,0,BLOSSOM.z),on:(t,d)=>t==='catch'&&['koi','ogonkoi','showakoi'].includes(d.id),reward:()=>{G.coins+=150;UI.coins();}},
+  {id:'blossom',title:'Petals on the Water',text:'Sail far to the west, to the calm lagoons of the Blossom Islands.',target:()=>new V3(BSHORES[0].boat.x,0,BSHORES[0].boat.z),on:(t,d)=>t==='discover'&&d==='blossom',enter:()=>!!G.flags.blossom},
+  {id:'koi',title:'Koi Pond',text:'Catch a Koi at the Blossom Islands. Koi love Bread Balls from Nana Pia. The Moon Pond and Bamboo Isle are full of them.',target:()=>G.mode==='boat'?new V3(BSHORES.find(s=>s.id==='b_bamboo').boat.x,0,BSHORES.find(s=>s.id==='b_bamboo').boat.z):new V3(BPOND.x,0,BPOND.z),on:(t,d)=>t==='catch'&&['koi','ogonkoi','showakoi'].includes(d.id),reward:()=>{G.coins+=150;UI.coins();}},
   {id:'dino',title:'Living Fossils',text:'Sail far to the south, where giant bones stick out of the sea at Dino Reef.',target:()=>new V3(DINO.x,0,DINO.z),on:(t,d)=>t==='discover'&&d==='dino',enter:()=>!!G.flags.dino},
   {id:'ruins',title:'The Sunken Temple',text:'Find the Ancient Ruins far to the north, past a forest of stone pillars.',target:()=>new V3(RUINS.x,0,RUINS.z),on:(t,d)=>t==='discover'&&d==='ruins',enter:()=>!!G.flags.ruins},
   {id:'legend',title:'Legend of the Sea',text:'Catch any Legendary fish. The Legends tab in the Fishdex shows where they live.',target:()=>null,on:(t,d)=>t==='catch'&&FISH[d.id].rarity==='legendary',enter:()=>Object.keys(G.dex).some(id=>FISH[id]&&FISH[id].rarity==='legendary'),reward:()=>{G.coins+=300;UI.coins();}},
@@ -6557,6 +6863,7 @@ function drawMap(g,W,full){
   for(let j=0;j<FOG_N;j++)for(let i=0;i<FOG_N;i++){if(G.fog[j*FOG_N+i])continue;const x0=i*20-FOG_H,z0=j*20-FOG_H;
     const X=sx(x0),Z=sz(z0),S=20*k;if(X>W||Z>W||X+S<0||Z+S<0)continue;g.fillStyle='rgba(216,230,238,0.94)';g.fillRect(X-0.5,Z-0.5,S+1,S+1);
     g.fillStyle='rgba(255,255,255,0.5)';g.fillRect(X+S*0.2,Z+S*0.3,S*0.25,S*0.12);g.fillRect(X+S*0.55,Z+S*0.65,S*0.3,S*0.12);}
+  if(!full)Blossom.mini(g,cx,cz,view,W,sx,sz);
   // labels
   if(full){g.font='700 15px Nunito, sans-serif';g.textAlign='center';g.fillStyle='#3a2210';g.strokeStyle='rgba(255,245,226,.9)';g.lineWidth=4;
     const lab=(t,x,z)=>{g.strokeText(t,sx(x),sz(z));g.fillText(t,sx(x),sz(z));};
