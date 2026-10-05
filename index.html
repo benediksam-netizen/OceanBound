@@ -484,7 +484,7 @@ body.touch #questCard.blosOn:not(.open) #blosQ{margin-top:0;padding-top:0;border
 </style>
 
 <canvas id="c" tabindex="0"></canvas>
-<div id="ver">v1.5 · Blossom Islands</div>
+<div id="ver">v1.5.1 · Blossom Islands</div>
 
 <div id="title">
   <div class="title-inner">
@@ -1492,18 +1492,21 @@ const _U=(()=>{const g=new THREE.BoxGeometry(1,1,1).toNonIndexed();return{p:g.at
 const FACE_DIMS=[[2,1],[2,1],[0,2],[0,2],[0,1],[0,1]];
 class Batch{
   constructor(tile=0.5){this.parts=[];this.tile=tile;}
-  box(x,y,z,w,h,d,col,ry=0,rx=0,rz=0,jit=0.07){this.parts.push([x,y,z,w,h,d,col,ry,rx,rz,jit]);return this;}
+  box(x,y,z,w,h,d,col,ry=0,rx=0,rz=0,jit=0.07,mask=63){this.parts.push([x,y,z,w,h,d,col,ry,rx,rz,jit,mask]);return this;}
   geometry(){
-    const N=this.parts.length*36;
+    const FB=Batch.FB||(Batch.FB=[0,1,2,3,4,5].map(f=>{const nx=_U.n[f*18],ny=_U.n[f*18+1],nz=_U.n[f*18+2];return nx>0.5?1:nx<-0.5?2:ny>0.5?4:ny<-0.5?8:nz>0.5?16:32;}));
+    let nf=0;for(const p of this.parts){let m=p[11]&63,c=0;while(m){c+=m&1;m>>=1;}nf+=c;}
+    const N=nf*6;
     const P=new Float32Array(N*3),NN=new Float32Array(N*3),UV=new Float32Array(N*2),C=new Float32Array(N*3);
     const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new V3(),s=new V3(),col=new THREE.Color(),rm=new THREE.Matrix4();
     const T4=this.tile*4;let o=0;
     for(const p of this.parts){
-      const [x,y,z,w,h,d,cc,ry,rx,rz,jit]=p;
+      const [x,y,z,w,h,d,cc,ry,rx,rz,jit,mask]=p;
       e.set(rx,ry,rz,'YXZ');q.setFromEuler(e);m.compose(v.set(x,y,z),q,s.set(w,h,d));rm.makeRotationFromQuaternion(q);
       col.set(cc).convertSRGBToLinear();const k=1+(Math.random()-0.5)*2*jit;const cr=col.r*k,cg=col.g*k,cb=col.b*k;
       const dims=[w,h,d],me=m.elements,re=rm.elements;
       for(let i=0;i<36;i++){
+        if(!(mask&FB[(i/6)|0])){i+=5;continue;}
         const px=_U.p[i*3],py=_U.p[i*3+1],pz=_U.p[i*3+2];
         P[o*3]=me[0]*px+me[4]*py+me[8]*pz+me[12];
         P[o*3+1]=me[1]*px+me[5]*py+me[9]*pz+me[13];
@@ -1937,10 +1940,10 @@ const P4VIS=[];
 function isleCells(T,S,P,G,cx,cz,R,pal,rng){
   const g0x=Math.floor((cx-R)/2),g1x=Math.floor((cx+R)/2),g0z=Math.floor((cz-R)/2),g1z=Math.floor((cz+R)/2);
   for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
-    if(h<0.5){if(h<-7.5)continue;const sc=pal.bed(x,z,h,rng);if(!sc)continue;S.box(x,h-0.9,z,2,1.8,2,sc,0,0,0,0.07);if(pal.bedProp)pal.bedProp(x,z,h,rng);continue;}
+    if(h<0.5){if(h<-7.5)continue;const sc=pal.bed(x,z,h,rng);if(!sc)continue;S.box(x,h-0.9,z,2,1.8,2,sc,0,0,0,0.07,4|cellSides(gx,gz,h));if(pal.bedProp)pal.bedProp(x,z,h,rng);continue;}
     let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
     const [top,side,glow]=pal.land(x,z,h,md,rng);
-    (glow?G:T).box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
+    {const cs=cellSides(gx,gz,h);(glow?G:T).box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cs);const c2=cs&&h-0.5>-1.2?cellSides(gx,gz,h-0.5):0;if(c2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06,c2);}
     if(pal.prop)pal.prop(x,z,h,md,rng);}}
 const pick=(a,rng)=>a[(rng()*a.length)|0];
 function buildVolcanoIsle(T,S,P,G,rng){const I=VOLCANO;
@@ -2046,7 +2049,8 @@ function buildP4World(){const rng=mulberry32(404);
 // ambient life of the new biomes: smoke, embers, petals, glowing motes
 const WorldFX4={t:0,
   update(dt){this.t+=dt;const cx=camera.position.x,cz=camera.position.z;
-    for(const v of P4VIS)v.g.visible=Math.hypot(cx-v.x,cz-v.z)<500+v.r*0.6;
+    {const ff=scene.fog?scene.fog.far:420;for(const v of P4VIS){if(v.R===undefined){let R=0;v.g.traverse(o=>{const g=o.geometry;if(!g||!g.attributes||!g.attributes.position)return;if(!g.boundingBox)g.computeBoundingBox();const bb=g.boundingBox;R=Math.max(R,bb.max.x-v.x,v.x-bb.min.x,bb.max.z-v.z,v.z-bb.min.z);});v.R=R;}
+      const dd=Math.hypot(cx-v.x,cz-v.z);v.g.visible=dd<500+v.r*0.6&&dd<ff+v.R+15;}}
     const dv=Math.hypot(cx-VOLCANO.x,cz-VOLCANO.z);
     if(dv<330){if(Math.random()<dt*9)Particles.spawn(VOLCANO.x+rand(-4,4),20,VOLCANO.z+rand(-4,4),rand(-0.6,0.6),rand(2,3.5),rand(-0.6,0.6),Math.random()<0.5?'#5a5654':'#77716c',rand(1.4,2.6),rand(3.5,5.5),-0.25);
       if(Math.random()<dt*6)Particles.spawn(VOLCANO.x+rand(-3,3),19.5,VOLCANO.z+rand(-3,3),rand(-2,2),rand(4,8),rand(-2,2),'#ff9a3a',0.25,1.6,6);
@@ -2094,11 +2098,11 @@ function snowCells(T,S,P,G,cx,cz,R,rng,extra={}){
   const g0x=Math.floor((cx-R)/2),g1x=Math.floor((cx+R)/2),g0z=Math.floor((cz-R)/2),g1z=Math.floor((cz+R)/2);
   for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const key=gx+','+gz;if(SNOW_BUILT.has(key))continue;SNOW_BUILT.add(key);
     const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
-    if(h<0.5){if(h<-7.5)continue;const sc=snowBedCol(x,z,h,rng);S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07);S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05);
+    if(h<0.5){if(h<-7.5)continue;const sc=snowBedCol(x,z,h,rng);{const cs=cellSides(gx,gz,h);S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07,4|cs);const c2=cs?cellSides(gx,gz,h-0.5):0;if(c2)S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05,c2);}
       if(extra.bedProp)extra.bedProp(x,z,h);continue;}
     let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
     const [top,side]=snowLandCol(x,z,h,md,rng);
-    T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
+    {const cs=cellSides(gx,gz,h);T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cs);const c2=cs&&h-0.5>-1.2?cellSides(gx,gz,h-0.5):0;if(c2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06,c2);}
     if(extra.prop)extra.prop(x,z,h,md);else snowProp(P,G,x,z,h,md,rng);}}
 function snowProp(P,G,x,z,h,md,rng){if(md>=1.2||h<1.5||h>16)return;if(trailAt(x,z)!==null||Math.hypot(x-VILLAGE.x,z-VILLAGE.z)<15||deckY(x,z)!==null)return;
   if(Math.hypot(x-GLACIER.x,z-GLACIER.z)<GLACIER.r+20||Math.hypot(x-SEACAVE.x,z-SEACAVE.z)<SEACAVE.r+8||Math.hypot(x-FIELD.x,z-FIELD.z)<FIELD.r+4)return;
@@ -2942,10 +2946,10 @@ function blosCells(T,S,P,G,cx,cz,R,rng,extra={}){
   const g0x=Math.floor((cx-R)/2),g1x=Math.floor((cx+R)/2),g0z=Math.floor((cz-R)/2),g1z=Math.floor((cz+R)/2);
   for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const key=gx+','+gz;if(BLOS_BUILT.has(key))continue;BLOS_BUILT.add(key);
     const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
-    if(h<0.5){if(h<-7.5)continue;const sc=blosBedCol(x,z,h,rng);S.box(x,h-0.6,z,2,1.2,2,sc,0,0,0,0.07);if(extra.bedProp)extra.bedProp(x,z,h);if(extra.k&&!(extra.noBed&&extra.noBed(x,z)))blosBedDecor(S,x,z,h,rng);continue;}
+    if(h<0.5){if(h<-7.5)continue;const sc=blosBedCol(x,z,h,rng);S.box(x,h-0.6,z,2,1.2,2,sc,0,0,0,0.07,4|cellSides(gx,gz,h));if(extra.bedProp)extra.bedProp(x,z,h);if(extra.k&&!(extra.noBed&&extra.noBed(x,z)))blosBedDecor(S,x,z,h,rng);continue;}
     let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
     const [top,side]=blosLandCol(x,z,h,md,rng);
-    T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
+    {const cs=cellSides(gx,gz,h);T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cs);const c2=cs&&h-0.5>-1.2?cellSides(gx,gz,h-0.5):0;if(c2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06,c2);}
     if(extra.k&&md>=2.4&&!(extra.noLedge&&extra.noLedge(x,z)))cliffLedges(P,gx,gz,x,z,h,md,side,rng);
     if(deckY(x,z)!==null)continue;const n0=P.parts.length+G.parts.length,c0=CIRCCOL.length;if(extra.prop)extra.prop(x,z,h,md);
     // whatever the island left empty gets flowers, ferns, rocks, shells and driftwood
@@ -3760,7 +3764,9 @@ const CELL=2,GX0=-44,GX1=52,GZ0=-44,GZ1=78,GW=GX1-GX0+1,GHt=GZ1-GZ0+1;
 const HG=new Float32Array(GW*GHt),KG=new Uint8Array(GW*GHt);
 const KINDS=['water','sand','grass','cobble','stair','grassHi','rock','pond'];
 function gi(gx,gz){return (gx<GX0||gx>GX1||gz<GZ0||gz>GZ1)?-1:(gz-GZ0)*GW+(gx-GX0);}
-function qHeightCell(gx,gz){const i=gi(gx,gz);return i<0?Math.round(rawHeight(gx*CELL+1,gz*CELL+1)*2)/2:HG[i];}
+const QHC=new Map();
+function qHeightCell(gx,gz){const i=gi(gx,gz);if(i>=0)return HG[i];const k=gx*8192+gz;let v=QHC.get(k);if(v===undefined){if(QHC.size>600000)QHC.clear();v=Math.round(rawHeight(gx*CELL+1,gz*CELL+1)*2)/2;QHC.set(k,v);}return v;}
+function cellSides(gx,gz,lim){return (qHeightCell(gx+1,gz)<lim?1:0)|(qHeightCell(gx-1,gz)<lim?2:0)|(qHeightCell(gx,gz+1)<lim?16:0)|(qHeightCell(gx,gz-1)<lim?32:0);}
 function qHeightAt(x,z){return qHeightCell(Math.floor(x/CELL),Math.floor(z/CELL));}
 function surfaceKind(gx,gz){const i=gi(gx,gz);return i<0?(qHeightCell(gx,gz)>=0.5?'sand':'water'):KINDS[KG[i]];}
 (function buildGrid(){
@@ -3896,7 +3902,7 @@ function buildWorld(){
     if(h<0.5){if(h<-6)continue;
       const reef=Math.hypot(x-SPOT.x,z-SPOT.z)<20||Math.hypot(x-ISLET.x,z-ISLET.z)<16;
       const sc=h>-1.5?'#dcc28c':h>-3.5?'#cdb27c':'#b39b6c';
-      S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07);S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05);
+      {const cs=cellSides(gx,gz,h);S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07,4|cs);const c2=cs?cellSides(gx,gz,h-0.5):0;if(c2)S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05,c2);}
       const r=rng();
       if(reef&&r<0.5){const c=['#ff7f8a','#ffa24a','#c86cff','#ff5c7a','#ffd24a','#5fd6c8'][(rng()*6)|0],hh=0.4+rng()*1.3;
         S.box(x+rng()-0.5,h+hh/2,z+rng()-0.5,0.35+rng()*0.45,hh,0.35+rng()*0.45,c,rng()*3);
@@ -3908,17 +3914,17 @@ function buildWorld(){
     let md=0,dropDir=null;for(const [dx,dz] of dirs){const d=h-qHeightCell(gx+dx,gz+dz);if(d>md){md=d;dropDir=[dx,dz];}}
     // top surface
     if(k==='cobble'||k==='stair'){const pal=k==='stair'?stairs:cobbles;
-      for(const [ox,oz] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]])T.box(x+ox,h-0.22,z+oz,0.96,0.44,0.96,pal[(rng()*pal.length)|0],0,0,0,0.04);
-      T.box(x,h-0.47,z,2,0.06,2,'#8f887a');}
+      for(const [ox,oz] of [[-0.5,-0.5],[0.5,-0.5],[-0.5,0.5],[0.5,0.5]])T.box(x+ox,h-0.22,z+oz,0.96,0.44,0.96,pal[(rng()*pal.length)|0],0,0,0,0.04,55);
+      T.box(x,h-0.47,z,2,0.06,2,'#8f887a',0,0,0,0.07,4|cellSides(gx,gz,h));}
     else{let top=k==='grass'?greens[(rng()*4)|0]:k==='grassHi'?hiGreens[(rng()*3)|0]:k==='rock'?rock[(rng()*3)|0]:k==='pond'?'#b9a57a':'#f0d49a';
-      T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);}
+      T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cellSides(gx,gz,h));}
     // sides: stone retaining walls, rocky cliffs, sand or earth
     const bot=-1.2;
     if(h-0.5>bot){let side;
       if(h>=8)side=rock[(gx*7+gz*3&3)%3];
       else if(k==='cobble'||k==='stair'||(md>=1&&h>1.2))side=stone[((gx+gz)%3+3)%3];
       else if(k==='sand')side='#d9b579';else side='#8b5a35';
-      T.box(x,(h-0.5+bot)/2,z,2,h-0.5-bot,2,side,0,0,0,0.06);}
+      const c2=cellSides(gx,gz,h-0.5);if(c2)T.box(x,(h-0.5+bot)/2,z,2,h-0.5-bot,2,side,0,0,0,0.06,c2);}
     // cliff chunks and hanging vines on tall faces
     if(md>=2&&dropDir){const fx=x+dropDir[0]*1.02,fz=z+dropDir[1]*1.02;
       if(h>=8&&rng()<0.45){const s=0.7+rng()*0.9;T.box(fx+(rng()-0.5)*dropDir[1]*1.2,h-md*rng()*0.8-0.4,fz+(rng()-0.5)*dropDir[0]*1.2,s,s,s,rock[(rng()*3)|0],rng()*2);}
@@ -4176,7 +4182,7 @@ function buildFarIsland(T,S,P,G,isle,style,rng){
   const snow=['#f2f6fa','#e8eef6','#f8fbfd'],ice=['#bcd6ea','#a8c8e0','#c8e0f0'],sand=['#f4dca0','#efd392'],grass=['#6fcf4b','#62c043','#78d652'];
   for(let gx=g0x;gx<=g1x;gx++)for(let gz=g0z;gz<=g1z;gz++){const x=gx*2+1,z=gz*2+1,h=qHeightCell(gx,gz);
     if(h<0.5){if(h<-7)continue;const sc=style==='snow'?(h>-3?'#9fb4c4':'#7f94a4'):(h>-1.8?'#f0dca6':h>-3.2?'#dcc28c':'#c0a878');
-      S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07);S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05);
+      {const cs=cellSides(gx,gz,h);S.box(x,h-0.25,z,2,0.5,2,sc,0,0,0,0.07,4|cs);const c2=cs?cellSides(gx,gz,h-0.5):0;if(c2)S.box(x,h-1.25,z,2,1.5,2,shade(sc,0.82),0,0,0,0.05,c2);}
       if(style==='reef'&&h>-3.4&&rng()<0.55){const c=['#ff7f8a','#ffa24a','#c86cff','#ff5c7a','#ffd24a','#5fd6c8','#4fa8ff'][(rng()*7)|0],hh=0.4+rng()*1.4;
         S.box(x+rng()-0.5,h+hh/2,z+rng()-0.5,0.35+rng()*0.5,hh,0.35+rng()*0.5,c,rng()*3);if(rng()<0.5)S.box(x+rng()-0.5,h+0.3,z+rng()-0.5,0.8,0.6,0.8,shade(c,0.8),rng()*3);}
       if(style==='snow'&&rng()<0.08)S.box(x+rng()-0.5,h+0.3,z+rng()-0.5,0.7,0.6,0.7,'#6f7a84',rng()*3);
@@ -4185,7 +4191,7 @@ function buildFarIsland(T,S,P,G,isle,style,rng){
     let top,side;
     if(style==='snow'){top=snow[(rng()*3)|0];side=md>=1?(rng()<0.25?'#7f8a94':ice[(rng()*3)|0]):'#dfe8f0';}
     else{if(h<=1.2){top=sand[(rng()*2)|0];side='#d9b579';}else{top=grass[(rng()*3)|0];side=md>=1?'#a9a08c':'#8b5a35';}}
-    T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05);if(h-0.5>-1.2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06);
+    {const cs=cellSides(gx,gz,h);T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cs);const c2=cs&&h-0.5>-1.2?cellSides(gx,gz,h-0.5):0;if(c2)T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06,c2);}
     if(style==='reef'&&h>1.2&&rng()<0.18)flowers(P,x,h,z,rng);
     if(style==='reef'&&h<=1.2&&rng()<0.05)P.box(x+rng()-0.5,h+0.08,z+rng()-0.5,0.3,0.12,0.22,['#f7b7a3','#fff2e0','#e8a86f'][(rng()*3)|0],rng()*3);
     if(style==='snow'&&rng()<0.06)P.box(x+rng()-0.5,h+0.2,z+rng()-0.5,0.5,0.4,0.5,'#8a949c',rng()*3);}
@@ -6986,8 +6992,17 @@ function startGame(cont){
 
 function waterAhead(){const f=Player.forward();for(let k=1.5;k<=4;k+=0.5)if(isWater(Player.pos.x+f.x*k,Player.pos.z+f.z*k))return true;return false;}
 function castReady(){if(!G.hasRod)return false;return G.mode==='walk'?waterAhead():Math.abs(Boat.speed)<1.8;}
+const PerfAuto={max:renderer.getPixelRatio(),cur:renderer.getPixelRatio(),min:0.75,acc:0,n:0,hold:0,ceil:9,ceilT:0,last:performance.now(),fps:60,
+  tick(){const now=performance.now(),d=now-this.last;this.last=now;if(!started||document.hidden||d>400||window.__noAdapt){this.acc=0;this.n=0;return;}
+    this.acc+=d;this.n++;if(this.acc<2500)return;const fps=this.n*1000/this.acc;this.fps=fps;this.acc=0;this.n=0;if(now>this.ceilT)this.ceil=9;this.w=(this.w||0)+1;if(this.w<3)return;
+    if(fps>=30)this.low=0;
+    if(fps<42){
+      if(this.cur>this.min+0.01){this.ceil=this.cur;this.ceilT=now+240000;this.set(Math.max(this.min,this.cur*(fps<26?0.75:0.87)));this.hold=now+20000;}
+      else if(fps<30&&sun.castShadow){this.low=(this.low||0)+1;if(this.low>=2){sun.castShadow=false;this.noShadow=true;}}}
+    else if(fps>56&&this.cur<this.max-0.01&&now>this.hold){const nv=Math.min(this.max,this.cur*1.12);if(nv<this.ceil*0.97){this.set(nv);this.hold=now+8000;}}},
+  set(v){this.cur=v;renderer.setPixelRatio(v);if(Post.composer&&Post.composer.setPixelRatio)Post.composer.setPixelRatio(v);}};
 function loop(){
-  requestAnimationFrame(loop);
+  requestAnimationFrame(loop);PerfAuto.tick();
   const rdt=Math.min(0.05,clock.getDelta());const dt=rdt*Time.scale;Time.t+=dt;frame++;
   water.material.uniforms.uTime.value=Time.t;CAUSTIC.value=Time.t;
   if(started){
