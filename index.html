@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1c7cc8">
 <title>Ocean Bound – Free Fishing &amp; Island Adventure Game | Sour Milk Studios</title>
-<meta name="description" content="Ocean Bound (Oceanbound) is a free 3D fishing and island adventure game you play in your browser. Catch 400+ fish, sail to 9 regions, explore the Snowy Seas and the Blossom Islands, fight legendary bosses and play online with friends. No download needed. Made by Sour Milk Studios.">
+<meta name="description" content="Ocean Bound (Oceanbound) is a free 3D fishing and island adventure game you play in your browser. Catch 400+ fish, sail to 9 regions, explore the Snowy Seas, the Blossom Islands and Dino Island, fight legendary bosses and play online with friends. No download needed. Made by Sour Milk Studios.">
 <meta name="keywords" content="Ocean Bound, Oceanbound, fishing game, browser game, free online game, island adventure, multiplayer, Sour Milk Studios">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://oceanbound.sourmilkstudioos.com/">
@@ -17,7 +17,7 @@
 {"@context":"https://schema.org","@type":"VideoGame","name":"Ocean Bound","alternateName":"Oceanbound","url":"https://oceanbound.sourmilkstudioos.com/","image":"https://oceanbound.sourmilkstudioos.com/og-image.jpg","description":"A free 3D fishing and island adventure in your browser. Catch 400+ fish, sail to 9 regions, fight legendary bosses and play online with friends.","genre":["Fishing","Adventure"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"author":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"publisher":{"@type":"Organization","name":"Sour Milk Studios","url":"https://sourmilkstudioos.com/"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <meta property="og:title" content="Oceanbound – Fishing &amp; Island Adventure">
-<meta property="og:description" content="Catch 400+ fish, sail to 9 regions, explore the Snowy Seas and the Blossom Islands, fight legendary bosses and play with friends.">
+<meta property="og:description" content="Catch 400+ fish, sail to 9 regions, explore the Snowy Seas, the Blossom Islands and Dino Island, fight legendary bosses and play with friends.">
 <meta property="og:image" content="https://oceanbound.sourmilkstudioos.com/og-image.jpg">
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
@@ -475,7 +475,12 @@ body.touch .qlabel{font-size:10.5px;}
 .snowMap{touch-action:pan-x pan-y pinch-zoom;}
 :fullscreen body,:-webkit-full-screen body{background:#000;}
 #ver{position:fixed;right:calc(7px + env(safe-area-inset-right,0px));bottom:calc(2px + env(safe-area-inset-bottom,0px));z-index:40;pointer-events:none;font:800 11px/1 Nunito,sans-serif;letter-spacing:.4px;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(10,40,70,.9),0 0 3px rgba(10,40,70,.6);white-space:nowrap;}
-#blosQ{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(90,60,30,.25);}
+#blosQ,#dinoQ{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(90,60,30,.25);}
+.dinoL{color:#ffc070!important;}
+.dinoCards .snowCard{box-shadow:0 0 0 2px #a8541a;}.dinoCards .snowCard.locked{box-shadow:0 0 0 2px #a89a88;}
+.dinoCards .snowCard .scH{background:#a8541a;}.dinoCards .snowCard.locked .scH{background:#9a8a78;}.dinoCards .snowCard .scS{color:#a8541a;}
+body.touch #questCard.dinoOn:not(.open) > .qlabel:first-child,body.touch #questCard.dinoOn:not(.open) > #qTitle,body.touch #questCard.dinoOn:not(.open) > #qText,body.touch #questCard.dinoOn:not(.open) > #qProg{display:none;}
+body.touch #questCard.dinoOn:not(.open) #dinoQ{margin-top:0;padding-top:0;border-top:0;}
 .blosL{color:#ffb0d0!important;}
 .blosCards .snowCard{box-shadow:0 0 0 2px #b8327a;}.blosCards .snowCard.locked{box-shadow:0 0 0 2px #a898a0;}
 .blosCards .snowCard .scH{background:#b8327a;}.blosCards .snowCard.locked .scH{background:#9a8a92;}.blosCards .snowCard .scS{color:#c8327a;}
@@ -484,7 +489,7 @@ body.touch #questCard.blosOn:not(.open) #blosQ{margin-top:0;padding-top:0;border
 </style>
 
 <canvas id="c" tabindex="0"></canvas>
-<div id="ver">v1.5.1 · Blossom Islands</div>
+<div id="ver">v1.6 · Dino Island</div>
 
 <div id="title">
   <div class="title-inner">
@@ -511,6 +516,7 @@ body.touch #questCard.blosOn:not(.open) #blosQ{margin-top:0;padding-top:0;border
     <div id="qProg" class="qprog" hidden></div>
     <div id="snowQ" hidden><div class="qlabel snowL">❄ Snowy Seas</div><div id="sqTitle" class="qtitle"></div><div id="sqText" class="qtext"></div></div>
     <div id="blosQ" hidden><div class="qlabel blosL">🌸 Blossom Islands</div><div id="bqTitle" class="qtitle"></div><div id="bqText" class="qtext"></div></div>
+    <div id="dinoQ" hidden><div class="qlabel dinoL">🦴 Dino Island</div><div id="dqTitle" class="qtitle"></div><div id="dqText" class="qtext"></div></div>
   </div>
 
   <div id="topRight">
@@ -662,7 +668,7 @@ const RARITY={
   legendary:{label:'Legendary',color:'#e8961a',w:0.5,rank:4},
   mythic:{label:'Mythic',color:'#e0407a',w:0,rank:5}
 };
-const ZONES={shore:'Starting Island shore',open:'Open sea',shallows:'Coral Shallows',reef:'Sunny Shores reef',frozen:'Snowy Seas',volcano:'Volcano Isles',dino:'Dino Reef',ruins:'Ancient Ruins',blossom:'Blossom Islands',deep:'Mystic Deep',glacier:'Glacier Bay',icefield:'Iceberg Fields',seacave:'Sea Caves lagoon',peaklake:'Peak Lake',arch:'Ice Arch',springs:'Hot Springs',outpost:'Abandoned Outpost',caveb1:'B1 Ice Cave',caveb2:'B2 Crystal Caverns',caveb3:'B3 Sunken Ruins',caveb4:'B4 Deep Sea Caves',sakura:'Sakura Highlands creek',moonpond:'Moon Pond',petalfalls:'Petal Falls',lagoon:'Hidden Lagoon',coral:'Coral Atoll',bamboo:'Bamboo Isle pond',eisles:'Eastern Isles',grotto:'Spirit Grotto cove',grotb1:'B1 Spirit Entrance',grotb2:'B2 Crystal Gardens',grotb3:'B3 Sunken Shrine',grotb4:'B4 Spirit Depths'};
+const ZONES={shore:'Starting Island shore',open:'Open sea',shallows:'Coral Shallows',reef:'Sunny Shores reef',frozen:'Snowy Seas',volcano:'Volcano Isles',dino:'Dino Island waters',ruins:'Ancient Ruins',blossom:'Blossom Islands',deep:'Mystic Deep',glacier:'Glacier Bay',icefield:'Iceberg Fields',seacave:'Sea Caves lagoon',peaklake:'Peak Lake',arch:'Ice Arch',springs:'Hot Springs',outpost:'Abandoned Outpost',caveb1:'B1 Ice Cave',caveb2:'B2 Crystal Caverns',caveb3:'B3 Sunken Ruins',caveb4:'B4 Deep Sea Caves',sakura:'Sakura Highlands creek',moonpond:'Moon Pond',petalfalls:'Petal Falls',lagoon:'Hidden Lagoon',coral:'Coral Atoll',bamboo:'Bamboo Isle pond',eisles:'Eastern Isles',grotto:'Spirit Grotto cove',grotb1:'B1 Spirit Entrance',grotb2:'B2 Crystal Gardens',grotb3:'B3 Sunken Shrine',grotb4:'B4 Spirit Depths',dbeach:'Dino Island beach',dmangrove:'Mangrove Bay',driver:'Jungle River and ponds',dstream:'Mountain Stream',druins:'Ancient Ruins coast',ddeep:'Dino Island deep water'};
 const FISH_DB=[
  {id:'sardine',name:'Sardine',latin:'Sardina pilchardus',zones:['shore','open'],rarity:'common',minCm:12,maxCm:22,wK:11,depth:'0–5 m',bait:['worm','shrimp'],hook:'Size 12–10',reel:1000,difficulty:1,behavior:'calm',value:6,cook:'Fried Sardines',time:'Any',weather:'Any',shape:'slim',col:{top:'#4f86b8',belly:'#e3edf2',acc:'#2c5c8c',fin:'#7fa9c9'},pattern:'spotline',desc:'Schools in the shade under the dock. The first fish most islanders ever land.'},
  {id:'mullet',name:'Striped Mullet',latin:'Mugil cephalus',zones:['shore','open'],rarity:'common',minCm:25,maxCm:50,wK:10,depth:'0–3 m',bait:['worm'],hook:'Size 8–6',reel:2000,difficulty:1.5,behavior:'diver',value:9,cook:'Grilled Fish',time:'Day',weather:'Any',shape:'normal',col:{top:'#71889a',belly:'#e1e7eb',acc:'#4f6273',fin:'#8a9daa'},pattern:'stripes',desc:'A grey grazer that cruises the shallows in loose groups. Pulls low and steady.'},
@@ -1196,6 +1202,63 @@ for(const [id,dz] of [['swordfish',1],['oarfish',1],['greenlandshark',1],['lante
   for(const id of ['petaldancer','sakuradai'])FISH_DB.find(f=>f.id===id).petal=true;
 })();
 
+// ---- Dino Island waters: the beach, the mangroves, jungle rivers, mountain streams, the ruins coast, the outer ocean and the deep ----
+(function(){
+  const RAR={c:'common',u:'uncommon',r:'rare',e:'epic',l:'legendary',m:'mythic'},BH={c:'calm',d:'diver',t:'darter',j:'jumper'};
+  const BT={w:'worm',s:'shrimp',q:'squid',b:'bread',g:'glow'},TM={A:'Any',D:'Day',N:'Night',E:'Evening'},WT={A:'Any',S:'Sunny',C:'Cloudy',R:'Rain',F:'Fog',T:'Storm'};
+  const WK={slim:9,normal:12,deep:20,round:30,long:2.2,shark:8,eel:1.3,squid:10,crab:50,angler:25,ray:6};
+  const DEP={dbeach:'1–10 m',dmangrove:'0–3 m',driver:'0–4 m',dstream:'0–2 m',druins:'2–25 m',dino:'5–80 m',ddeep:'40–600 m'};
+  const RV={c:9,u:20,r:52,e:140,l:480,m:2000},RD={c:[1,1.8],u:[1.8,2.8],r:[2.8,3.8],e:[4,4.8],l:[4.8,5],m:[5,5]};
+  const hsh=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))%9973;return h/9973;};
+  const hookFor=cm=>cm<=30?'Size 12–10':cm<=55?'Size 8–6':cm<=90?'Size 4–1':cm<=150?'Size 1/0–2/0':cm<=350?'Size 6/0':cm<=550?'Size 10/0':'Size 16/0';
+  const R=(id,name,latin,zones,r,minCm,maxCm,bait,beh,time,weather,shape,col,pattern,dz,desc,cook,wK)=>{const ex=FISH_DB.find(f=>f.id===id);if(ex){for(const zz of zones.split(' '))if(!ex.zones.includes(zz))ex.zones.push(zz);return;}
+    const rar=RAR[r],z=zones.split(' '),k=wK||WK[shape]||12,kg=k*Math.pow(maxCm/100,3),c=col.split(',');
+    const dr=RD[r],diff=Math.round((dr[0]+(dr[1]-dr[0])*hsh(id))*10)/10;
+    FISH_DB.push({id,name,latin,zones:z,rarity:rar,minCm,maxCm,wK:k,depth:dz===2?'150–900 m':dz===1?'20–300 m':DEP[z[0]],
+      bait:bait.split('').map(b=>BT[b]),hook:hookFor(maxCm),reel:kg<4?1000:kg<8?2000:kg<14?4000:kg<25?5000:kg<45?8000:kg<90?10000:12000,
+      difficulty:diff,behavior:BH[beh],value:Math.round(RV[r]*(0.75+Math.min(maxCm,600)/260)),cook:cook||'Grilled Fish',time:TM[time],weather:WT[weather],
+      shape,col:{top:c[0],belly:c[1],acc:c[2],fin:c[3]},pattern,desc,dz,p4:true,dinoI:true});};
+  const also=(ids,zones)=>{for(const id of ids.split(' ')){const f=FISH_DB.find(k=>k.id===id);if(f)for(const z of zones.split(' '))if(!f.zones.includes(z))f.zones.push(z);}};
+  // the beach and the village shallows
+  R('sergeant','Indo-Pacific Sergeant','Abudefduf vaigiensis','dbeach','c',12,20,'ws','c','D','A','normal','#f2e26a,#f4f4e8,#1d1d24,#c8c04a','bars',0,"Bold little striped fish that guard their eggs on the dock posts.");
+  R('yellowfusilier','Yellowback Fusilier','Caesio teres','dbeach druins','c',20,40,'s','t','D','A','slim','#f2d23a,#e8f0f8,#3a8ad8,#f2d23a','stripes',0,"Schools of blue and yellow that flash past the end of the pier.");
+  R('bluefintrevally','Bluefin Trevally','Caranx melampygus','dbeach dino','u',40,100,'sq','d','D','A','normal','#3a6a9a,#c8d8e8,#2a7ae8,#5a8ab8','dots',0,"A fast reef hunter with electric-blue fins. It hits a bait like a hammer.");
+  R('sandwhiting','Sand Whiting','Sillago ciliata','dbeach','c',20,45,'ws','c','A','A','slim','#e8dcc0,#f8f4ec,#c8b890,#e0d4b0','',0,"Feeds in the surf right off the beach. Kids catch them by hand.");
+  also('lanesnapper glasseye barjack porkfish bluestripe goatfish chromis bluedamsel squirrelfish','dbeach');
+  // Mangrove Bay
+  R('mangrovejack','Mangrove Jack','Lutjanus argentimaculatus','dmangrove','u',40,90,'sq','d','E','A','normal','#b8402a,#f0c8a8,#8a2a1a,#c84a2a','',0,"A red snapper that hides among the roots and runs straight back into them when hooked.");
+  R('archerfish','Banded Archerfish','Toxotes jaculatrix','dmangrove driver','u',15,30,'wb','j','D','S','deep','#d8d8c8,#f4f4ec,#1d1d24,#c8c8b8','bars',0,"Spits jets of water to knock insects off the leaves above.");
+  R('barramundi','Barramundi','Lates calcarifer','dmangrove driver','r',60,150,'sq','j','E','A','normal','#8a9a9a,#e8ece8,#c8402a,#7a8a8a','',0,"The king of the mangroves. Its eyes glow red in a torch beam at night.");
+  R('scat','Spotted Scat','Scatophagus argus','dmangrove','c',15,30,'wsb','c','A','A','deep','#8aa060,#e8e8c8,#3a3a2a,#8a9a5a','spots',0,"A round, spotted fish that eats almost anything that drifts by.");
+  R('mudcrab','Giant Mud Crab','Scylla serrata','dmangrove','u',15,25,'sq','c','N','A','crab','#3a4a2a,#c8b890,#e0802a,#4a5a3a','',0,"Lives in burrows in the mud. Mind the claws.",'Chilli Crab');
+  R('oxeye','Indo-Pacific Tarpon','Megalops cyprinoides','dmangrove','r',40,100,'sq','j','A','R','long','#a8b8c8,#f4f8fc,#6a7a8a,#c8d8e8','',0,"Leaps clear of the water again and again. Gulps air from the surface.",null,8);
+  also('mudskipper','dmangrove');
+  // jungle rivers and ponds
+  R('jungleperch','Jungle Perch','Kuhlia rupestris','driver dstream','c',20,40,'w','t','D','A','normal','#7a8a6a,#e8ece0,#1d1d24,#8a9a7a','spots',0,"Lives in clear jungle pools and snaps up insects that fall from the trees.");
+  R('giantgourami','Giant Gourami','Osphronemus goramy','driver','u',40,70,'bw','c','A','A','deep','#8a7a5a,#e8dcc0,#3a3a2a,#9a8a6a','',0,"A gentle giant that nibbles fruit dropped into the pond.");
+  R('marbledeel','Giant Mottled Eel','Anguilla marmorata','driver','r',80,200,'wq','d','N','R','eel','#5a5a3a,#d8d0b0,#2a2a1a,#6a6a4a','spots',0,"Climbs over wet rocks at night to reach pools far up the river.");
+  R('clownknife','Clown Featherback','Chitala ornata','driver','u',50,100,'ws','t','N','A','long','#a8a8b0,#e8e8ec,#1d1d24,#b8b8c0','spots',0,"A knife-shaped fish with a row of black eye-spots.");
+  R('redtailcat','Redtail Catfish','Phractocephalus hemioliopterus','driver','e',80,140,'wq','d','N','A','long','#3a3a3a,#f4f0e0,#e0402a,#3a3a3a','',0,"A huge whiskered catfish with a bright red tail. It sleeps under the river pool.",null,6);
+  also('silverarowana spottedgar bichir lungfish betta snakehead','driver');
+  // the mountain stream
+  R('goldenmahseer','Golden Mahseer','Tor putitora','dstream','e',60,150,'wb','j','D','A','normal','#d8a83a,#f4e4b0,#8a6a2a,#e0b84a','',0,"The tiger of the mountain rivers, with scales like old gold coins.");
+  R('climbinggoby','Climbing Goby','Sicyopterus lagocephalus','dstream','c',6,12,'w','t','D','A','slim','#6a8a7a,#e0e8e0,#3a8ad8,#7a9a8a','bars',0,"Climbs up waterfalls with a sucker on its belly.");
+  R('hillloach','Hillstream Loach','Sewellia lineolata','dstream','c',5,8,'w','c','A','A','slim','#d8c88a,#f0e8d0,#1d1d24,#c8b878','spots',0,"Clings flat to the rocks in fast water like a tiny stingray.");
+  R('streamtrout','Highland Barb','Neolissochilus stracheyi','dstream','u',25,50,'ws','t','E','A','normal','#7a8a9a,#e8ece8,#c8a040,#8a9aaa','',0,"Silver-bronze and fast. It waits below the falls for food to wash down.");
+  // the Ancient Ruins coast
+  R('ruinglimmer','Ruin Glimmer','Labroides antiquus','druins','r',15,30,'s','t','D','A','slim','#5ac8e8,#e8f8ff,#7fe8c8,#3a8ad8','glow',0,"A little wrasse that lives in the carved stones that fell into the sea. Its stripe glows like the temple light.");
+  R('blueparrot','Blue Parrotfish','Scarus coeruleus','druins','u',30,90,'s','c','D','A','deep','#3a8ae8,#c8e0f8,#f2cf3f,#4a9af8','',0,"Crunches coral with its beak. Much of the white sand on the beach came out of fish like this.");
+  also('napoleon coralgrouper redemperor leopardcoral titantrigger bumphead harlequin sweetlips moorish emperorangel regalangel','druins');
+  // the outer ocean
+  R('greatbarracuda','Great Barracuda','Sphyraena barracuda','dino','u',70,170,'q','t','A','A','long','#6a7a8a,#e8ecf0,#1d1d24,#7a8a9a','spots',0,"A silver torpedo with a mouth full of fangs.",null,4);
+  R('blacktipreef','Blacktip Reef Shark','Carcharhinus melanopterus','dino dbeach','r',100,180,'q','d','A','A','shark','#8a8a7a,#f0f0e8,#1d1d24,#8a8a7a','',0,"Patrols the shallows with the tip of its fin out of the water.");
+  R('grayreefshark','Grey Reef Shark','Carcharhinus amblyrhynchos','dino druins','e',120,190,'q','d','N','A','shark','#6a7480,#e8ecf0,#2a2a30,#6a7480','',0,"Hunts in packs along the outer reef wall at night.");
+  also('yellowfin skipjack gianttrevally wahoo kingmackerel rainbowrunner blueshark','dino');
+  // the deep water off the island
+  R('sailfish','Indo-Pacific Sailfish','Istiophorus platypterus','ddeep','e',150,300,'q','j','D','S','long','#1a3a7a,#e8ecf4,#3a6ad8,#2a4a9a','spots',0,"The fastest fish in the sea. It raises its great blue sail to herd baitfish.",null,1.8);
+  also('bluemarlin blackmarlin hammerhead tigershark bigeyetuna dogtooth coelacanth goblinshark frilledshark sixgill megamouth','ddeep');
+})();
+
 const FISH=Object.fromEntries(FISH_DB.map(f=>[f.id,f]));
 const GEAR={
   rod:{
@@ -1547,7 +1610,7 @@ const FROZEN={x:-330,z:-385,r:30,name:'Snowy Seas'};
 const BERGS=(()=>{const r=mulberry32(31),o=[];for(let i=0;i<16;i++){const a=r()*TAU,d=FROZEN.r+8+r()*38;o.push([FROZEN.x+Math.cos(a)*d,FROZEN.z+Math.sin(a)*d,1.6+r()*3.2,1.4+r()*4]);}return o;})();
 // ---------------- Phase 4 biomes ----------------
 const VOLCANO={x:330,z:-215,r:34,name:'Volcano Isles'};
-const DINO={x:-130,z:345,r:30,name:'Dino Reef'};
+const DINO={x:-125,z:345,r:110,name:'Dino Island'};
 const RUINS={x:130,z:-375,r:24,name:'Ancient Ruins'};
 const BLOSSOM={x:-425,z:95,r:34,name:'Blossom Islands'};
 const DEEP={x:385,z:300,r:115,name:'Mystic Deep'};
@@ -1568,7 +1631,7 @@ const BLOSSOM_ISLES=[[-318,146,10],[-388,150,9],[-326,70,8]];
 const CRYSTALS=(()=>{const r=mulberry32(55),o=[];for(let i=0;i<60&&o.length<14;i++){const a=r()*TAU,d=r()*DEEP.r*0.85,x=DEEP.x+Math.cos(a)*d,z=DEEP.z+Math.sin(a)*d;
   if(nearBoss(x,z,30))continue;if(o.some(c=>Math.hypot(c[0]-x,c[1]-z)<16))continue;o.push([x,z,1.4+r()*1.3,6+r()*10]);}return o;})();
 const ISLES={sunny:{o:SUNNY,near:40,sub:'tropical reef fish'},frozen:{o:FROZEN,near:45,sub:'Snow Village, glaciers, hot springs and cold-water fish'},
-  volcano:{o:VOLCANO,near:48,sub:'lava, boiling water and fire-red fish'},dino:{o:DINO,near:46,sub:'living fossils and prehistoric giants'},
+  volcano:{o:VOLCANO,near:48,sub:'lava, boiling water and fire-red fish'},dino:{o:DINO,near:150,sub:'a beach village, a jungle, a valley of giant bones, mountains and a lost temple'},
   ruins:{o:RUINS,near:62,sub:'a sunken temple and mysterious fish'},blossom:{o:BLOSSOM,near:140,sub:'Blossom Village, cherry forests, a hidden lagoon and the Spirit Grotto'},
   deep:{o:DEEP,near:0,sub:'the dark end of the ocean. Legends lurk below'}};
 // ---------------- Snowy Seas: eight places around Snow Village ----------------
@@ -1918,22 +1981,203 @@ Object.assign(RES,{
   coralpiece:{name:'Coral Piece',col:'#ff7a8a',price:40,desc:'A broken branch of bright reef coral.'},pearlshell:{name:'Pearl Shell',col:'#f4e8f8',price:55,desc:'A shell that shines like the moon inside.'},
   spiritcrystal:{name:'Spirit Crystal',col:'#ff8ad8',price:75,desc:'A pink crystal that hums when you hold it.'},mooncrystal:{name:'Moon Crystal',col:'#a8c8ff',price:85,desc:'Pale blue. It glows brighter at night.'},
   raremineral:{name:'Rare Mineral',col:'#c8a0ff',price:65,desc:'Heavy purple ore from deep in the grotto.'}});
+// ---------------- Dino Island: one big tropical island where the old Dino Reef was ----------------
+// local frame: u = east, v = south (north is up on every chart), centred on DCX, DCZ
+const DCX=-125,DCZ=345;
+const DINO_BOX={x0:-264,x1:35,z0:195,z1:520};
+const inDinoBox=(x,z)=>x>DINO_BOX.x0&&x<DINO_BOX.x1&&z>DINO_BOX.z0&&z<DINO_BOX.z1;
+const dpt=(u,v)=>({x:DCX+u,z:DCZ+v});
+// the coastline: a big round island, a little wider east-west, with a headland under the ruins in the north-east
+function dCoastR(a){const base=1/Math.sqrt((Math.cos(a)/118)**2+(Math.sin(a)/108)**2);
+  return base*(1+0.035*Math.sin(3*a+0.7)+0.025*Math.cos(5*a+1.3)+0.012*Math.sin(9*a+0.4))+6*Math.exp(-((angDiff(a,-0.75)/0.35)**2));}
+const DEG=Math.PI/180;
+// sandy coasts: the long south beach of the village and the west beach below Fossil Valley; everything else is cliff
+const dBeachA=a=>(a>62*DEG&&a<126*DEG)||a>158*DEG||a<-152*DEG;
+// the regions of the island
+const D_PLAT={u:3,v:-20,hu:33,hv:30,rc:10,h:12};           // Central Plateau
+const D_H1={u:-5,v:-80,ru:66,rv:34,h:18};                   // Mountain Highlands, lower level
+const D_H2={u:-8,v:-84,ru:30,rv:17,h:26};                   // Mountain Highlands, upper level
+const D_SUM={u:-8,v:-88,r:8,h:32};                          // the summit viewpoint
+const D_RUINS={u:66,v:-58,ru:38,rv:32,h:9};                 // Ancient Ruins
+const D_TEMPLE={u:76,v:-66,hs:11,h:14};                     // the Forgotten Temple platform
+const D_VALLEY={u:-68,v:-2,ru:38,rv:42,h:3.2};              // Fossil Valley floor
+const D_MANG={u:66,v:80,ru:44,rv:30};                       // Mangrove Bay
+const D_ISLETS=[[40,68,7],[60,60,6],[82,70,7],[54,88,6],[96,86,5],[72,96,5]]; // mangrove islets [u,v,r]
+const D_HIDDEN={u:108,v:104,r:4};                          // a hidden islet out in the mangroves
+const D_TURTLE={u:-108,v:-84,r:8};                         // Turtle Islet, off the north-west cliffs
+const ell=(u,v,cu,cv,ru,rv)=>Math.hypot((u-cu)/ru,(v-cv)/rv);
+function rrIn(u,v,R){const dx=Math.max(0,Math.abs(u-R.u)-(R.hu-R.rc)),dz=Math.max(0,Math.abs(v-R.v)-(R.hv-R.rc));return Math.hypot(dx,dz)<R.rc+0.6*Math.sin(u*0.11+v*0.07);}
+// the gentle lowland: low by the south beach, rising to the jungle; it dips down toward the mangroves
+function dLow(u,v){let h=1.5+clamp((78-v)*0.11,0,4.5);if(v<40)h+=0.7*Math.sin(u*0.045+1)*Math.cos(v*0.05)*clamp((40-v)/20,0,1);
+  const m=ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv);if(m>=1)h=Math.min(h,1.0+(m-1)*37*0.15);return h;}
+// ramps and stairs that climb from one level to the next: [u,v,h] points; h:null takes the ground height there
+const D_RAMPS=[
+  {id:'jp',w:2.6,pts:[[4,50,null],[4,6,12]]},                                   // jungle -> plateau (south stairs)
+  {id:'vp',w:2.6,pts:[[-52,22,3.2],[-36,-2],[-24,-14,12]]},                     // valley -> plateau (fossil cliff stairs)
+  {id:'ph',w:2.6,pts:[[-14,-30,12],[-26,-62,18]]},                              // plateau -> highlands
+  {id:'hh',w:2.4,pts:[[40,-60,18],[16,-65],[2,-76,26]]},                        // highlands -> upper highlands
+  {id:'hs',w:2.2,pts:[[-24,-74,26],[-30,-86],[-20,-97],[-10,-95,32]]},          // upper highlands -> summit
+  {id:'jr',w:2.6,pts:[[52,-4,null],[56,-34,9]]},                                // jungle -> ruins
+  {id:'pr',w:2.6,pts:[[26,-30,12],[46,-46,9]]},                                 // plateau -> ruins
+  {id:'ts',w:3.2,pts:[[76,-32,9],[76,-58,14]]},                                 // the temple stairs
+  {id:'cv',w:2.4,pts:[[84,-48,9],[98,-56],[110,-46],[113,-34,1.5]]},            // ruins -> the cove below
+  {id:'cp',w:2.0,pts:[[92,-40,9],[106,-22],[110,2],[107,26],[95,48,2]]}];       // Cliffside Pass
+for(const R of D_RAMPS){const P=R.pts;let s=0;P[0].s=0;for(let i=1;i<P.length;i++){s+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]);P[i].s=s;}R.len=s;
+  const h0=P[0][2]===null?Math.round(dLow(P[0][0],P[0][1])*2)/2:P[0][2],h1=P[P.length-1][2];R.h0=h0;R.h1=h1;
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}R.bb=[x0-R.w-1,x1+R.w+1,z0-R.w-1,z1+R.w+1];}
+// height on a ramp (or null when not on one); also the distance along it, for drawing steps
+function dRampAt(u,v){let best=null,bd=1e9;for(const R of D_RAMPS){if(u<R.bb[0]||u>R.bb[1]||v<R.bb[2]||v>R.bb[3])continue;const P=R.pts;
+    for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],dx=b[0]-a[0],dz=b[1]-a[1],L2=dx*dx+dz*dz,t=clamp(((u-a[0])*dx+(v-a[1])*dz)/L2,0,1),d=Math.hypot(u-a[0]-dx*t,v-a[1]-dz*t);
+      if(d<R.w&&d<bd){bd=d;const s=a.s+Math.sqrt(L2)*t;best={h:lerp(R.h0,R.h1,s/R.len),R,s,d};}}}return best;}
+// water you can fish in: the jungle river, freshwater ponds and the mountain stream, cut down to the sea
+const D_RIVER=[[16,13],[22,40],[36,66]];
+const D_PONDS=[[16,13,4.6,'river'],[60,20,5,'pond'],[44,-10,4,'pond'],[-20,-64,2.6,'stream']];
+const D_STREAM=[[-40,-70],[-42,-88],[-46,-108]];
+const D_INLETS=[[[120,-6],[98,-6]],[[121,30],[96,30]]];   // the sea cuts in under Cliffside Pass; bridges cross
+const D_DROCKS=(()=>{const r=mulberry32(3311),o=[];for(let i=0;i<400&&o.length<14;i++){const a=r()*TAU,d=128+r()*26,u=Math.cos(a)*d,v=Math.sin(a)*d;
+    if(DCX+u<DINO_BOX.x0+10||DCX+u>DINO_BOX.x1-10)continue;if(Math.hypot(u-D_TURTLE.u,v-D_TURTLE.v)<30||ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru+30,D_MANG.rv+30)<1)continue;
+    if(a>55*DEG&&a<130*DEG&&d<150)continue;if([[-130,6],[118,-34],[108,104],[-108,-84]].some(q=>Math.hypot(u-q[0],v-q[1])<24))continue;if(o.some(q=>Math.hypot(q[0]-u,q[1]-v)<26))continue;o.push([u,v,1.6+r()*1.2,3.5+r()*6]);}return o;})();
+const dSeg=(u,v,P)=>{let d=1e9;for(let i=1;i<P.length;i++)d=Math.min(d,segDist(u,v,P[i-1][0],P[i-1][1],P[i][0],P[i][1]));return d;};
+function dinoLocal(u,v){const e=Math.hypot(u,v);if(e>175)return null;const a=Math.atan2(v,u),rr=dCoastR(a),edge=rr-e,beach=dBeachA(a);let h;
+  if(edge<0){const d=-edge;h=beach?(d<6?0.7-d*0.2:-0.5-(d-6)*0.5):-0.3-d*0.7;h=Math.max(h,d<8?-3.2:-3.2-(d-8)*0.4);h=Math.max(h,-8);}
+  else{h=dLow(u,v);
+    // Fossil Valley: a wide sandy bowl, open to the west beach
+    {const m=ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru,D_VALLEY.rv);if(m<1){const fl=D_VALLEY.h+0.35*Math.sin(u*0.17)*Math.cos(v*0.13);h=m<0.55?fl:lerp(fl,h,(m-0.55)/0.45);}}
+    if(beach)h=Math.min(h,0.7+edge*0.15);
+    // the raised places, each a level of its own with cliffs all round
+    if(ell(u,v,D_RUINS.u,D_RUINS.v,D_RUINS.ru,D_RUINS.rv)<1||ell(u,v,28,-50,9,7)<1)h=D_RUINS.h;
+    if(Math.max(Math.abs(u-D_TEMPLE.u),Math.abs(v-D_TEMPLE.v))<D_TEMPLE.hs)h=D_TEMPLE.h;
+    if(rrIn(u,v,D_PLAT))h=D_PLAT.h;
+    if(ell(u,v,D_H1.u,D_H1.v,D_H1.ru,D_H1.rv)<1)h=D_H1.h;
+    if(ell(u,v,D_H2.u,D_H2.v,D_H2.ru,D_H2.rv)<1)h=D_H2.h;
+    if(Math.hypot(u-D_SUM.u,v-D_SUM.v)<D_SUM.r)h=D_SUM.h;}
+  // Mangrove Bay: shallow water, mud flats and little islets
+  {const m=ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv);if(m<1){let w=m<0.8?-1.1:(edge>0?1.0:-1.1);if(edge<-6)w=Math.min(w,-1.1-(-edge-6)*0.12);h=w;
+      for(const [iu,iv,ir] of D_ISLETS){const d=Math.hypot(u-iu,v-iv);if(d<ir+4)h=Math.max(h,Math.min(1.2,0.6+(ir-d)*0.2));}}}
+  {const d=Math.hypot(u-D_HIDDEN.u,v-D_HIDDEN.v);if(d<D_HIDDEN.r+5)h=Math.max(h,Math.min(1.4,0.6+(D_HIDDEN.r-d)*0.25));}
+  {const d=Math.hypot(u-D_TURTLE.u,v-D_TURTLE.v);if(d<D_TURTLE.r+10)h=Math.max(h,Math.min(2.2,0.7+(D_TURTLE.r-d)*0.2));}
+  for(const r of D_DROCKS){const d=Math.hypot(u-r[0],v-r[1]);if(d<r[2])h=Math.max(h,r[3]);else if(d<r[2]+5)h=Math.max(h,-0.8-(d-r[2])*0.4);}
+  // stairs and ramps cut through every cliff
+  if(edge>-1){const r=dRampAt(u,v);if(r)h=r.h;}
+  // water cut down to the sea: the river, ponds, the mountain stream and the inlets under the pass
+  if(edge>0){if(dSeg(u,v,D_RIVER)<3.2)h=-1.8;for(const p of D_PONDS)if(Math.hypot(u-p[0],v-p[1])<p[2])h=-1.6;if(dSeg(u,v,D_STREAM)<1.7)h=-1.6;
+    for(const I of D_INLETS)if(dSeg(u,v,I)<3)h=-2.5;}
+  return h;}
+function dinoHeight(x,z,h){if(!inDinoBox(x,z))return h;const v=dinoLocal(x-DCX,z-DCZ);return v===null?h:Math.max(h,v);}
+
+// ---- docks, piers, boardwalks and bridges ----
+const DINO_DECKS=[],DSHORES=[];
+{const dk=(p,u,len,hw,y,o)=>{const d={x:p.x,z:p.z,ux:u.x,uz:u.z,len,hw,y,o:o||{}};DINO_DECKS.push(d);SNOW_DECKS.push(d);return d;};
+  const shore=(id,name,foot,dir,gap=3.9)=>{const s={id,name,foot,boat:{x:foot.x+dir.x*gap,z:foot.z+dir.z*gap},yaw:Math.atan2(-dir.z,dir.x),dino:true};DSHORES.push(s);SHORES.push(s);return s;};
+  const L=(u,v)=>dinoLocal(u,v),hR=(u,v)=>Math.round(L(u,v)*2)/2;
+  // where land meets water walking from (u,v) along (du,dv)
+  const coastAt=(u,v,du,dv)=>{for(let t=0;t<200;t+=0.5)if(L(u+du*t,v+dv*t)<0.5)return {u:u+du*t,v:v+dv*t};return {u,v};};
+  const S={x:0,z:1},N={x:0,z:-1},E={x:1,z:0},W={x:-1,z:0};
+  // the Coastal Beach village: the main pier with a cross pier at its head, the fishing dock and the Boat Works pier
+  {const c=coastAt(-14,80,0,1),p=dpt(-14,c.v-3);dk(p,S,26,1.8,1.3,{main:true});const e=dpt(-14,c.v+23);dk(dpt(-21,c.v+23),E,14,1.8,1.3,{main:true});
+    shore('d_village','the Coastal Beach village',{x:e.x,z:e.z+1.4},S);
+    const f=coastAt(-48,80,0,1);dk(dpt(-48,f.v-2),S,13,1.3,1.3,{fish:true});
+    const w=coastAt(10,80,0,1);dk(dpt(10,w.v-2),S,10,1.6,1.3,{works:true});dk(dpt(7,w.v+8),E,6,3,1.3,{plat:true});}
+  // the west beach under Fossil Valley
+  {const c=coastAt(-90,6,-1,0),p=dpt(c.u+3,6);dk(p,W,13,1.3,1.3,{});shore('d_valley','the Fossil Valley beach',{x:p.x-12.7,z:p.z},W);}
+  // Mangrove Bay: boardwalks from the shore out over the islets, and a landing at the outer islet
+  {const I=D_ISLETS,link=(a,b)=>{const v=unit2(b[0]-a[0],b[1]-a[1]),L2=Math.hypot(b[0]-a[0],b[1]-a[1]);dk(dpt(a[0]+v.x*(a[2]-1.6),a[1]+v.z*(a[2]-1.6)),v,L2-a[2]-b[2]+3.2,1.2,1.3,{rail:true,board:true});};
+    link([34,55,1.6],I[0]);link(I[0],I[1]);link(I[1],I[2]);link(I[2],I[4]);link(I[1],I[3]);link(I[3],I[5]);
+    const m=I[5],p=dpt(m[0],m[1]+m[2]-1.6);dk(p,S,9,1.3,1.3,{board:true});shore('d_mangrove','Mangrove Bay',{x:p.x,z:p.z+8.7},S);
+    const h=dpt(D_HIDDEN.u+D_HIDDEN.r-1.4,D_HIDDEN.v);dk(h,E,6,1.1,1.3,{board:true});shore('d_hidden','the hidden mangrove islet',{x:h.x+5.7,z:h.z},E,3.6);}
+  // the cove below the Ancient Ruins
+  {const R=D_RAMPS.find(r=>r.id==='cv'),e=R.pts[R.pts.length-1],p=dpt(e[0]+0.5,e[1]);dk(p,E,11,1.3,1.3,{});shore('d_cove','the Ancient Ruins cove',{x:p.x+10.7,z:p.z},E);}
+  // Turtle Islet
+  {const T=D_TURTLE,p=dpt(T.u,T.v+T.r-2.6);dk(p,S,10,1.3,1.3,{});shore('d_turtle','Turtle Islet',{x:p.x,z:p.z+9.7},S);}
+  // bridges over the jungle river
+  for(const v of [32,50]){let a=null,b=null;for(let u=-4;u<50;u+=0.5){const w=L(u,v)<0.5;if(w&&a===null)a=u;if(!w&&a!==null&&b===null&&u>a+1)b=u;}
+    if(a===null||b===null)continue;const u0=a-2.5,u1=b+2,y=Math.max(hR(u0,v),hR(u1,v));dk(dpt(u0,v),E,u1-u0,1.4,y,{rail:true,bridge:true});}
+  // Cliffside Pass crosses two sea inlets on plank bridges
+  {const R=D_RAMPS.find(r=>r.id==='cp'),P=R.pts,pt=s=>{for(let i=1;i<P.length;i++)if(s<=P[i].s||i===P.length-1){const t=clamp((s-P[i-1].s)/(P[i].s-P[i-1].s),0,1);return [lerp(P[i-1][0],P[i][0],t),lerp(P[i-1][1],P[i][1],t)];}};
+    let inW=false,s0=0;for(let s=0;s<=R.len;s+=0.5){const q=pt(s),w=L(q[0],q[1])<0.5;if(w&&!inW){inW=true;s0=s;}if(!w&&inW){inW=false;const a=pt(s0-2.5),b=pt(s+2),v=unit2(b[0]-a[0],b[1]-a[1]);
+        dk(dpt(a[0],a[1]),v,Math.hypot(b[0]-a[0],b[1]-a[1]),1.4,Math.round(lerp(R.h0,R.h1,(s0-2.5+s+2)/2/R.len)*2)/2,{rail:true,bridge:true,rope:true});}}}
+  // a rope bridge over the mountain stream, high on the cliffs
+  {const v=-96,u0=-50,u1=-35;dk(dpt(u0,v),E,u1-u0,1.2,18,{rail:true,bridge:true,rope:true});}}
+
+// ---- what stands where on Dino Island (local u east, v south) ----
+const DINOFX={signs:[],falls:[],lamps:[],fire:[],steam:[]};
+// the Coastal Beach village: front doors face the sea (south)
+const D_BLD=[
+  {id:'market',name:'Fish Market',u:-27,v:86,w:5.6,d:4.2,sign:'fish',wall:'#d8a46a'},
+  {id:'tackle',name:'Fishing Shop',u:-2,v:86,w:5,d:4,sign:'hook',wall:'#7fb0d8'},
+  {id:'store',name:'General Store',u:-41,v:84,w:5,d:4,sign:'bag',wall:'#e0c08a'},
+  {id:'grill',name:'Beach Grill',u:14,v:82,w:5.6,d:4.4,sign:'fork',wall:'#e89a6a'},
+  {id:'museum',name:'Island Museum',u:-25,v:66,w:10,d:6,big:true,sign:'board',wall:'#f0e2c4'},
+  {id:'storage',name:'Storage Warehouse',u:-53,v:70,w:8,d:5,big:true,sign:'board',wall:'#b8885a'},
+  {id:'house',name:'Your Beach Hut',u:-2,v:68,w:4.6,d:4,sign:'house',wall:'#d8b07a'},
+  {id:'h1',name:'',u:12,v:66,w:4.2,d:3.6,wall:'#c8a07a'},{id:'h2',name:'',u:-36,v:66,w:4.2,d:3.6,wall:'#e0b88a'},{id:'h3',name:'',u:-58,v:86,w:4.2,d:3.6,wall:'#c89a6a'}];
+for(const b of D_BLD){const p=dpt(b.u,b.v);b.x=p.x;b.z=p.z;b.ry=0;b.door=dpt(b.u,b.v+b.d/2+1.2);}
+const D_WORKS={u:10,v:98},D_BOARD={u:-9,v:78},D_FARM={u:-44,v:56},D_TOWER={u:-64,v:92},D_PLAZA={u:-14,v:84};
+const D_SKEL={u:-70,v:-2,ry:0.71},D_SKULL={u:-90,v:-22},D_CAMP={u:-76,v:21};
+const D_COURT={u:3,v:-22},D_VIEW={u:-26,v:-6},D_TOP={u:-7,v:-89};
+const D_TEMPLE_GATE={u:76,v:-55.6},D_RELIC={u:76,v:-61},D_PILLARS=[[64,-44],[88,-44],[66,-30],[84,-34]];
+const D_GATEWAY={u:56,v:-38},D_CLEARING={u:86,v:-8},D_HUTS=[[60,60],[96,86]];
+// sandy and stone paths: they stay clear of trees and are drawn on the ground
+const D_PATHS=[[[-14,100],[-14,62],[-8,46],[4,50]],[[4,50],[13,32],[30,32],[52,-4]],[[30,32],[60,26],[86,36],[95,48]],[[24,52],[34,55]],[[-50,82],[-60,48],[-72,24],[-60,22],[-52,22]],
+  [[-72,24],[-104,8],[-112,6]],[[-30,92],[-62,94]],[[4,6],[3,-12],[-14,-30]],[[3,-12],[26,-30]],[[-26,-62],[0,-58],[40,-60]],[[2,-76],[-24,-74]],[[56,-34],[76,-32]],[[76,-32],[84,-48]]];
+const dPathD=(u,v)=>{let d=1e9;for(const P of D_PATHS){if(Math.abs(u-P[0][0])>140)continue;d=Math.min(d,dSeg(u,v,P));}return d;};
+// places where fossils can be dug: the first dig at each gives a set find, so a careful explorer can complete the collection
+const D_DIGS=[{id:'d1',u:-8,v:44,first:'dinotooth',where:'the jungle entrance'},{id:'d2',u:-80,v:8,first:'ancientshell',where:'Fossil Valley'},{id:'d3',u:-60,v:12,first:'dinoclaw',where:'Fossil Valley'},
+  {id:'d4',u:-64,v:-16,first:'fossilrib',where:'beside the giant skeleton'},{id:'d5',u:-86,v:-12,first:'fossilspine',where:'Fossil Valley'},{id:'d6',u:-70,v:15,first:'fossiltail',where:'the excavation site'},
+  {id:'d7',u:-92,v:2,first:'fossilplant',where:'Fossil Valley'},{id:'d8',u:-48,v:4,first:'fossilskull',where:'Fossil Valley'},{id:'c1',u:-34,v:-24,first:'ancientshell',where:'the fossil cliffs',cliff:true},
+  {id:'c2',u:-52,v:-36,first:'fossilplant',where:'the fossil cliffs',cliff:true},{id:'d9',u:-62,v:98,first:'ancientshell',where:'the beach'},{id:'d10',u:30,v:-70,first:'prehistoricrelic',where:'the Mountain Highlands'}];
+const D_FOSSILS=['dinotooth','dinoclaw','fossilskull','fossilrib','fossilspine','fossiltail','ancientshell','fossilplant','prehistoricrelic'];
+// the eight places
+const DINOLOC=[
+  {id:'beach',n:1,name:'Coastal Beach',u:-14,v:84,r:46,desc:'The beach village where you dock: shops, the fish market, the museum and the quest board.',spots:['Main Dock','Fish Market','Island Museum','Beach Grill'],res:['pearlshell','wildfruit'],zone:'dbeach'},
+  {id:'jungle',n:2,name:'Jungle Forest',u:52,v:14,r:46,desc:'A deep tropical jungle with rivers, ponds, waterfalls and old stone statues.',spots:['Jungle River','Lily Ponds','Hidden Clearing','Stone Statues'],res:['junglewood','tropfiber','medherb','wildfruit'],zone:'driver'},
+  {id:'plateau',n:3,name:'Central Plateau',u:3,v:-20,r:36,desc:'A raised stone plateau in the middle of the island, home of the Forgotten Courtyard.',spots:['Forgotten Courtyard','Plateau Falls','Valley Viewpoint'],res:['ancientstone','wildfruit'],zone:'driver'},
+  {id:'valley',n:4,name:'Fossil Valley',u:-70,v:0,r:44,desc:'An orange sandstone valley full of prehistoric bones, with a giant skeleton and an excavation camp.',spots:['Giant Skeleton','Excavation Site','Fossil Cliffs','West Beach'],res:['medherb'],zone:'dbeach'},
+  {id:'high',n:5,name:'Mountain Highlands',u:-6,v:-82,r:44,desc:'Layered cliffs, mountain trails, a rope bridge and a summit that overlooks the whole island.',spots:['Mountain Stream','Rope Bridge','Summit Viewpoint','Ruined Tower'],res:['mountainstone','raremineral','ancientrock','tropherb'],zone:'dstream'},
+  {id:'ruins',n:6,name:'Ancient Ruins',u:70,v:-58,r:40,desc:'A lost civilisation: a gateway, broken columns, statues and the Forgotten Temple.',spots:['Ancient Gateway','Forgotten Temple','Symbol Pillars','Ruins Cove'],res:['ancientstone'],zone:'druins'},
+  {id:'pass',n:7,name:'Cliffside Pass',u:106,v:4,r:30,desc:'A narrow stone path along the east cliffs, with plank bridges over the sea far below.',spots:['Plank Bridges','Rock Arch','Sea Views'],res:['rareflower'],zone:'dino'},
+  {id:'mangrove',n:8,name:'Mangrove Bay',u:66,v:80,r:40,desc:'Shallow turquoise water, mangrove roots, boardwalks and fishing huts.',spots:['Boardwalks','Fishing Huts','Hidden Islet','Mud Flats'],res:['aquaplant'],zone:'dmangrove'}];
+for(const L of DINOLOC){const p=dpt(L.u,L.v);L.o={x:p.x,z:p.z,r:L.r};}
+const DINOZ=['dbeach','dmangrove','driver','dstream','druins','dino','ddeep'];
+function inDino(x,z){return inDinoBox(x,z)&&Math.hypot(x-DCX,z-DCZ)<160;}
+function dinoZone(x,z){if(!inDinoBox(x,z))return null;const u=x-DCX,v=z-DCZ,e=Math.hypot(u,v);if(e>175)return null;
+  if(ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1.05)return 'dmangrove';
+  if(dSeg(u,v,D_RIVER)<5||D_PONDS.some(p=>p[3]!=='stream'&&Math.hypot(u-p[0],v-p[1])<p[2]+2))return 'driver';
+  if(dSeg(u,v,D_STREAM)<3.5||Math.hypot(u-D_PONDS[3][0],v-D_PONDS[3][1])<5)return 'dstream';
+  const a=Math.atan2(v,u),edge=dCoastR(a)-e;
+  if(e>150)return 'ddeep';
+  if(edge>-34&&a>-80*DEG&&a<-8*DEG)return 'druins';
+  if(edge>-34&&(a>55*DEG&&a<130*DEG))return 'dbeach';
+  if(edge>-26&&(a>150*DEG||a<-150*DEG))return 'dbeach';
+  return 'dino';}
+// Ironjaw now circles in the deep water east of the island
+{const b=BOSSES.find(k=>k.id==='ironjaw');if(b){const p=dpt(150,-12);b.x=p.x;b.z=p.z;}}
+Object.assign(RES,{
+  junglewood:{name:'Jungle Wood',col:'#8a5a2e',price:26,desc:'Hard, dark timber from the jungle giants.'},tropfiber:{name:'Tropical Fiber',col:'#b8c86a',price:14,desc:'Tough plant fibre for ropes and nets.'},
+  medherb:{name:'Medicinal Herbs',col:'#4fae5a',price:22,desc:'Leaves the islanders use to heal cuts and fevers.'},ancientstone:{name:'Ancient Stone',col:'#b8b098',price:34,desc:'A carved block from the old civilisation.'},
+  wildfruit:{name:'Wild Fruit',col:'#ff9a3a',price:12,desc:'Sweet jungle fruit. The Beach Grill loves it.'},mountainstone:{name:'Mountain Stone',col:'#9a9f94',price:20,desc:'Grey highland stone, good for building.'},
+  ancientrock:{name:'Ancient Rock',col:'#7a6a5a',price:44,desc:'Rock that formed before the first fish swam.'},tropherb:{name:'Tropical Herbs',col:'#7ac84a',price:18,desc:'Fragrant highland herbs for cooking.'},
+  aquaplant:{name:'Aquatic Plants',col:'#5ab88a',price:16,desc:'Water lettuce and sea grass from the mangroves.'},
+  dinotooth:{name:'Dinosaur Tooth',col:'#f0e6cc',price:120,desc:'A serrated tooth as long as your hand.',fossil:true},dinoclaw:{name:'Dinosaur Claw',col:'#e6dabc',price:160,desc:'A hooked claw from a fast hunter.',fossil:true},
+  fossilskull:{name:'Fossil Skull',col:'#f6eedc',price:420,desc:'A complete small skull, its eye holes full of sand.',fossil:true},fossilrib:{name:'Fossil Rib',col:'#e8dcc0',price:140,desc:'A curved rib bone, turned to stone.',fossil:true},
+  fossilspine:{name:'Fossil Spine',col:'#ecdfc4',price:150,desc:'Three vertebrae still locked together.',fossil:true},fossiltail:{name:'Fossil Tail',col:'#e2d4b4',price:180,desc:'A row of little tail bones.',fossil:true},
+  ancientshell:{name:'Ancient Shell',col:'#e8c89a',price:90,desc:'A spiral shell from a sea that dried up long ago.',fossil:true},fossilplant:{name:'Fossilized Plant',col:'#8aa07a',price:110,desc:'A fern leaf printed in stone.',fossil:true},
+  prehistoricrelic:{name:'Rare Prehistoric Relic',col:'#7fe8c8',price:900,desc:'A carved bone charm. Someone treasured it long, long ago.',fossil:true}});
+
 
 
 function p4Height(x,z,h){
   {const dx=x-VOLCANO.x,dz=z-VOLCANO.z;if(Math.abs(dx)<VOLCANO.r+70&&Math.abs(dz)<VOLCANO.r+70){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=VOLCANO.r*(1+0.12*Math.sin(3*a+0.5)+0.07*Math.cos(7*a));
     let hv;if(d<rr){const t=1-d/rr;hv=d<rr*0.15?18.5:1.2+Math.pow(t,1.35)*24+Math.sin(dx*0.6)*0.5+Math.cos(dz*0.5)*0.4;}else hv=0.6-(d-rr)*0.42;h=Math.max(h,hv);
     for(const r of VOLC_ROCKS){const e=Math.hypot(x-r[0],z-r[1]);if(e<r[2])h=Math.max(h,0.6+r[3]*Math.pow(1-e/r[2],0.6));else if(e<r[2]+4)h=Math.max(h,0.6-(e-r[2])*0.6);}}}
-  {const dx=x-DINO.x,dz=z-DINO.z;if(Math.abs(dx)<DINO.r+60&&Math.abs(dz)<DINO.r+60){const d=Math.hypot(dx,dz),a=Math.atan2(dz,dx),rr=DINO.r*(1+0.15*Math.sin(2*a+1.2)+0.08*Math.cos(5*a));
-    let hv;if(d<rr*0.78)hv=3.4+Math.sin(dx*0.3)*0.8+Math.cos(dz*0.26)*0.7+(d<rr*0.4?1.5:0);else if(d<rr)hv=1.0;else if(d<rr+22)hv=-1.2-(d-rr)*0.08+Math.sin(dx*0.5+dz*0.4)*0.3;else hv=-3-(d-rr-22)*0.35;
-    if(Math.hypot(dx-7,dz+5)<7)hv=Math.min(hv,-1.4);h=Math.max(h,hv);}}
+  h=dinoHeight(x,z,h);
   {const dx=x-RUINS.x,dz=z-RUINS.z;if(Math.abs(dx)<RUINS.r+80&&Math.abs(dz)<RUINS.r+80){const sq=Math.max(Math.abs(dx),Math.abs(dz)),d=Math.hypot(dx,dz);let hv;
     if(sq<RUINS.r*0.8)hv=1.5+Math.floor((1-sq/(RUINS.r*0.8))*5)*1.2;else if(d<RUINS.r+6)hv=1.0;else if(d<RUINS.r+30)hv=-1.6-(d-RUINS.r-6)*0.06;else hv=-3.2-(d-RUINS.r-30)*0.3;h=Math.max(h,hv);
     for(const p of RUIN_PILLARS){const e=Math.hypot(x-p[0],z-p[1]);if(e<p[2])h=Math.max(h,p[3]);}}}
   h=blossomHeight(x,z,h);
   {const dx=x-DEEP.x,dz=z-DEEP.z;if(Math.abs(dx)<DEEP.r&&Math.abs(dz)<DEEP.r){for(const c of CRYSTALS){const e=Math.hypot(x-c[0],z-c[1]);if(e<c[2])h=Math.max(h,c[3]);}}}
   return snowHeight(x,z,h);}
-function isleStyleAt(x,z){if(inSnowy(x,z))return 'frozen';if(inBlossom(x,z))return 'blossom';for(const [k,v] of Object.entries(ISLES)){if(Math.hypot(x-v.o.x,z-v.o.z)<v.o.r+(k==='deep'?0:k==='blossom'?80:k==='ruins'?70:60))return k;}return null;}
+function isleStyleAt(x,z){if(inSnowy(x,z))return 'frozen';if(inBlossom(x,z))return 'blossom';if(inDino(x,z))return 'dino';for(const [k,v] of Object.entries(ISLES)){if(Math.hypot(x-v.o.x,z-v.o.z)<v.o.r+(k==='deep'?0:k==='blossom'?80:k==='ruins'?70:60))return k;}return null;}
 
 /* ---------- Phase 4 island builders: each island is its own group so it can be hidden when far away ---------- */
 const P4VIS=[];
@@ -2044,7 +2288,7 @@ function buildP4World(){const rng=mulberry32(404);
   const mk=(key,o,R,fn)=>{const T=new Batch(0.5),S=new Batch(0.5),P=new Batch(0.35),Gb=new Batch(0.2);fn(T,S,P,Gb,rng);const grp=new THREE.Group();
     if(T.parts.length){const m=T.mesh();grp.add(m);}if(S.parts.length)grp.add(S.mesh(MAT.bed,false));if(P.parts.length)grp.add(P.mesh());
     if(Gb.parts.length){const gm=Gb.mesh(MAT.glow,false);gm.receiveShadow=false;grp.add(gm);}scene.add(grp);P4VIS.push({g:grp,x:o.x,z:o.z,r:R,key});};
-  mk('volcano',VOLCANO,VOLCANO.r+70,buildVolcanoIsle);mk('dino',DINO,DINO.r+60,buildDinoIsle);mk('ruins',RUINS,RUINS.r+80,buildRuinsIsle);
+  mk('volcano',VOLCANO,VOLCANO.r+70,buildVolcanoIsle);mk('ruins',RUINS,RUINS.r+80,buildRuinsIsle);
   mk('deep',DEEP,DEEP.r,buildDeepZone);}
 // ambient life of the new biomes: smoke, embers, petals, glowing motes
 const WorldFX4={t:0,
@@ -2761,7 +3005,662 @@ function drawSnowMap(g){if(!SNOWMAP.base)buildSnowMapBase();const {W,H}=SNOWMAP;
   const p=G.mode==='boat'?Boat.pos:Player.pos;if(p.x>SNOWMAP.x0&&p.x<SNOWMAP.x1&&p.z>SNOWMAP.z0&&p.z<SNOWMAP.z1){const hy=G.mode==='boat'?Boat.yaw:Player.yaw;g.save();g.translate(smx(p.x),smz(p.z));g.rotate(-hy+Math.PI);
     g.fillStyle='#ffd24a';g.strokeStyle='#1d1d1d';g.lineWidth=2.5;g.beginPath();g.moveTo(0,-12);g.lineTo(9,9);g.lineTo(0,4);g.lineTo(-9,9);g.closePath();g.fill();g.stroke();g.restore();}
   else{g.fillStyle='rgba(21,48,94,.85)';rrect(g,W-230,H-34,216,24,8);g.fill();g.fillStyle='#fff';g.font='800 12px Nunito, sans-serif';g.textAlign='center';g.fillText(Snowy.inCave?'You are deep in the Sea Caves':'Home is south-east of this chart →',W-122,H-17);}}
+function fishSurfY(x,z,t){if(inDinoBox(x,z)){const u=x-DCX,v=z-DCZ;for(const p of D_PONDS)if(p[3]!=='river'&&Math.hypot(u-p[0],v-p[1])<p[2]+0.8)return p[3]==='stream'?17.6:Math.round(dinoLocal(p[0]+p[2]+2.2,p[1])*2)/2-0.4;if(dSeg(u,v,D_STREAM)<2.4)return 17.6;}
+  if(typeof MPOND!=='undefined'&&Math.hypot(x-MPOND.x,z-MPOND.z)<3)return MSUM.h+0.05;return waveH(x,z,t);}
 function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+/* ---------- Dino Island building blocks: jungle, mangroves, ruins, fossils and the beach village ---------- */
+const DC={grass:['#7ccf55','#86d45e','#74c84f'],jungle:['#5aa83e','#4f9a36','#63b044','#58a23c'],sand:['#f4dca0','#efd494','#f8e4b0'],wet:['#d8c08a','#d0b47c'],mud:['#7a6448','#8a7254','#6e5a40'],
+  red:['#c8643a','#d8784a','#b8562e','#e08a52'],redsand:['#e8b07a','#e0a26c','#ecbc88'],rock:['#8a8f86','#9a9f94','#7e847a'],moss:['#6a9a3a','#5a8a34','#77a844'],
+  stone:['#b8b098','#a8a088','#c4bca4'],mossy:['#8a9a6a','#7f9060','#96a676'],wood:['#8a5a2e','#a36c3b','#94602f'],thatch:['#d8b46a','#c8a058','#e0c27a'],bone:['#f0e6cc','#e6dabc','#f6eedc']};
+const pk=(a,rng)=>a[(rng()*a.length)|0];
+// a rotated placer: put(batch, along, up, across, w, h, d, colour)
+const placer=(x,y,z,ry)=>{const cs=Math.cos(ry),sn=Math.sin(ry);return (B,ox,oy,oz,w,h,d,c,rx=0,rz=0)=>B.box(x+ox*cs+oz*sn,y+oy,z-ox*sn+oz*cs,w,h,d,c,ry,rx,rz);};
+/* ---- plants ---- */
+function jungleTree(P,x,y,z,rng,s=1){const th=(4.5+rng()*2.5)*s,c=pk(['#6a4a2a','#5a3e24','#74522e'],rng);P.box(x,y+th/2,z,0.8*s,th,0.8*s,c);
+  for(let k=0;k<4;k++){const a=k/4*TAU+rng(),r=0.7*s;P.box(x+Math.cos(a)*r,y+0.35*s,z+Math.sin(a)*r,1.0*s,0.7*s,0.32*s,c,-a,0,0.3);}            // buttress roots
+  for(let k=0;k<7;k++){const a=rng()*TAU,d=rng()*2.4*s,w=(2.6+rng()*1.8)*s;P.box(x+Math.cos(a)*d,y+th+(rng()*1.6-0.2)*s,z+Math.sin(a)*d,w,w*0.45,w,pk(['#2f8a34','#3a9a3a','#28783a','#45a83e'],rng),rng()*2);}
+  if(rng()<0.5)for(let k=0;k<3;k++){const a=rng()*TAU,L=(1.5+rng()*2.5)*s;P.box(x+Math.cos(a)*1.6*s,y+th-L/2,z+Math.sin(a)*1.6*s,0.1,L,0.1,'#3f8a2c');}  // hanging vines
+  CIRCCOL.push({x,z,r:0.6*s});TREES.push([x,z]);}
+function mangroveTree(P,x,y,z,rng,s=1){const top=y+(2.4+rng())*s;for(let k=0;k<6;k++){const a=k/6*TAU+rng()*0.4,r=(1.1+rng()*0.5)*s,rx=x+Math.cos(a)*r,rz=z+Math.sin(a)*r;
+    P.box((rx+x)/2,y+0.5*s,(rz+z)/2,r+0.2,0.14*s,0.14*s,'#6a5034',-a,0,0.9);P.box(rx,y-0.3,rz,0.14*s,1.6*s,0.14*s,'#5a4028');}               // arching roots
+  P.box(x,(y+0.9*s+top)/2,z,0.42*s,top-y-0.9*s,0.42*s,'#6a5034');for(let k=0;k<6;k++){const a=rng()*TAU,d=rng()*1.6*s,w=(2+rng()*1.2)*s;P.box(x+Math.cos(a)*d,top+rng()*0.9*s,z+Math.sin(a)*d,w,w*0.5,w,pk(['#3f8a3a','#4a9a40','#367a34'],rng),rng()*2);}
+  CIRCCOL.push({x,z,r:0.5*s});TREES.push([x,z]);}
+function tropicalPlant(P,x,y,z,rng,s=1){for(let k=0;k<6;k++){const a=k/6*TAU+rng()*0.5;P.box(x+Math.cos(a)*0.55*s,y+0.5*s,z+Math.sin(a)*0.55*s,1.2*s,0.08,0.6*s,pk(['#2f9a3a','#3aa844','#2a8a34'],rng),-a,0,-0.55);}
+  P.box(x,y+0.3*s,z,0.16,0.6*s,0.16,'#3a7a2a');}
+function reeds(P,x,y,z,rng){for(let k=0;k<6;k++){const hh=0.8+rng()*0.9;P.box(x+rng()*1.2-0.6,y+hh/2,z+rng()*1.2-0.6,0.08,hh,0.08,pk(['#8ab84a','#9ac85a','#7aa83e'],rng),0,(rng()-0.5)*0.3,(rng()-0.5)*0.3);if(rng()<0.4)P.box(x+rng()-0.5,y+hh,z+rng()-0.5,0.14,0.36,0.14,'#7a5a32');}}
+function lilyPads(P,G,x,z,rng){for(let k=0;k<3;k++)P.box(x+rng()*1.6-0.8,0.04,z+rng()*1.6-0.8,0.7+rng()*0.4,0.05,0.6+rng()*0.4,pk(['#4fa84a','#5ab852'],rng),rng()*3);if(rng()<0.4)G.box(x,0.14,z,0.22,0.16,0.22,pk(['#ff9ac8','#ffffff','#ffd0e0'],rng));}
+function rootsProp(P,x,y,z,rng){for(let k=0;k<4;k++){const a=rng()*TAU;P.box(x+Math.cos(a)*0.5,y+0.15,z+Math.sin(a)*0.5,1.4,0.24,0.24,'#6a4a2a',-a,0,0.15);}}
+function mossRock(P,x,y,z,rng,s=1){P.box(x,y+0.4*s,z,1.6*s,1.0*s,1.3*s,pk(DC.rock,rng),rng()*3);P.box(x,y+0.95*s,z,1.3*s,0.2*s,1.1*s,pk(DC.moss,rng),rng()*3);if(rng()<0.6)tropicalPlant(P,x+0.2,y+1.0*s,z,rng,0.5);CIRCCOL.push({x,z,r:0.75*s});}
+/* ---- ancient stone ---- */
+function stoneColumn(P,x,y,z,hh,rng,broken){P.box(x,y+0.25,z,1.4,0.5,1.4,pk(DC.stone,rng));const H=broken?hh*(0.35+rng()*0.4):hh;for(let i=0;i<Math.ceil(H/1.2);i++){const t=Math.min(1.2,H-i*1.2);P.box(x,y+0.5+i*1.2+t/2,z,1,t,1,i%2?pk(DC.stone,rng):pk(DC.mossy,rng),broken?rng()*0.2:0);}
+  if(!broken)P.box(x,y+0.5+H+0.15,z,1.4,0.3,1.4,pk(DC.stone,rng));else P.box(x+0.8,y+0.3,z+0.4,1,0.6,1,pk(DC.stone,rng),rng()*3,0.2);CIRCCOL.push({x,z,r:0.7});return y+0.5+H;}
+function ruinedWall(P,x,y,z,ry,len,rng){const put=placer(x,y,z,ry);for(let i=0;i<len;i++){const hh=0.8+rng()*1.8;put(P,i-len/2+0.5,hh/2,0,1.02,hh,0.9,pk(rng()<0.35?DC.mossy:DC.stone,rng));if(rng()<0.3)put(P,i-len/2+0.5,hh+0.08,0,1.0,0.16,0.9,pk(DC.moss,rng));}
+  const cs=Math.cos(ry),sn=Math.sin(ry);for(let i=0;i<len;i+=1.6)CIRCCOL.push({x:x+(i-len/2+0.5)*cs,z:z-(i-len/2+0.5)*sn,r:0.6});}
+function ruinedArch(P,x,y,z,ry,rng,w=2.4,hh=4.2){const put=placer(x,y,z,ry);for(const s of[-1,1]){put(P,s*w,hh/2,0,1.1,hh,1.1,pk(DC.stone,rng));}put(P,0,hh+0.4,0,w*2+1.2,0.8,1.2,pk(DC.stone,rng));put(P,-w*0.4,hh+1,0,w*1.2,0.5,1.0,pk(DC.mossy,rng));
+  const cs=Math.cos(ry),sn=Math.sin(ry);for(const s of[-1,1])CIRCCOL.push({x:x+s*w*cs,z:z-s*w*sn,r:0.7});}
+function gateway(P,G,x,y,z,ry,rng){const put=placer(x,y,z,ry);for(const s of[-1,1]){put(P,s*3.2,2.6,0,1.6,5.2,1.6,pk(DC.stone,rng));put(P,s*3.2,5.4,0,2,0.5,2,pk(DC.stone,rng));put(P,s*3.2,1.6,0.82,0.9,0.9,0.1,'#6a6450');}
+  put(P,0,6.0,0,8.6,1.0,1.8,pk(DC.stone,rng));put(P,0,6.8,0,6,0.6,1.4,pk(DC.mossy,rng));put(G,0,6.0,0.92,1.0,0.6,0.06,'#7fe8c8');for(let k=0;k<6;k++)put(P,-2.6+k*1.04,6.35,0.92,0.5,0.3,0.06,'#8a8270');
+  const cs=Math.cos(ry),sn=Math.sin(ry);for(const s of[-1,1])CIRCCOL.push({x:x+s*3.2*cs,z:z-s*3.2*sn,r:1.0});}
+function stoneStatue(P,G,x,y,z,ry,rng,s=1){const put=placer(x,y,z,ry);put(P,0,0.4*s,0,1.6*s,0.8*s,1.4*s,pk(DC.stone,rng));put(P,0,1.9*s,0,1.3*s,2.2*s,1.1*s,pk(DC.mossy,rng));put(P,0,3.4*s,0,1.5*s,1.1*s,1.3*s,pk(DC.stone,rng));
+  put(P,0,3.5*s,0.62*s,1.2*s,0.18*s,0.1,'#5a5444');put(P,0,3.1*s,0.66*s,0.3*s,0.5*s,0.16*s,pk(DC.stone,rng));put(G,-0.3*s,3.7*s,0.66*s,0.2*s,0.14*s,0.05,'#7fe8c8');put(G,0.3*s,3.7*s,0.66*s,0.2*s,0.14*s,0.05,'#7fe8c8');
+  put(P,0,4.1*s,0,1.7*s,0.3*s,1.5*s,pk(DC.stone,rng));CIRCCOL.push({x,z,r:0.8*s});}
+function pedestal(P,G,x,y,z,rng){P.box(x,y+0.4,z,1.4,0.8,1.4,pk(DC.stone,rng));P.box(x,y+0.9,z,1.0,0.2,1.0,'#c8b890');G.box(x,y+1.1,z,0.36,0.2,0.36,'#7fe8c8');CIRCCOL.push({x,z,r:0.6});}
+function stoneTower(P,G,x,y,z,rng,hh=7){for(let i=0;i<Math.ceil(hh/1.4);i++){const w=3-i*0.12;P.box(x,y+0.7+i*1.4,z,w,1.4,w,i%2?pk(DC.stone,rng):pk(DC.mossy,rng));}
+  for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]])P.box(x+a*1.0,y+hh+0.5,z+b*1.0,0.7,1.0,0.7,pk(DC.stone,rng));P.box(x,y+hh*0.55,z+1.42,0.7,1.1,0.1,'#2a2420');G.box(x,y+hh+0.2,z,0.4,0.3,0.4,'#ffb85a');CIRCCOL.push({x,z,r:1.6});}
+function relicFragment(P,x,y,z,rng){P.box(x,y+0.15,z,0.9,0.3,0.6,pk(DC.stone,rng),rng()*3,0.2);P.box(x+0.5,y+0.1,z+0.3,0.5,0.2,0.5,pk(DC.mossy,rng),rng()*3);}
+/* ---- fossils ---- */
+function bone(P,x1,y1,z1,x2,y2,z2,t,c){const dx=x2-x1,dy=y2-y1,dz=z2-z1,L=Math.hypot(dx,dy,dz),ry=Math.atan2(-dz,dx),rz=Math.atan2(dy,Math.hypot(dx,dz));
+  P.box((x1+x2)/2,(y1+y2)/2,(z1+z2)/2,L,t,t,c,ry,0,rz);P.box(x1,y1,z1,t*1.5,t*1.5,t*1.5,c,ry);P.box(x2,y2,z2,t*1.5,t*1.5,t*1.5,c,ry);}
+function dinoSkull(P,x,y,z,ry,s,rng){const put=placer(x,y,z,ry),B=DC.bone;put(P,0,1.0*s,0,3.6*s,1.8*s,1.9*s,B[0]);put(P,1.9*s,0.7*s,0,2.2*s,1.1*s,1.4*s,B[1]);put(P,-0.6*s,1.2*s,0,1.4*s,0.9*s,2.1*s,B[2]);
+  put(P,0.4*s,1.3*s,1.0*s,1.0*s,0.8*s,0.1*s,'#2a2420');put(P,0.4*s,1.3*s,-1.0*s,1.0*s,0.8*s,0.1*s,'#2a2420');put(P,-0.9*s,0.9*s,0,1.0*s,0.9*s,2.0*s,'#3a3026');                 // eye and jaw holes
+  put(P,0.6*s,0.05*s,0,3.4*s,0.5*s,1.5*s,B[1]);for(let k=0;k<7;k++)put(P,-0.6*s+k*0.48*s,0.42*s,(k%2?0.62:-0.62)*s,0.18*s,0.5*s,0.18*s,'#fff8ea');}
+function dinoSkeleton(P,x,y,z,ry,rng,gyAt){// a long-necked giant, half buried in the valley floor
+  const cs=Math.cos(ry),sn=Math.sin(ry),W=(a,c)=>({x:x+a*cs+c*sn,z:z-a*sn+c*cs}),B=DC.bone;
+  const spine=[];for(let i=0;i<=40;i++){const t=i/40,a=-20+t*40;let h=t<0.3?lerp(0.6,5.6,t/0.3):t<0.62?5.6+Math.sin((t-0.3)/0.32*Math.PI)*0.6:lerp(5.6,13.5,Math.pow((t-0.62)/0.38,1.3));spine.push({a,h});}
+  for(let i=1;i<spine.length;i++){const p=spine[i-1],q=spine[i],A=W(p.a,0),C=W(q.a,0),t=i/40;bone(P,A.x,y+p.h,A.z,C.x,y+q.h,C.z,lerp(0.55,0.75,Math.sin(t*Math.PI))*(t>0.62?0.8:1),B[i%3]);
+    if(i%2===0&&t>0.25&&t<0.65)P.box(C.x,y+q.h+0.5,C.z,0.3,0.8,0.3,B[0],ry);}
+  {const e=spine[40],p=W(e.a+1.6,0);dinoSkull(P,p.x,y+e.h-1.2,p.z,ry,0.9,rng);}
+  // the rib cage, ribs curving down to the sand on both sides
+  for(let k=0;k<9;k++){const a=-4+k*1.5,sp=spine.find(s=>s.a>=a)||spine[20],rr=2.6+Math.sin(k/8*Math.PI)*0.9;for(const sd of[-1,1]){let prev=null;for(let j=0;j<=5;j++){const t=j/5,ang=t*Math.PI*0.62,o=Math.sin(ang)*rr*sd,hh=sp.h-0.2-(1-Math.cos(ang))*(sp.h-0.2)*0.92,pt=W(a,o);
+        if(prev)bone(P,prev.x,prev.y,prev.z,pt.x,y+hh,pt.z,0.32,B[(k+j)%3]);prev={x:pt.x,y:y+hh,z:pt.z};}CIRCCOL.push({x:prev.x,z:prev.z,r:0.35});}}
+  // legs: thick pillars of bone
+  for(const [a,c] of [[-6,-2.2],[-6,2.2],[6,-2.4],[6,2.4]]){const p=W(a,c),sp=spine.find(s=>s.a>=a);bone(P,p.x,y+0.1,p.z,p.x,y+sp.h*0.55,p.z,0.75,B[1]);const q=W(a+0.6,c*1.05);bone(P,p.x,y+sp.h*0.55,p.z,q.x,y+sp.h-0.3,q.z,0.7,B[0]);P.box(p.x,y+0.15,p.z,1.4,0.3,1.0,B[2],ry);CIRCCOL.push({x:p.x,z:p.z,r:0.75});}
+  // half-buried tail bones and a sand drift over them
+  for(let k=0;k<6;k++){const p=W(-20-k*1.6,Math.sin(k*0.7)*1.4);P.box(p.x,y+0.2,p.z,1.1-k*0.1,0.5,0.6,B[k%3],ry+k*0.3);}
+  {const p=W(-17,0);P.box(p.x,y+0.2,p.z,5,0.6,3.2,pk(DC.redsand,rng),ry);}
+  return {head:W(21.6,0),mid:W(0,0)};}
+function fossilRock(P,x,y,z,rng,s=1){P.box(x,y+0.5*s,z,1.8*s,1.0*s,1.4*s,pk(DC.red,rng),rng()*3);P.box(x+0.2*s,y+0.8*s,z+0.5*s,0.9*s,0.16*s,0.3*s,DC.bone[0],rng()*3);P.box(x-0.3*s,y+0.6*s,z+0.6*s,0.3*s,0.3*s,0.2*s,DC.bone[1]);CIRCCOL.push({x,z,r:0.8*s});}
+function footprint(P,x,y,z,ry){const put=placer(x,y,z,ry);put(P,0,0.03,0,1.0,0.06,0.9,'#b8784a');for(const k of [-1,0,1])put(P,0.75,0.03,k*0.38,0.7,0.06,0.22,'#b8784a',0,0);}
+function digMarker(P,G,x,y,z,rng){P.box(x,y+0.03,z,2.2,0.06,2.2,'#c89a62');for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]])P.box(x+a,y+0.35,z+b,0.08,0.7,0.08,'#8a5a2e');
+  for(const sd of[-1,1]){P.box(x,y+0.62,z+sd,2,0.03,0.03,'#f4ecd8');P.box(x+sd,y+0.62,z,0.03,0.03,2,'#f4ecd8');}P.box(x+1,y+0.85,z+1,0.36,0.24,0.04,'#e0402a');}
+function tent(P,x,y,z,ry,c){const put=placer(x,y,z,ry);put(P,0,0.08,0,3.4,0.16,2.8,'#8a7a5a');for(const s of[-1,1])put(P,0,1.0,s*0.72,3.2,0.12,1.7,c,s*0.98,0);put(P,0,1.85,0,3.3,0.12,0.3,shade(c,0.8));
+  put(P,1.62,0.9,0,0.06,1.6,1.4,shade(c,0.9));CIRCCOL.push({x,z,r:1.4});}
+function scaffold(P,x,y,z,ry,w,hh){const put=placer(x,y,z,ry);for(const [a,b] of [[-w,-1],[w,-1],[-w,1],[w,1]])put(P,a,hh/2,b,0.16,hh,0.16,'#8a5a2e');for(let k=1;k<=Math.floor(hh/1.6);k++){put(P,0,k*1.6,-1,w*2,0.12,0.12,'#a36c3b');put(P,0,k*1.6,1,w*2,0.12,0.12,'#a36c3b');}
+  put(P,0,hh,0,w*2+0.4,0.12,2.4,'#a36c3b');put(P,-w*0.5,hh/2,-1,0.1,hh*1.1,0.1,'#94602f',0,0.5);}
+function toolRack(P,x,y,z,ry){const put=placer(x,y,z,ry);put(P,0,0.5,0,1.6,0.1,0.5,'#8a5a2e');for(const s of[-1,1])put(P,s*0.7,0.25,0,0.1,0.5,0.4,'#6a4226');
+  put(P,-0.4,0.9,0,0.06,1.1,0.06,'#6a4226',0,0.3);put(P,-0.2,1.4,0,0.5,0.14,0.08,'#8a8f96');put(P,0.4,0.9,0,0.06,1.1,0.06,'#6a4226',0,-0.2);put(P,0.5,0.35,0,0.4,0.3,0.06,'#8a8f96');}
+/* ---- the beach village ---- */
+// a tropical hut on short stilts with a thatched roof
+function hut(P,G,x,y,z,ry,o={}){const w=o.w||5,d=o.d||4,wh=o.h||2.4,put=placer(x,y,z,ry),wall=o.wall||'#c8925a',th=o.thatch||DC.thatch;
+  put(P,0,-0.6,0,w+0.8,1.6,d+0.8,'#7a6a52');for(const [a,b] of [[-1,-1],[1,-1],[-1,1],[1,1]])put(P,a*(w/2+0.2),0.1,b*(d/2+0.2),0.3,0.6,0.3,'#5a3a22');put(P,0,0.45,0,w+0.6,0.16,d+0.6,'#a36c3b');
+  put(P,0,0.5+wh/2,0,w,wh,d,wall);for(let i=0;i<w;i+=1)put(P,-w/2+i+0.5,0.5+wh/2,d/2+0.02,0.08,wh,0.06,shade(wall,0.78));
+  put(P,0,1.45,d/2+0.05,1.1,1.9,0.08,'#5a3a22');for(const s of[-1,1]){put(G,s*w*0.3,1.7,d/2+0.06,0.8,0.7,0.05,'#ffe2a0');put(P,s*w*0.3,1.7,d/2+0.09,0.9,0.08,0.04,'#5a3a22');}
+  for(let k=0;k<4;k++){const ww=w+1.6-k*1.0,dd=d+1.6-k*0.9;put(P,0,0.5+wh+0.25+k*0.42,0,ww,0.42,dd,th[k%th.length]);}put(P,0,0.5+wh+1.95,0,0.5,0.3,d*0.5,'#a87a3a');
+  put(P,w/2-0.3,wh+0.1,d/2+0.6,0.06,0.5,0.06,'#3a2a1e');put(G,w/2-0.3,wh-0.3,d/2+0.6,0.34,0.46,0.34,o.lamp||'#ffb85a');
+  if(o.sign){put(P,0,wh+0.55,d/2+0.95,1.3,0.9,0.12,'#7a4a22');const cs=Math.cos(ry),sn=Math.sin(ry);DINOFX.signs.push({kind:o.sign,x:x+(d/2+1.03)*sn,y:y+wh+0.55,z:z+(d/2+1.03)*cs,ry});}
+  CIRCCOL.push({x,z,r:Math.min(w,d)*0.6});if(Math.max(w,d)>4.6){const e=(Math.max(w,d)-Math.min(w,d))/2+0.3,cs=Math.cos(ry),sn=Math.sin(ry);CIRCCOL.push({x:x+cs*e,z:z-sn*e,r:Math.min(w,d)*0.55},{x:x-cs*e,z:z+sn*e,r:Math.min(w,d)*0.55});}}
+function dMarketStall(P,G,x,y,z,ry,c,rng){const put=placer(x,y,z,ry);put(P,0,0.5,0,2.4,1.0,1.0,'#8a5a3a');put(P,0,1.04,0,2.5,0.08,1.1,'#f4ecd8');for(const [a,b] of [[-1.1,-0.5],[1.1,-0.5],[-1.1,0.5],[1.1,0.5]])put(P,a,1.25,b,0.1,2.5,0.1,'#5a3a22');
+  for(let k=0;k<5;k++)put(P,-1.0+k*0.5,2.55,0,0.5,0.1,1.6,k%2?c:'#f8f4ec');for(let k=0;k<3;k++)put(P,-0.7+k*0.7,1.2,0,0.4,0.24,0.4,pk(['#f2cf3f','#ff8a3a','#6fc24b','#e0503f','#8a5ad0'],rng));
+  put(G,0,2.2,0.6,0.26,0.32,0.26,'#ffb85a');CIRCCOL.push({x,z,r:1.0});}
+function bigHouse(P,G,x,y,z,ry,o){// the museum and the warehouse: long buildings with a stone base and a double thatch roof
+  const w=o.w,d=o.d,wh=o.h||3.2,put=placer(x,y,z,ry);put(P,0,-0.4,0,w+0.8,1.2,d+0.8,'#a89a82');put(P,0,0.25,0,w+0.6,0.3,d+0.6,'#c4b498');put(P,0,0.4+wh/2,0,w,wh,d,o.wall);
+  for(let i=-w/2+1;i<w/2;i+=2){put(P,i,0.4+wh/2,d/2+0.03,0.24,wh,0.08,o.trim||'#6a4226');}put(P,0,1.6,d/2+0.06,1.8,2.4,0.08,'#5a3a22');
+  for(let i=-w/2+2;i<w/2-1;i+=3)if(Math.abs(i)>1.6){put(G,i,2.0,d/2+0.06,1.0,0.9,0.05,'#ffe2a0');}
+  for(let k=0;k<5;k++)put(P,0,0.4+wh+0.25+k*0.45,0,w+1.8-k*1.1,0.45,d+1.8-k*0.95,DC.thatch[k%3]);if(o.cols)for(const s of[-1,1])for(const t of[-1,1])put(P,s*(w/2-0.8),0.4+wh/2,d/2+0.9+0,0.5,wh,0.5,'#e8dcc0');
+  if(o.sign){put(P,0,wh+0.75,d/2+0.95,1.6,1.0,0.12,'#7a4a22');const cs=Math.cos(ry),sn=Math.sin(ry);DINOFX.signs.push({kind:o.sign,x:x+(d/2+1.03)*sn,y:y+wh+0.75,z:z+(d/2+1.03)*cs,ry});}
+  const cs=Math.cos(ry),sn=Math.sin(ry);for(let i=-w/2+d/2;i<=w/2-d/2+0.01;i+=d*0.8)CIRCCOL.push({x:x+cs*i,z:z-sn*i,r:d*0.58});}
+function boathouse(P,G,x,y,z,ry){const put=placer(x,y,z,ry);for(const [a,b] of [[-2.4,-2.4],[2.4,-2.4],[-2.4,2.4],[2.4,2.4]])put(P,a,1.6,b,0.24,3.2,0.24,'#5a3a22');
+  put(P,0,2.0,-2.3,5.2,2.4,0.2,'#c8925a');put(P,-2.5,2.0,0,0.2,2.4,4.6,'#c8925a');for(let k=0;k<3;k++)put(P,0,3.5+k*0.42,0,6.2-k*1.4,0.42,6.0-k*1.4,DC.thatch[k]);
+  put(P,1.5,1.7,-1.6,1.4,0.7,0.8,'#8a5a3a');put(P,-1.4,1.9,1.6,0.14,1.2,0.14,'#8a8f96');put(G,2.2,3.0,2.3,0.3,0.4,0.3,'#ffb85a');CIRCCOL.push({x,z,r:0.1});}
+function thatchUmbrella(P,x,y,z){P.box(x,y+1.2,z,0.14,2.4,0.14,'#8a5a2e');for(let k=0;k<3;k++)P.box(x,y+2.3+k*0.22,z,2.6-k*0.8,0.24,2.6-k*0.8,DC.thatch[k],0.78*k);}
+function fishRack(P,x,y,z,ry,rng){const put=placer(x,y,z,ry);for(const s of[-1,1])put(P,s*1.1,0.9,0,0.12,1.8,0.12,'#6b4424');put(P,0,1.76,0,2.4,0.1,0.1,'#6b4424');
+  for(let i=0;i<5;i++){put(P,-0.8+i*0.4,1.4,0,0.04,0.6,0.04,'#c8b890');put(P,-0.8+i*0.4,1.05,0,0.12,0.36,0.24,pk(['#8aa0b8','#c8b090','#a8b8c0'],rng));}}
+function torchPost(P,G,x,y,z){P.box(x,y+0.9,z,0.16,1.8,0.16,'#6a4226');P.box(x,y+1.85,z,0.34,0.2,0.34,'#3a2a1e');G.box(x,y+2.1,z,0.24,0.36,0.24,'#ffa040');CIRCCOL.push({x,z,r:0.18});}
+function ropeFence(P,ax,az,bx,bz,gyf){const L=Math.hypot(bx-ax,bz-az),n=Math.max(1,Math.round(L/2.2)),ry=Math.atan2(-(bz-az),bx-ax);
+  for(let i=0;i<=n;i++){const t=i/n,x=lerp(ax,bx,t),z=lerp(az,bz,t),y=gyf(x,z);P.box(x,y+0.5,z,0.14,1.0,0.14,'#6a4226');
+    if(i<n){const x2=lerp(ax,bx,(i+0.5)/n),z2=lerp(az,bz,(i+0.5)/n),y2=gyf(x2,z2);P.box(x2,y2+0.8,z2,L/n,0.05,0.05,'#c8b890',ry);P.box(x2,y2+0.45,z2,L/n,0.05,0.05,'#c8b890',ry);}}}
+
+/* ---------- Dino Island: ground, plants and everything that stands on the island ---------- */
+// the island is built in nine tiles so far-away parts can be skipped
+const D_TILES=(()=>{const us=[-140,-45,45,161],vs=[-151,-50,45,176],o=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){const t={u0:us[i],u1:us[i+1],v0:vs[j],v1:vs[j+1],key:'dino'+i+j};
+    t.x0=DCX+t.u0;t.x1=DCX+t.u1;t.z0=DCZ+t.v0;t.z1=DCZ+t.v1;o.push(t);}return o;})();
+function dTile(x,z){for(const t of D_TILES)if(x>=t.x0&&x<t.x1&&z>=t.z0&&z<t.z1)return t;return D_TILES[4];}
+// batches for whatever stands at (x,z)
+const DB=(x,z)=>dTile(x,z);
+const dAt=(u,v)=>{const p=dpt(u,v),t=dTile(p.x,p.z);return {x:p.x,z:p.z,y:gy(p.x,p.z),P:t.P,G:t.G,S:t.S,T:t.T};};
+// what kind of ground a point is
+function dKind(u,v,h){const e=Math.hypot(u,v),a=Math.atan2(v,u),edge=dCoastR(a)-e;
+  if(edge<0&&h<0.5)return 'sea';
+  if(Math.hypot(u-D_TURTLE.u,v-D_TURTLE.v)<D_TURTLE.r+6)return 'turtle';
+  if(ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1||Math.hypot(u-D_HIDDEN.u,v-D_HIDDEN.v)<D_HIDDEN.r+4)return 'mangrove';
+  if(edge<-2)return 'rock';
+  const r=dRampAt(u,v);if(r)return 'ramp_'+r.R.id;
+  if(h>=25.5)return 'high2';if(h>=17.5)return 'high';
+  if(Math.max(Math.abs(u-D_TEMPLE.u),Math.abs(v-D_TEMPLE.v))<D_TEMPLE.hs+0.5&&h>=13.5)return 'temple';
+  if(h>=11.5&&rrIn(u,v,D_PLAT))return 'plateau';
+  if(Math.abs(h-9)<0.3&&(ell(u,v,D_RUINS.u,D_RUINS.v,D_RUINS.ru,D_RUINS.rv)<1||ell(u,v,28,-50,9,7)<1))return 'ruins';
+  if(ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru,D_VALLEY.rv)<1.08)return 'valley';
+  if(dBeachA(a)&&edge<15)return 'beach';
+  if(v>52&&u>-75&&u<30)return 'village';
+  return 'jungle';}
+function dLandCol(u,v,h,md,rng,k){const pth=dPathD(u,v)<1.6;
+  if(k==='valley'){const s=md>=1.2?pk(DC.red,rng):'#c87a4a';return [pth?'#f0c89a':rng()<0.06?pk(DC.bone,rng):pk(DC.redsand,rng),s];}
+  if(k.startsWith('ramp_')){const id=k.slice(5),stone=['vp','ph','hh','hs','ts','pr','cv'].includes(id);return [stone?pk(DC.stone,rng):pick(['#d8c8a8','#cdbc9a','#e0d2b4'],rng),stone?pk(DC.stone,rng):pk(DC.rock,rng)];}
+  if(k==='temple')return [pk(DC.stone,rng),pk(DC.stone,rng)];
+  if(k==='ruins')return [pth||rng()<0.45?pk(rng()<0.3?DC.mossy:DC.stone,rng):pk(DC.grass,rng),pk(DC.stone,rng)];
+  if(k==='plateau'){const c=Math.hypot(u-D_COURT.u,v-D_COURT.v);return [c<10||pth?pk(c<10&&rng()<0.3?DC.mossy:DC.stone,rng):rng()<0.08?'#e8d870':pk(DC.grass,rng),md>=1.5?pk(rng()<0.3?DC.moss:DC.rock,rng):pk(DC.rock,rng)];}
+  if(k==='high'||k==='high2')return [pth?pick(['#d8c8a8','#cdbc9a'],rng):rng()<0.18?pk(DC.rock,rng):pk(['#7cbf55','#86c85e','#70b44c'],rng),pk(rng()<0.25?DC.moss:DC.rock,rng)];
+  if(k==='mangrove')return [h<=1.05?pk(DC.mud,rng):pk(DC.jungle,rng),'#6a5a40'];
+  if(k==='beach')return [h<=1.05?pk(DC.wet,rng):pk(DC.sand,rng),'#d9b579'];
+  if(k==='turtle')return [h<=1.3?pk(DC.sand,rng):pk(DC.grass,rng),pk(DC.rock,rng)];
+  if(k==='village')return [pth?pick(['#e8d0a0','#dcc490'],rng):pk(DC.grass,rng),md>=1?pk(DC.rock,rng):'#8b5a35'];
+  if(k==='rock')return [pk(DC.rock,rng),pk(DC.rock,rng)];
+  // the jungle floor, with the red valley rock showing in cliffs near the valley
+  const nearV=ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru+14,D_VALLEY.rv+14)<1;
+  return [pth?pick(['#c8a878','#b89868'],rng):rng()<0.05?pick(['#e05a8a','#f2cf3f','#ff8a3a'],rng):pk(DC.jungle,rng),md>=1.2?(nearV?pk(DC.red,rng):pk(rng()<0.3?DC.moss:DC.rock,rng)):'#6a4a2e'];}
+function dBedCol(u,v,h,rng){if(ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1.05)return pick(['#8a7a54','#9a8a60'],rng);if(dSeg(u,v,D_RIVER)<4)return pick(['#7a6a4a','#6a5a40'],rng);
+  return h>-2?pick(['#f2e2ba','#ecdab0'],rng):pick(['#dccc9c','#d4c494'],rng);}
+const D_BUILT=new Set();
+// ground cells of one tile: tops, the sides you can see (layered rock in the cliffs), and the plants that grow there
+function dinoCells(t,rng){const {T,S,P,G}=t;
+  for(let gx=Math.floor(t.x0/2);gx<Math.ceil(t.x1/2);gx++)for(let gz=Math.floor(t.z0/2);gz<Math.ceil(t.z1/2);gz++){const key=gx+','+gz;if(D_BUILT.has(key))continue;D_BUILT.add(key);
+    const x=gx*2+1,z=gz*2+1,u=x-DCX,v=z-DCZ;if(Math.hypot(u,v)>168)continue;const h=qHeightCell(gx,gz);
+    if(h<0.5){if(h<-7.5)continue;
+      // water held up high: a pond or a mountain stream shows its surface at the height of the ground around it
+      const well=D_PONDS.find(p=>Math.hypot(u-p[0],v-p[1])<p[2]+0.8&&p[3]!=='river')||(dSeg(u,v,D_STREAM)<2.4?'stream':null);
+      if(well){const sy=well==='stream'?17.6:Math.round(dinoLocal(well[0]+well[2]+2.2,well[1])*2)/2-0.4;if(sy>1){P.box(x,sy-0.15,z,2,0.3,2,pick(['#4fb8d8','#58c0e0'],rng),0,0,0,0.04);if(rng()<0.25)G.box(x+rng()-0.5,sy+0.02,z+rng()-0.5,0.5,0.03,0.3,'#d8f8ff',rng()*3);continue;}}
+      const sc=dBedCol(u,v,h,rng);S.box(x,h-0.6,z,2,1.2,2,sc,0,0,0,0.07,4|cellSides(gx,gz,h));
+      if(h>-3.4&&h<-0.6&&rng()<0.08){const k=ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1?'m':'s';if(k==='m'&&rng()<0.6)lilyPads(P,G,x,z,rng);else if(rng()<0.5)seaweed(S,x,h,z,rng);else coralRock(S,x,h,z,rng);}
+      continue;}
+    let md=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]])md=Math.max(md,h-qHeightCell(gx+dx,gz+dz));
+    const k=dKind(u,v,h),[top,side]=dLandCol(u,v,h,md,rng,k);
+    const cs=cellSides(gx,gz,h);T.box(x,h-0.25,z,2,0.5,2,top,0,0,0,0.05,4|cs);
+    if(cs&&h-0.5>-1.2){const c2=cellSides(gx,gz,h-0.5);if(c2){// layered cliffs: bands of colour every 1.5 m
+        if(md>=2.5&&h>3){const red=side.startsWith('#c8')||side.startsWith('#d8')||side.startsWith('#b8')||side.startsWith('#e0');let y=-1.2,i=0;while(y<h-0.5){const y2=Math.min(h-0.5,y+1.5);const c3=cellSides(gx,gz,(y+y2)/2+0.01);
+            if(c3)T.box(x,(y+y2)/2,z,2,y2-y,2,i%2?shade(side,red?1.12:0.9):side,0,0,0,0.05,c3);y=y2;i++;}}
+        else T.box(x,(h-0.5-1.2)/2,z,2,h-0.5+1.2,2,side,0,0,0,0.06,c2);}}
+    if(md>=3&&k!=='village'&&k!=='beach')dCliffBits(P,gx,gz,x,z,h,md,k,rng);
+    if(deckY(x,z)!==null)continue;
+    let mu=0;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]])mu=Math.max(mu,qHeightCell(gx+dx,gz+dz)-h);
+    if(md<0.6&&mu<0.6&&dPathD(u,v)>2.6&&!dReserved(u,v)){const c0=CIRCCOL.length;dScatter(P,G,k,x,z,u,v,h,rng);for(let q=c0;q<CIRCCOL.length;q++)CIRCCOL[q].soft=1;}}}
+// fossils and roots in the cliff faces, vines hanging down
+function dCliffBits(P,gx,gz,x,z,h,md,k,rng){let best=null,bh=h;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const nh=qHeightCell(gx+dx,gz+dz);if(nh<bh){bh=nh;best=[dx,dz];}}if(!best)return;
+  if(deckY(x+best[0]*2,z+best[1]*2)!==null)return;const lo=Math.max(bh,-0.3)+(bh>=0.5?2.2:0);if(h-lo<1)return;const fx=x+best[0]*1.02,fz=z+best[1]*1.02,r=rng();
+  if((k==='valley'||k==='jungle'&&ell(x-DCX,z-DCZ,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru+14,D_VALLEY.rv+14)<1||k==='plateau'&&x-DCX<-20)&&r<0.5){// bones in the red rock
+    const yy=lo+(h-lo)*rng();P.box(fx,yy,fz,best[0]?0.12:1.4,0.3,best[1]?0.12:1.4,pk(DC.bone,rng));if(rng()<0.5)P.box(fx,yy+0.5,fz,best[0]?0.12:0.4,0.4,best[1]?0.12:0.4,pk(DC.bone,rng));}
+  else if(r<0.35){const L=1+rng()*Math.min(3,h-lo);P.box(fx,h-0.1-L/2,fz,best[0]?0.1:0.3,L,best[1]?0.1:0.3,pick(['#3f8a2c','#4f9a36','#5cab40'],rng));}
+  else if(r<0.55){const yy=lo+(h-lo)*rng(),w=1+rng();P.box(x+best[0]*1.3,yy,z+best[1]*1.3,best[0]?0.8:w,0.7,best[1]?0.8:w,pk(DC.rock,rng));if(rng()<0.5)P.box(x+best[0]*1.4,yy+0.42,z+best[1]*1.4,best[0]?0.7:w*0.8,0.14,best[1]?0.7:w*0.8,pk(DC.moss,rng));}}
+// keep the scatter away from buildings and set pieces
+function dReserved(u,v){for(const b of D_BLD)if(Math.abs(u-b.u)<b.w/2+3&&Math.abs(v-b.v)<b.d/2+3.5)return true;
+  for(const p of [D_BOARD,D_FARM,D_TOWER,D_PLAZA,D_WORKS,D_CAMP,D_COURT,D_VIEW,D_TOP,D_RELIC,D_GATEWAY,D_CLEARING,D_SKULL])if(Math.hypot(u-p.u,v-p.v)<(p===D_COURT?12:p===D_CAMP?11:p===D_FARM?9:6))return true;
+  {const dx=u-D_SKEL.u,dz=v-D_SKEL.v,a=dx*Math.cos(D_SKEL.ry)-dz*Math.sin(D_SKEL.ry),c=dx*Math.sin(D_SKEL.ry)+dz*Math.cos(D_SKEL.ry);if(Math.abs(a)<30&&Math.abs(c)<7)return true;}
+  for(const [pu,pv] of D_PILLARS)if(Math.hypot(u-pu,v-pv)<4)return true;for(const [hu,hv] of D_HUTS)if(Math.hypot(u-hu,v-hv)<5)return true;
+  for(const d of D_DIGS)if(Math.hypot(u-d.u,v-d.v)<3.5)return true;if(Math.abs(u-76)<5&&v>-60&&v<-28)return true;return false;}
+// what grows where
+function dScatter(P,G,k,x,z,u,v,h,rng){const r=rng();
+  if(k==='jungle'){if(r<0.11)jungleTree(P,x,h,z,rng,0.85+rng()*0.5);else if(r<0.15)palmTree(P,x,h,z,rng,0.9+rng()*0.3);else if(r<0.21)tropicalPlant(P,x,h,z,rng,0.8+rng()*0.6);else if(r<0.26)fern(P,x,h,z,rng);
+    else if(r<0.29)bush(P,x,h,z,0.9+rng()*0.4,rng);else if(r<0.31)flowerBush(P,x,h,z,rng,['#ff6a8a','#ffb03a','#f05ad0','#ffffff']);else if(r<0.32)fallenLog(P,x,h,z,rng()*3);else if(r<0.33)treeStump(P,x,h,z);
+    else if(r<0.34)mossRock(P,x,h,z,rng,0.8+rng()*0.4);else if(r<0.35)rootsProp(P,x,h,z,rng);else if(r<0.36)mushroom(P,G,x,h,z,rng,0.6+rng()*0.4);}
+  else if(k==='valley'){if(r<0.02)fossilRock(P,x,h,z,rng,0.8+rng()*0.5);else if(r<0.035)footprint(P,x,h,z,rng()*3);else if(r<0.05)rockPile(P,x,h,z,rng,DC.red);else if(r<0.06)deadTree(P,x,h,z,rng,0.8);
+    else if(r<0.075)tallGrass(P,x,h,z,rng);else if(r<0.085)P.box(x+rng()-0.5,h+0.1,z+rng()-0.5,0.8,0.2,0.3,pk(DC.bone,rng),rng()*3);}
+  else if(k==='beach'){if(h<=1.05){if(r<0.03)shellPile(P,x,h,z,rng);else if(r<0.05)starfish(P,x,h,z,rng);else if(r<0.065)driftwood(P,x,h,z,rng);return;}
+    if(r<0.07)palmTree(P,x,h,z,rng,0.9+rng()*0.35);else if(r<0.1)bush(P,x,h,z,0.8,rng);else if(r<0.12)rockPile(P,x,h,z,rng);else if(r<0.14)shellPile(P,x,h,z,rng);}
+  else if(k==='village'){if(r<0.05)palmTree(P,x,h,z,rng,0.9+rng()*0.3);else if(r<0.09)flowerBush(P,x,h,z,rng,['#ff6a8a','#ffb03a','#f05ad0']);else if(r<0.12)bush(P,x,h,z,0.8,rng);else if(r<0.14)tropicalPlant(P,x,h,z,rng,0.7);}
+  else if(k==='plateau'){if(r<0.05)jungleTree(P,x,h,z,rng,0.7+rng()*0.3);else if(r<0.09)tropicalPlant(P,x,h,z,rng,0.7);else if(r<0.12)fern(P,x,h,z,rng);else if(r<0.13)mossRock(P,x,h,z,rng,0.8);else if(r<0.15)tallGrass(P,x,h,z,rng);else if(r<0.155)relicFragment(P,x,h,z,rng);}
+  else if(k==='high'||k==='high2'){if(r<0.04)palmTree(P,x,h,z,rng,0.8);else if(r<0.06)crag(P,x,h,z,rng,0.8+rng()*0.6,DC.rock,'#7cbf55');else if(r<0.1)tallGrass(P,x,h,z,rng);else if(r<0.13)fern(P,x,h,z,rng);else if(r<0.15)bush(P,x,h,z,0.7,rng);else if(r<0.16)mossRock(P,x,h,z,rng,0.7);}
+  else if(k==='ruins'){if(r<0.03)jungleTree(P,x,h,z,rng,0.7);else if(r<0.06)relicFragment(P,x,h,z,rng);else if(r<0.09)fern(P,x,h,z,rng);else if(r<0.11)tallGrass(P,x,h,z,rng);else if(r<0.12)mossRock(P,x,h,z,rng,0.7);}
+  else if(k==='mangrove'){if(h<=1.05){if(r<0.08)mangroveTree(P,x,h,z,rng,0.8+rng()*0.4);else if(r<0.16)reeds(P,x,h,z,rng);else if(r<0.18)rootsProp(P,x,h,z,rng);return;}if(r<0.12)mangroveTree(P,x,h,z,rng,0.9);else if(r<0.2)reeds(P,x,h,z,rng);else if(r<0.24)fern(P,x,h,z,rng);}
+  else if(k==='turtle'){if(r<0.08)palmTree(P,x,h,z,rng,0.8);else if(r<0.12)bush(P,x,h,z,0.7,rng);}}
+/* ---- the set pieces ---- */
+function dBuildVillage(rng){
+  for(const b of D_BLD){const a=dAt(b.u,b.v);if(b.big)bigHouse(a.P,a.G,b.x,a.y,b.z,0,{w:b.w,d:b.d,wall:b.wall,sign:b.sign,cols:b.id==='museum'});else hut(a.P,a.G,b.x,a.y,b.z,0,{w:b.w,d:b.d,wall:b.wall,sign:b.sign});}
+  // the Boat Works: a boathouse on the water at the end of its pier
+  {const d=DINO_DECKS.find(k=>k.o.plat),a=dAt(d.x-DCX+3,d.z-DCZ);boathouse(a.P,a.G,d.x+3,1.3,d.z,0);const p=dAt(D_WORKS.u,D_WORKS.v);crate(p.P,p.x+2,p.y,p.z-1.2,0.3,false);barrel(p.P,p.x+2.8,p.y,p.z-0.4);}
+  // quest board, plaza, lanterns along the beach and a watchtower at the west end
+  {const a=dAt(D_BOARD.u,D_BOARD.v);for(const s of[-0.8,0.8])a.P.box(a.x+s,a.y+0.7,a.z,0.16,1.4,0.16,'#5a3a22');a.P.box(a.x,a.y+1.4,a.z,2.0,1.2,0.14,'#8a5a3a');for(let k=0;k<3;k++)a.P.box(a.x-0.5+k*0.5,a.y+1.45,a.z+0.08,0.36,0.46,0.06,pick(['#f4ecd8','#f8e0a0'],rng));a.P.box(a.x,a.y+2.12,a.z,2.3,0.16,0.5,'#c8402a');CIRCCOL.push({x:a.x,z:a.z,r:0.9});}
+  {const a=dAt(D_PLAZA.u,D_PLAZA.v);for(let k=0;k<10;k++){const t=k/10*TAU;a.P.box(a.x+Math.cos(t)*4.6,a.y+0.08,a.z+Math.sin(t)*4.6,1.2,0.16,1.2,pk(DC.stone,rng),t);}a.P.box(a.x,a.y+0.1,a.z,2.6,0.2,2.6,pk(DC.stone,rng));palmTree(a.P,a.x+0.1,a.y+0.2,a.z+0.1,rng,1.25);}
+  {const a=dAt(D_TOWER.u,D_TOWER.v);watchTower(a.P,a.G,a.x,a.y,a.z);}
+  for(let u=-62;u<=24;u+=11){if(Math.abs(u+14)<3)continue;const a=dAt(u,97.5);if(a.y>=1)torchPost(a.P,a.G,a.x,a.y,a.z);}
+  for(const [u,c] of [[-34,'#e0503f'],[-21,'#2f9ab8'],[3,'#f2a83a'],[-50,'#3a8a5a']]){const a=dAt(u,93.5);dMarketStall(a.P,a.G,a.x,a.y,a.z,0,c,rng);}
+  for(const u of [-56,-44,8,20]){const a=dAt(u,95);thatchUmbrella(a.P,a.x,a.y,a.z);}
+  for(const [u,v] of [[-30,98],[-60,99]]){const a=dAt(u,v);rowboat(a.P,a.x,a.y,a.z,0.3+rng(),pick(['#2f9ab8','#c8402a','#8a5a3a'],rng));}
+  for(const [u,v] of [[-47,97],[-33,89]]){const a=dAt(u,v);fishRack(a.P,a.x,a.y,a.z,0.2,rng);}
+  for(const [u,v] of [[-23,90],[-21,90],[10,90],[-37,88]]){const a=dAt(u,v);rng()<0.5?crate(a.P,a.x,a.y,a.z,rng()*3,false):barrel(a.P,a.x,a.y,a.z);}
+  {const a=dAt(D_PLAZA.u+4,D_PLAZA.v-2.5);signpost(a.P,a.x,a.y,a.z,0.4);}{const a=dAt(-6,48);signpost(a.P,a.x,a.y,a.z,-0.3);}
+  // the small farm on the slope behind the village
+  {const f=D_FARM;for(let i=0;i<3;i++)for(let j=0;j<2;j++){const a=dAt(f.u-4.5+i*4.5,f.v-1.6+j*3.2);cropRow(a.P,a.x,a.y,a.z,3.6,0,[null,'#ff6a3a','#f2cf3f'][i],['#6fc24b','#4fae44','#5cbf46'][i]);}
+    const a=dAt(f.u+8,f.v);scarecrow(a.P,a.x,a.y,a.z,0.3);bambooFence(a.P,dpt(f.u-8,f.v-4).x,dpt(f.u-8,f.v-4).z,dpt(f.u+6,f.v-4).x,dpt(f.u+6,f.v-4).z);DINOFX.farm=dpt(f.u,f.v);}
+  // the museum yard shows the fossils you donate
+  DINOFX.museumYard=[];for(let i=0;i<D_FOSSILS.length;i++){const u=-31+i*1.55,a=dAt(u,72.2);DINOFX.museumYard.push({k:D_FOSSILS[i],x:a.x,y:a.y,z:a.z});a.P.box(a.x,a.y+0.4,a.z,1.0,0.8,1.0,pk(DC.stone,rng));CIRCCOL.push({x:a.x,z:a.z,r:0.5});}}
+function dBuildValley(rng){
+  {const a=dAt(D_SKEL.u,D_SKEL.v);DINOFX.skeleton=dinoSkeleton(a.P,a.x,a.y,a.z,D_SKEL.ry,rng);}
+  {const a=dAt(D_SKULL.u,D_SKULL.v);dinoSkull(a.P,a.x,a.y-0.6,a.z,2.4,1.8,rng);CIRCCOL.push({x:a.x,z:a.z,r:3.2});DINOFX.bigSkull={x:a.x,z:a.z};}
+  // the excavation camp: tents, scaffolding, tools, crates and a display table
+  {const c=D_CAMP;for(const [du,dv,col] of [[-6,3,'#f2e8c8'],[5,4,'#e8d4a0']]){const a=dAt(c.u+du,c.v+dv);tent(a.P,a.x,a.y,a.z,0.2,col);}
+    {const a=dAt(c.u,c.v-3);a.P.box(a.x,a.y+0.5,a.z,2.4,0.1,1.0,'#8a5a2e');for(const s of[-1,1])a.P.box(a.x+s*1.1,a.y+0.25,a.z,0.1,0.5,0.9,'#6a4226');for(let k=0;k<4;k++)a.P.box(a.x-0.8+k*0.55,a.y+0.62,a.z,0.36,0.16,0.3,pk(DC.bone,rng),rng());CIRCCOL.push({x:a.x,z:a.z,r:1});DINOFX.display=a;}
+    {const a=dAt(c.u+3,c.v-5);toolRack(a.P,a.x,a.y,a.z,0.4);}for(const [du,dv] of [[-3,-6],[-4,-5],[6,-2]]){const a=dAt(c.u+du,c.v+dv);crate(a.P,a.x,a.y,a.z,rng()*3,false);}
+    {const a=dAt(c.u-1,c.v+1);a.P.box(a.x,a.y+0.15,a.z,1.6,0.3,1.6,'#5a4a3a');DINOFX.fire.push({x:a.x,y:a.y+0.4,z:a.z});a.G.box(a.x,a.y+0.4,a.z,0.6,0.4,0.6,'#ff9a3a');}}
+  {const s=DINOFX.skeleton.mid;for(const off of [-6,6]){const p={x:s.x+Math.sin(D_SKEL.ry)*4.2+Math.cos(D_SKEL.ry)*off,z:s.z+Math.cos(D_SKEL.ry)*4.2-Math.sin(D_SKEL.ry)*off},t=dTile(p.x,p.z);scaffold(t.P,p.x,gy(p.x,p.z),p.z,D_SKEL.ry,1.4,4.8);}}
+  for(const d of D_DIGS){const a=dAt(d.u,d.v);if(d.cliff){a.P.box(a.x,a.y+0.6,a.z,1.6,1.2,1.2,pk(DC.red,rng));a.P.box(a.x,a.y+0.9,a.z+0.62,0.8,0.3,0.06,DC.bone[0]);}else digMarker(a.P,a.G,a.x,a.y,a.z,rng);}
+  // fossil footprints across the floor and a viewpoint over the valley from the plateau
+  for(let k=0;k<9;k++){const a=dAt(-96+k*3.2,26-k*2.2+(k%2)*1.4);footprint(a.P,a.x,a.y,a.z,-0.6);}
+  for(let k=0;k<5;k++){const a=dAt(-56+k*3,-30-k*1.2);footprint(a.P,a.x,a.y,a.z,0.4);}}
+function dBuildPlateau(rng){
+  // the Forgotten Courtyard: a monument carved with four symbols, broken pillars and stone steps
+  {const c=dAt(D_COURT.u,D_COURT.v);c.P.box(c.x,c.y+0.3,c.z,3.2,0.6,3.2,pk(DC.stone,rng));c.P.box(c.x,c.y+0.8,c.z,2.4,0.4,2.4,pk(DC.stone,rng));c.P.box(c.x,c.y+3.0,c.z,1.4,4.0,1.4,pk(DC.mossy,rng));c.P.box(c.x,c.y+5.2,c.z,0.9,0.5,0.9,pk(DC.stone,rng));
+    for(let i=0;i<4;i++){const ry=i*Math.PI/2,put=placer(c.x,c.y,c.z,ry);put(c.G,0,1.8+i*0.75,0.72,0.55,0.55,0.05,['#ffd24a','#bfe0ff','#5ac8e8','#7ae86a'][i]);}
+    CIRCCOL.push({x:c.x,z:c.z,r:1.8});DINOFX.monument=c;
+    for(let k=0;k<10;k++){const t=k/10*TAU+0.2,a=dAt(D_COURT.u+Math.cos(t)*8.5,D_COURT.v+Math.sin(t)*8.5);stoneColumn(a.P,a.x,a.y,a.z,3.5,rng,k%3!==0);}}
+  {const a=dAt(D_VIEW.u,D_VIEW.v);a.P.box(a.x,a.y+0.1,a.z,3.6,0.2,3.6,'#a36c3b');for(let k=0;k<6;k++){const t=Math.PI*0.5+k/5*Math.PI;a.P.box(a.x+Math.cos(t)*1.8,a.y+0.6,a.z+Math.sin(t)*1.8,0.14,1,0.14,'#6b4424');}
+    a.P.box(a.x+0.8,a.y+0.5,a.z,0.5,0.16,1.6,'#8a5a3a');DINOFX.view=a;}
+  for(const [u,v] of [[-12,-40],[22,-6],[-20,4]]){const a=dAt(u,v);stoneStatue(a.P,a.G,a.x,a.y,a.z,rng()*3,rng,0.8);}
+  for(const [u,v,ry,l] of [[16,-40,0.4,5],[-22,-44,-0.2,4]]){const a=dAt(u,v);ruinedWall(a.P,a.x,a.y,a.z,ry,l,rng);}}
+function dBuildHigh(rng){
+  {const a=dAt(D_TOP.u,D_TOP.v);stoneTower(a.P,a.G,a.x+1.5,a.y,a.z-1.6,rng,6);DINOFX.top=a;const c=dAt(D_TOP.u-4,D_TOP.v+2.5);chest(c.P,c.G,c.x,c.y,c.z,0.4);DINOFX.topChest=c;
+    const t=dAt(D_TOP.u+3.6,D_TOP.v+4);t.P.box(t.x,t.y+0.7,t.z,0.14,1.4,0.14,'#3a3f46');t.P.box(t.x,t.y+1.5,t.z,0.34,0.34,1.3,'#c8a040',0.5,-0.3);CIRCCOL.push({x:t.x,z:t.z,r:0.35});DINOFX.scope=t;}
+  for(const [u,v] of [[28,-58],[-52,-74]]){const a=dAt(u,v);stoneTower(a.P,a.G,a.x,a.y,a.z,rng,5);}
+  for(const [u,v] of [[-30,-92],[12,-92],[-40,-60]]){const a=dAt(u,v);crag(a.P,a.x,a.y,a.z,rng,1.4,DC.rock,'#7cbf55');}
+  const R=D_RAMPS.filter(r=>['ph','hh','hs','vp','ts'].includes(r.id));for(const r of R)for(let s=1;s<r.len;s+=1.6){// stone steps on the stairways
+    const P2=r.pts;let i=1;while(i<P2.length-1&&P2[i].s<s)i++;const t=(s-P2[i-1].s)/(P2[i].s-P2[i-1].s),u=lerp(P2[i-1][0],P2[i][0],t),v=lerp(P2[i-1][1],P2[i][1],t),a=dAt(u,v),dir=Math.atan2(-(P2[i][1]-P2[i-1][1]),P2[i][0]-P2[i-1][0]);
+    a.P.box(a.x,a.y+0.03,a.z,0.3,0.08,r.w*1.7,pick(['#a8a088','#989078'],rng),dir);}}
+function dBuildRuins(rng){
+  {const a=dAt(D_GATEWAY.u,D_GATEWAY.v);gateway(a.P,a.G,a.x,a.y,a.z,0,rng);}
+  for(const u of [60,66,86,92]){const a=dAt(u,-48);stoneColumn(a.P,a.x,a.y,a.z,5,rng,u===66||u===92);}
+  for(const [u,v] of [[70,-40],[82,-40]]){const a=dAt(u,v);stoneStatue(a.P,a.G,a.x,a.y,a.z,0,rng,1.15);}
+  for(const [u,v,ry,l] of [[52,-50,1.4,6],[96,-66,1.2,7],[90,-82,0.2,8],[58,-74,-0.3,6]]){const a=dAt(u,v);ruinedWall(a.P,a.x,a.y,a.z,ry,l,rng);}
+  for(const [u,v] of [[94,-74],[40,-44]]){const a=dAt(u,v);stoneTower(a.P,a.G,a.x,a.y,a.z,rng,6);}
+  {const a=dAt(52,-62);ruinedArch(a.P,a.x,a.y,a.z,0.8,rng);}
+  // the Forgotten Temple: a stepped pyramid on its platform, the relic pedestal and the gate at the top of the stairs
+  {const a=dAt(D_TEMPLE.u,D_TEMPLE.v-4);for(let k=0;k<4;k++){const w=13-k*2.6;a.P.box(a.x,a.y+0.9+k*1.8,a.z,w,1.8,w*0.9,k%2?pk(DC.stone,rng):pk(DC.mossy,rng));}
+    a.P.box(a.x,a.y+8.2,a.z,3,1.6,2.6,pk(DC.stone,rng));a.P.box(a.x,a.y+2.0,a.z+5.4,2.6,3.2,0.3,'#2a2420');a.G.box(a.x,a.y+9.2,a.z,0.6,0.5,0.6,'#7fe8c8');
+    for(const s of[-1,1])a.P.box(a.x+s*2,a.y+2,a.z+5.6,0.7,4,0.7,pk(DC.stone,rng));CIRCCOL.push({x:a.x,z:a.z,r:5.4},{x:a.x-3.5,z:a.z,r:4.5},{x:a.x+3.5,z:a.z,r:4.5});DINOFX.temple=a;}
+  {const a=dAt(D_RELIC.u,D_RELIC.v);pedestal(a.P,a.G,a.x,a.y,a.z,rng);DINOFX.relic=a;const c=dAt(D_RELIC.u+4,D_RELIC.v);chest(c.P,c.G,c.x,c.y,c.z,0);DINOFX.templeChest=c;}
+  // the four symbol pillars that open the gate, and the gate itself (it sinks into the ground when the symbols are right)
+  DINOFX.pillars=D_PILLARS.map(([u,v],i)=>{const a=dAt(u,v);a.P.box(a.x,a.y+0.3,a.z,1.6,0.6,1.6,pk(DC.stone,rng));a.P.box(a.x,a.y+1.6,a.z,1.1,2.0,1.1,pk(DC.mossy,rng));CIRCCOL.push({x:a.x,z:a.z,r:0.9});return {x:a.x,y:a.y,z:a.z,i};});
+  DINOFX.gate={x:dpt(D_TEMPLE_GATE.u,0).x,z:dpt(0,D_TEMPLE_GATE.v).z,y:D_TEMPLE.h};}
+function dBuildJungle(rng){
+  for(const [u,v,ry] of [[70,8,0.4],[34,-2,-0.5],[24,20,2.6]]){const a=dAt(u,v);stoneStatue(a.P,a.G,a.x,a.y,a.z,ry,rng,1);}
+  {const c=dAt(D_CLEARING.u,D_CLEARING.v);for(let k=0;k<8;k++){const t=k/8*TAU,a=dAt(D_CLEARING.u+Math.cos(t)*4.5,D_CLEARING.v+Math.sin(t)*4.5);a.P.box(a.x,a.y+0.6,a.z,0.9,1.2+(k%3)*0.4,0.7,pk(DC.mossy,rng),t);CIRCCOL.push({x:a.x,z:a.z,r:0.5});}
+    chest(c.P,c.G,c.x,c.y,c.z,0.6);DINOFX.clearChest=c;}
+  {const a=dAt(46,-24);ruinedArch(a.P,a.x,a.y,a.z,1.2,rng,2.0,3.6);}
+  // the jungle river: a waterfall off the plateau, the river pool, two bridges
+  {const p=dAt(16,9.5);DINOFX.falls.push({x:p.x,y:0.2,z:p.z+1.5,w:3});const T=dTile(p.x,p.z);waterfall(T.P,p.x,p.z,12,0,0,3.2);}
+  for(const p of D_PONDS){if(p[3]!=='pond')continue;for(let k=0;k<5;k++){const t=k/5*TAU+rng(),a=dAt(p[0]+Math.cos(t)*(p[2]+1.2),p[1]+Math.sin(t)*(p[2]+1.2));if(rng()<0.6)reeds(a.P,a.x,a.y,a.z,rng);else fern(a.P,a.x,a.y,a.z,rng);}
+    const sy=Math.round(dinoLocal(p[0]+p[2]+2.2,p[1])*2)/2-0.4;for(let k=0;k<4;k++){const t=rng()*TAU,d=rng()*p[2]*0.7,a=dAt(p[0]+Math.cos(t)*d,p[1]+Math.sin(t)*d);a.P.box(a.x,sy+0.04,a.z,0.8,0.05,0.8,'#4fa84a',rng()*3);if(k%2)a.G.box(a.x,sy+0.14,a.z,0.2,0.16,0.2,'#ff9ac8');}}}
+function dBuildHighWater(rng){
+  // the mountain stream: a waterfall from the upper level, the stream across the highlands, and its fall into the sea
+  {const a=dAt(-20,-67.4);waterfall(a.P,a.x,a.z,26,17.6,0,2.4);DINOFX.falls.push({x:a.x,y:17.8,z:a.z+1,w:2.4});}
+  {const e=D_STREAM[D_STREAM.length-1],a=dAt(e[0],e[1]+3);waterfall(a.P,a.x,a.z,17.6,0,0,2.8);DINOFX.falls.push({x:a.x,y:0.2,z:a.z-1,w:2.8});}
+  {const a=dAt(98,-6);waterfall(a.P,a.x,a.z,5,0,Math.PI/2,1.6);DINOFX.falls.push({x:a.x+1,y:0.2,z:a.z,w:1.6});}}
+function dBuildPass(rng){
+  // Cliffside Pass: rope fences on the sea side, a rock arch over the path, a bench with a view and old pillars
+  const R=D_RAMPS.find(r=>r.id==='cp'),P2=R.pts;for(let i=1;i<P2.length;i++){const a=P2[i-1],b=P2[i],n=unit2(b[0]-a[0],b[1]-a[1]),o={x:n.z,z:-n.x},side=(Math.hypot(a[0]+o.x*3,a[1]+o.z*3)>Math.hypot(a[0],a[1]))?1:-1;
+    const A=dpt(a[0]+o.x*side*1.9,a[1]+o.z*side*1.9),B=dpt(b[0]+o.x*side*1.9,b[1]+o.z*side*1.9),t=dTile(A.x,A.z);
+    const L=Math.hypot(B.x-A.x,B.z-A.z),n2=Math.max(1,Math.round(L/2.4));for(let k=0;k<=n2;k++){const x=lerp(A.x,B.x,k/n2),z=lerp(A.z,B.z,k/n2);if(qHeightAt(x,z)<0.5||deckY(x,z)!==null)continue;const y=gy(x,z);t.P.box(x,y+0.5,z,0.14,1.0,0.14,'#6a4226');
+      if(k<n2){const x2=lerp(A.x,B.x,(k+1)/n2),z2=lerp(A.z,B.z,(k+1)/n2);if(qHeightAt(x2,z2)>=0.5&&deckY(x2,z2)===null){const y2=gy(x2,z2);t.P.box((x+x2)/2,(y+y2)/2+0.8,(z+z2)/2,L/n2,0.05,0.05,'#c8b890',Math.atan2(-(z2-z),x2-x),0,Math.atan2(y2-y,L/n2));}}}}
+  {const a=dAt(110,2);rockArch(a.P,a.x,a.y,a.z,Math.atan2(4,24)+Math.PI/2,3.2,4.4,rng,DC.rock);}
+  {const a=dAt(103,14);a.P.box(a.x,a.y+0.42,a.z,1.8,0.12,0.6,'#8a5a3a',0.3);for(const s of[-1,1])a.P.box(a.x+s*0.7,a.y+0.2,a.z,0.12,0.4,0.5,'#5a3a22',0.3);DINOFX.passView=a;}
+  for(const [u,v] of [[102,-30],[100,38]]){const a=dAt(u,v);stoneColumn(a.P,a.x,a.y,a.z,3,rng,true);}}
+function dBuildMangrove(rng){
+  for(const [u,v] of D_HUTS){const a=dAt(u,v);hut(a.P,a.G,a.x,a.y,a.z,0.3,{w:3.6,d:3.2,h:2.1,wall:'#a8885a'});for(const s of[-1,1]){const b=dAt(u+s*3.4,v+2.4);fishRack(b.P,b.x,b.y,b.z,0.3,rng);}}
+  {const a=dAt(D_HIDDEN.u,D_HIDDEN.v);chest(a.P,a.G,a.x,a.y,a.z,0.8);DINOFX.hiddenChest=a;palmTree(a.P,a.x-2,a.y,a.z-1,rng,0.8);}
+  // mangrove trees standing in the shallow water around the islets
+  for(let k=0;k<70;k++){const t=rng()*TAU,d=Math.sqrt(rng()),u=D_MANG.u+Math.cos(t)*D_MANG.ru*d,v=D_MANG.v+Math.sin(t)*D_MANG.rv*d,p=dpt(u,v);
+    if(qHeightAt(p.x,p.z)>=0.5||deckY(p.x,p.z)!==null||DINO_DECKS.some(k=>segDist(p.x,p.z,k.x,k.z,k.x+k.ux*k.len,k.z+k.uz*k.len)<3))continue;
+    if(DSHORES.some(s=>Math.hypot(s.boat.x-p.x,s.boat.z-p.z)<12))continue;const T=dTile(p.x,p.z);if(rng()<0.55)mangroveTree(T.P,p.x,0,p.z,rng,0.8+rng()*0.4);else reeds(T.P,p.x,0,p.z,rng);}}
+function dBuildIslets(rng){
+  {const a=dAt(D_TURTLE.u,D_TURTLE.v-1.5);stoneTower(a.P,a.G,a.x+2,a.y,a.z-2,rng,4);chest(a.P,a.G,a.x-1.6,a.y,a.z+0.6,1.2);DINOFX.turtleChest={x:a.x-1.6,z:a.z+0.6};}
+  for(const r of D_DROCKS){const p=dpt(r[0],r[1]),T=dTile(p.x,p.z);T.P.box(p.x,r[3]*0.5,p.z,r[2]*2.6,r[3],r[2]*2.4,pk(DC.rock,rng),rng()*3);T.P.box(p.x+rng()-0.5,r[3]+0.4,p.z+rng()-0.5,r[2]*1.6,0.9,r[2]*1.5,pk(DC.rock,rng),rng()*3);
+    if(rng()<0.7){T.P.box(p.x,r[3]+0.95,p.z,r[2]*1.5,0.2,r[2]*1.5,pk(DC.moss,rng),rng()*3);palmTree(T.P,p.x+0.3,r[3]+1,p.z-0.2,rng,0.75);}}}
+function dBuildDecks(rng){for(const d of DINO_DECKS){const t=dTile(d.x+d.ux*d.len/2,d.z+d.uz*d.len/2),o=d.o;
+    if(o.plat){t.P.box(d.x+d.ux*d.len/2,d.y,d.z+d.uz*d.len/2,d.len,0.18,d.hw*2,'#a36c3b');for(const [a,b] of [[0.2,-1],[0.2,1],[d.len-0.2,-1],[d.len-0.2,1]])t.P.box(d.x+d.ux*a,d.y-1.6,d.z+b*(d.hw-0.2),0.28,3.4,0.28,'#5a3a22');continue;}
+    if(o.rope&&d.y>10){// a rope bridge high up: planks, side ropes and posts at each end
+      deckVisual(t.P,d,rng,{noPosts:true,col:['#a87a4a','#94683a']});const px=-d.uz,pz=d.ux;for(const s of[-1,1]){for(const e of [0,d.len]){t.P.box(d.x+d.ux*e+px*s*(d.hw+0.1),d.y+0.6,d.z+d.uz*e+pz*s*(d.hw+0.1),0.2,1.4,0.2,'#6a4226');}
+        t.P.box(d.x+d.ux*d.len/2+px*s*(d.hw+0.1),d.y+1.0,d.z+d.uz*d.len/2+pz*s*(d.hw+0.1),d.len,0.06,0.06,'#c8b890',Math.atan2(d.ux,d.uz)+Math.PI/2);}continue;}
+    if(o.bridge&&!o.rope&&d.len>12&&d.z-DCZ>45){deckVisual(t.P,d,rng,{col:['#b8b098','#a8a088'],noPosts:true,rail:'#a8a088'});for(const e of [1,d.len-1])t.P.box(d.x+d.ux*e,d.y-1.6,d.z+d.uz*e,1.6,3.2,d.hw*2,pk(DC.stone,rng),Math.atan2(d.ux,d.uz));continue;}
+    deckVisual(t.P,d,rng,{rail:o.rail?'#8a5a3a':null});}
+  for(const s of DSHORES){const lx=s.foot.x-Math.sin(s.yaw),lz=s.foot.z-Math.cos(s.yaw),dy=deckY(lx,lz),t=dTile(lx,lz);lantern(t.P,t.G,lx,dy!==null?dy+0.08:gy(lx,lz),lz);}}
+// every place stays reachable: scattered plants that would seal a spot lose their collision
+function dinoUnblock(){const X0=DINO_BOX.x0,Z0=DINO_BOX.z0,S=0.5,W=Math.round((DINO_BOX.x1-X0)/S),H=Math.round((DINO_BOX.z1-Z0)/S),N=W*H,PR=0.35;
+  const g=new Float32Array(N),land=new Uint8Array(N),hard=new Uint8Array(N),soft=new Uint8Array(N);
+  for(let gz=Math.floor(Z0/2);gz<=Math.floor(DINO_BOX.z1/2);gz++)for(let gx=Math.floor(X0/2);gx<=Math.floor(DINO_BOX.x1/2);gx++){const h=qHeightCell(gx,gz);if(h<0.5)continue;
+    for(let b=0;b<4;b++)for(let a=0;a<4;a++){const i=Math.round((gx*2+a*S-X0)/S),j=Math.round((gz*2+b*S-Z0)/S);if(i>=0&&j>=0&&i<W&&j<H){land[j*W+i]=1;g[j*W+i]=h;}}}
+  for(const d of DINO_DECKS){for(let t=0;t<=d.len;t+=0.25)for(let w=-d.hw;w<=d.hw;w+=0.25){const i=Math.round((d.x+d.ux*t-d.uz*w-X0)/S),j=Math.round((d.z+d.uz*t+d.ux*w-Z0)/S);if(i<0||j<0||i>=W||j>=H)continue;
+      const k=j*W+i,x=X0+i*S,z=Z0+j*S;if(deckY(x,z)===null)continue;land[k]=1;g[k]=groundAt(x,z);}}
+  const stamp=(m,cx,cz,rx,rz,circ)=>{const i0=Math.max(0,Math.ceil((cx-rx-X0)/S)),i1=Math.min(W-1,Math.floor((cx+rx-X0)/S)),j0=Math.max(0,Math.ceil((cz-rz-Z0)/S)),j1=Math.min(H-1,Math.floor((cz+rz-Z0)/S));
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){if(circ){const dx=X0+i*S-cx,dz=Z0+j*S-cz;if(dx*dx+dz*dz>=rx*rx)continue;}m[j*W+i]=1;}};
+  for(const b of BOXCOL)stamp(hard,b.x,b.z,b.hw+PR,b.hd+PR,false);
+  const softs=[];for(const c of CIRCCOL){if(c.x<X0-3||c.x>DINO_BOX.x1+3||c.z<Z0-3||c.z>DINO_BOX.z1+3||c.gate)continue;if(c.soft)softs.push(c);else stamp(hard,c.x,c.z,c.r+PR,c.r+PR,true);}
+  const seeds=DSHORES.map(s=>Math.round((s.foot.z-Z0)/S)*W+Math.round((s.foot.x-X0)/S));
+  const flood=(useSoft,rev)=>{const v=new Uint8Array(N),st=[];const ok=k=>land[k]&&!hard[k]&&!(useSoft&&soft[k]);for(const k of seeds)if(k>=0&&k<N&&ok(k)&&!v[k]){v[k]=1;st.push(k);}
+    while(st.length){const k=st.pop(),i=k%W;for(const q of [k+1,k-1,k+W,k-W]){if(q<0||q>=N||v[q]||!ok(q))continue;if(q===k+1&&i===W-1||q===k-1&&i===0)continue;if((rev?g[k]-g[q]:g[q]-g[k])>0.62)continue;v[q]=1;st.push(q);}}return v;};
+  const f0=flood(false,false),r0=flood(false,true);let removed=0,left=0;
+  for(let pass=0;pass<6;pass++){soft.fill(0);for(const c of softs)if(!c.gone)stamp(soft,c.x,c.z,c.r+PR,c.r+PR,true);
+    const f1=flood(true,false),r1=flood(true,true),bad=[];for(let k=0;k<N;k++)if(f0[k]&&r0[k]&&!soft[k]&&!(f1[k]&&r1[k]))bad.push(k);left=bad.length;if(!left)break;
+    const near=new Uint8Array(N);for(const k of bad)near[k]=1;
+    for(const c of softs){if(c.gone)continue;const R=c.r+PR+0.8,i0=Math.max(0,Math.ceil((c.x-R-X0)/S)),i1=Math.min(W-1,Math.floor((c.x+R-X0)/S)),j0=Math.max(0,Math.ceil((c.z-R-Z0)/S)),j1=Math.min(H-1,Math.floor((c.z+R-Z0)/S));let hit=false;
+      for(let j=j0;j<=j1&&!hit;j++)for(let i=i0;i<=i1;i++)if(near[j*W+i]&&Math.hypot(X0+i*S-c.x,Z0+j*S-c.z)<R){hit=true;break;}if(hit){c.gone=1;removed++;}}}
+  if(removed){for(let i=CIRCCOL.length-1;i>=0;i--)if(CIRCCOL[i].gone)CIRCCOL.splice(i,1);}
+  return {removed,left};}
+function buildDinoIsland(){const rng=mulberry32(4242);
+  for(const t of D_TILES){t.T=new Batch(0.5);t.S=new Batch(0.5);t.P=new Batch(0.35);t.G=new Batch(0.2);}
+  for(const t of D_TILES)dinoCells(t,rng);
+  dBuildDecks(rng);dBuildVillage(rng);dBuildValley(rng);dBuildPlateau(rng);dBuildHigh(rng);dBuildHighWater(rng);dBuildRuins(rng);dBuildJungle(rng);dBuildPass(rng);dBuildMangrove(rng);dBuildIslets(rng);
+  // the temple gate stops you until the symbols are set right
+  {const g=DINOFX.gate;g.cols=[];for(let k=-3;k<=3;k+=1.5){const c={x:g.x+k,z:g.z,r:0.8,gate:true};g.cols.push(c);CIRCCOL.push(c);}
+    const b=new Batch(0.3);b.box(0,2,0,7.4,4,0.8,'#8a8270');b.box(0,4.3,0,8.2,0.6,1.1,'#a8a088');for(let i=0;i<4;i++)b.box(-2.4+i*1.6,2.4,0.42,0.9,0.9,0.06,['#ffd24a','#bfe0ff','#5ac8e8','#7ae86a'][i]);b.box(0,1.0,0.42,1.6,1.6,0.06,'#3a3a30');
+    const m=b.mesh();m.position.set(g.x,g.y,g.z);scene.add(m);g.mesh=m;}
+  for(const t of D_TILES){const grp=new THREE.Group();if(t.T.parts.length)grp.add(t.T.mesh());if(t.S.parts.length)grp.add(t.S.mesh(MAT.bed,false));if(t.P.parts.length)grp.add(t.P.mesh());
+    if(t.G.parts.length){const gm=t.G.mesh(MAT.glow,false);gm.receiveShadow=false;grp.add(gm);}scene.add(grp);const c=dpt((t.u0+t.u1)/2,(t.v0+t.v1)/2);P4VIS.push({g:grp,x:c.x,z:c.z,r:-110,key:t.key});t.T=t.S=t.P=t.G=null;}
+  for(const s of DINOFX.signs){const m=new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.62),new THREE.MeshStandardMaterial({map:signTexture(s.kind),roughness:0.9}));m.position.set(s.x,s.y,s.z);m.rotation.y=s.ry;scene.add(m);}
+  DINOFX.access=dinoUnblock();Dino.init();}
+
+/* ---------- Dino Island: quests, fossils, the temple puzzle and everything you can do there ---------- */
+const DQ_JUNGLE=['junglewood','tropfiber','medherb','wildfruit','rareflower'];
+const dDistinctFossils=()=>D_FOSSILS.filter(k=>(G.stats.dfos||{})[k]).length;
+const dMangroveKinds=()=>Object.keys(G.stats.dmang||{}).length;
+const DQUESTS=[
+  {id:'arrive',title:'Welcome to Dino Island',text:'Tie up at the main pier of the Coastal Beach village and meet Kai, the island guide, by the plaza.',on:(t,d)=>t==='dmeet'&&d==='kai',at:()=>dpt(D_PLAZA.u+2.5,D_PLAZA.v-1.5),rw:{coins:200,xp:40}},
+  {id:'fossil',title:'A Strange Discovery',text:'Kai saw something glinting where the path enters the jungle, north of the village. Dig there with your new Explorer\'s Brush.',on:(t,d)=>t==='dfossil'&&d&&d.spot==='d1',at:()=>dpt(D_DIGS[0].u,D_DIGS[0].v),rw:{coins:250,xp:50}},
+  {id:'jungle',title:'Into the Jungle',text:'Explore the Jungle Forest and gather 3 jungle resources: wood, fiber, herbs, fruit or flowers.',need:3,on:(t,d)=>t==='res'&&DQ_JUNGLE.includes(d),at:()=>Dino.nearestNode(n=>DQ_JUNGLE.includes(n.type)),rw:{coins:300,xp:60,recipe:'skewers'}},
+  {id:'skeleton',title:'Bones of the Past',text:'Head west to Fossil Valley and examine the giant skeleton lying across the valley floor.',on:t=>t==='skeleton',at:()=>DINOFX.skeleton&&DINOFX.skeleton.mid,rw:{coins:350,xp:60,decor:'minirex'}},
+  {id:'collector',title:'The Fossil Collector',text:'Dig at the excavation markers and fossil cliffs until you have found 5 different kinds of fossil.',prog:()=>[dDistinctFossils(),5],on:t=>t==='dfossil'&&dDistinctFossils()>=5,at:()=>Dino.nearestDig(),rw:{coins:500,xp:80,pearls:2}},
+  {id:'summit',title:'Above the Island',text:'Climb the stone stairs of the Mountain Highlands to the summit viewpoint.',on:t=>t==='dsummit',at:()=>dpt(D_TOP.u,D_TOP.v),rw:{coins:400,xp:80,swift:true}},
+  {id:'ruins',title:'The Forgotten Civilization',text:'Find the Ancient Ruins in the north-east and pass through the great stone gateway.',on:t=>t==='druinsIn',at:()=>dpt(D_GATEWAY.u,D_GATEWAY.v),rw:{coins:400,xp:60}},
+  {id:'temple',title:'Ancient Symbols',text:'Read the monument in the Forgotten Courtyard on the plateau, set the four symbol pillars at the temple, and take what lies beyond the gate.',on:t=>t==='dtemple',
+    at:()=>G.flags.dn_gate?dpt(D_RELIC.u,D_RELIC.v):G.flags.dn_clue?Dino.nextPillar():dpt(D_COURT.u,D_COURT.v+2.6),rw:{coins:800,xp:100,pearls:3,decor:'idol'}},
+  {id:'mangrove',title:'Life in the Mangroves',text:'Sail or walk out to Mangrove Bay and catch 3 different kinds of mangrove fish.',prog:()=>[dMangroveKinds(),3],on:t=>t==='catch'&&dMangroveKinds()>=3,at:()=>dpt(60,72),rw:{coins:600,xp:80,recipe:'curry',decor:'chime'}},
+  {id:'history',title:"The Island's History",text:'Donate one of every kind of fossil to the Island Museum, then hear Professor Odell tell the story of the forgotten island.',prog:()=>[D_FOSSILS.filter(k=>G.flags['dn_don_'+k]).length,9],on:t=>t==='dstory',at:()=>D_BLD.find(b=>b.id==='museum').door,rw:{coins:3000,xp:200,pearls:8,decor:'amber'}},
+  {id:'done',title:'Explorer of Dino Island',text:'Every quest is done. Keep fishing, digging and exploring!',at:()=>null}];
+const D_DECOR={minirex:'Mini Rex Skull (shelf decoration)',idol:'Temple Idol (shelf decoration)',chime:'Mangrove Wind Chime (decoration)',amber:'Amber with a Fern Inside (decoration)'};
+const DinoQ={
+  i(){return Math.min(G.stats.dqI||0,DQUESTS.length-1);},cur(){return DQUESTS[this.i()];},idx(id){return DQUESTS.findIndex(q=>q.id===id);},done(id){return this.i()>this.idx(id);},
+  event(t,d){if(!G.flags.dino)return;const q=this.cur();if(!q.on||!q.on(t,d)){if(q.prog)this.hud(true);return;}if(q.need){G.stats.dqN=(G.stats.dqN||0)+1;if(G.stats.dqN<q.need){this.hud(true);Save.write();return;}}this.advance();},
+  advance(){const q=this.cur(),r=q.rw||{};if(r.coins){G.coins+=r.coins;UI.coins();}if(r.pearls)Pearls.add(r.pearls,q.title);if(r.xp)Level.add(r.xp);
+    if(r.recipe)G.flags['dn_rec_'+r.recipe]=true;if(r.decor)G.flags['dn_dec_'+r.decor]=true;if(r.swift)G.flags.dn_boots=true;
+    G.stats.dqI=this.i()+1;G.stats.dqN=0;const extra=[r.recipe?'new recipe at the Beach Grill':'',r.decor?D_DECOR[r.decor]:'',r.swift?'Explorer Boots: you walk faster on Dino Island':''].filter(Boolean).join(' · ');
+    UI.banner('Dino Island quest complete!',q.title+(r.coins?' · +'+r.coins+' coins':'')+(extra?' · '+extra:''));Audio.fanfare(2);this.hud(true);Ach.check();Save.write();},
+  hud(force){const el=$('#dinoQ');if(!el)return;const show=Dino.region&&G.flags.dino&&!Snowy.region&&!Blossom.region;el.hidden=!show;$('#questCard').classList.toggle('dinoOn',show);if(!show)return;const q=this.cur();
+    let t=q.title;if(q.need)t+=` (${G.stats.dqN||0}/${q.need})`;if(q.prog){const [a,b]=q.prog();t+=` (${Math.min(a,b)}/${b})`;}if(force||el._t!==t){el._t=t;$('#dqTitle').textContent=t;$('#dqText').textContent=q.text;}}};
+const DIG_W={dinotooth:20,ancientshell:22,fossilplant:18,fossilrib:12,fossilspine:10,dinoclaw:9,fossiltail:8,fossilskull:4,prehistoricrelic:1};
+const D_SYMBOLS=['Sun','Moon','Wave','Leaf'],D_SYMCOL=['#ffd24a','#bfe0ff','#5ac8e8','#7ae86a'],D_SOLUTION=[0,1,2,3];
+const Dino={t:0,ready:false,nodes:[],k:0,region:false,
+  init(){const rng=mulberry32(77);
+    // the amber arrow that floats over the goal of your Dino Island quest, with a beam you can see from far away
+    {const b=new Batch(0.08),c='#ffb03a';for(let i=0;i<4;i++){const w=1.0-i*0.28;b.box(0,-i*0.24,0,w,0.24,0.24,c);}b.box(0,0.5,0,0.34,0.7,0.24,c);
+      const g=b.mesh(new THREE.MeshBasicMaterial({vertexColors:true,fog:false}),false);g.receiveShadow=false;g.visible=false;scene.add(g);
+      const beam=new THREE.Mesh(new THREE.BoxGeometry(0.7,70,0.7),new THREE.MeshBasicMaterial({color:0xffc060,transparent:true,opacity:0.3,fog:false,depthWrite:false}));beam.visible=false;scene.add(beam);this.mark={g,beam};}
+    // the symbol faces on the four pillars
+    this.sym=DINOFX.pillars.map(p=>{const grp=new THREE.Group(),faces=[];for(let s=0;s<4;s++){const b=new Batch(0.1);for(let k=0;k<4;k++){const ry=k*Math.PI/2,put=placer(0,0,0,ry);put(b,0,0,0.57,0.62,0.62,0.06,D_SYMCOL[s]);
+          if(s===0)for(let r=0;r<8;r++){const a=r/8*TAU;put(b,Math.cos(a)*0.42,Math.sin(a)*0.42,0.58,0.12,0.12,0.04,'#fff0a0');}else if(s===1)put(b,0.12,0.06,0.6,0.36,0.46,0.04,'#3a4a6a');else if(s===2)for(let r=0;r<3;r++)put(b,-0.2+r*0.2,(r%2)*0.1,0.6,0.16,0.08,0.04,'#ffffff');else put(b,0,0,0.6,0.12,0.5,0.04,'#2a6a2a');}
+        const m=b.mesh(MAT.glow,false);m.visible=false;grp.add(m);faces.push(m);}grp.position.set(p.x,p.y+2.2,p.z);scene.add(grp);return {faces,p};});
+    // fossils on show in the museum yard, one for each kind you donate
+    this.yard=DINOFX.museumYard.map(y=>{const b=new Batch(0.08),B=DC.bone,k=y.k;
+      if(k==='fossilskull'){b.box(0,0.25,0,0.6,0.4,0.42,B[0]);b.box(0.36,0.16,0,0.4,0.22,0.3,B[1]);}else if(k==='prehistoricrelic'){b.box(0,0.3,0,0.24,0.6,0.24,'#7fe8c8');b.box(0,0.66,0,0.36,0.12,0.36,'#c8b890');}
+      else if(k==='ancientshell'){b.box(0,0.2,0,0.5,0.4,0.5,'#e8c89a',0.7);b.box(0.12,0.3,0,0.3,0.3,0.3,'#d8b07a',0.3);}else if(k==='fossilplant'){b.box(0,0.25,0,0.7,0.5,0.1,'#8a7a6a');b.box(0,0.28,0.06,0.5,0.36,0.03,'#5a7a4a');}
+      else for(let i=0;i<3;i++)b.box((i-1)*0.22,0.2+(k==='dinotooth'?i*0.05:0),0,k==='fossilrib'?0.12:0.2,k==='dinotooth'?0.5:0.3,0.2,B[i%3],0,0,k==='dinoclaw'?0.5:0);
+      const m=b.mesh();m.position.set(y.x,y.y+0.8,y.z);m.visible=false;scene.add(m);return {k,m};});
+    this.buildNodes(rng);
+    const qe=Quest.event.bind(Quest);Quest.event=(t,d)=>{if(t==='catch'&&d&&d.zone==='dmangrove'){(G.stats.dmang||(G.stats.dmang={}))[d.id]=1;}qe(t,d);try{DinoQ.event(t,d);}catch(e){}};
+    {const t0=talk;talk=n=>n.d.dino?Dino.talk(n):t0(n);}
+    this.ready=true;this.sync();},
+  sync(){if(!G.res)G.res={};if(!G.stats.resDay)G.stats.resDay={};if(!G.stats.dfos)G.stats.dfos={};if(!G.stats.ddig)G.stats.ddig={};if(!G.stats.dsym)G.stats.dsym=[2,3,0,1];
+    // a boat left where the old reef used to be may now sit inside new land: float it to open water
+    if(Boat.model&&inDinoBox(Boat.pos.x,Boat.pos.z)&&Boat.hits(Boat.pos.x,Boat.pos.z,Boat.yaw)){let ok=false;for(let r=3;r<=140&&!ok;r+=3)for(let k=0;k<16;k++){const a=k/16*TAU,x=Boat.pos.x+Math.cos(a)*r,z=Boat.pos.z+Math.sin(a)*r;if(!Boat.hits(x,z,Boat.yaw)&&!Boat.hits(x+3,z,Boat.yaw)&&!Boat.hits(x-3,z,Boat.yaw)&&!Boat.hits(x,z+3,Boat.yaw)&&!Boat.hits(x,z-3,Boat.yaw)){Boat.pos.set(x,0,z);ok=true;break;}}}
+    if(this.sym)this.showSymbols();if(G.flags.dn_gate)this.openGate(true);if(this.yard)for(const y of this.yard)y.m.visible=!!G.flags['dn_don_'+y.k];},
+  spot(x,z){for(let r=0;r<6;r+=0.7)for(let k=0;k<(r?10:1);k++){const a=k/10*TAU+r,px=x+Math.cos(a)*r,pz=z+Math.sin(a)*r;if(walkable(px,pz)&&!blocked(px,pz,0.5)&&deckY(px,pz)===null&&qHeightAt(px,pz)>=1)return [px,pz];}return null;},
+  buildNodes(rng){const N=this.nodes,add=(type,u,v,o)=>{const w=dpt(u,v),p=o&&o.boat?[w.x,w.z]:this.spot(w.x,w.z);if(!p)return;N.push(Object.assign({id:'d'+type+N.length,type,x:p[0],z:p[1]},o||{}));};
+    for(const [u,v] of [[40,10],[66,-2],[78,24],[30,26],[54,36],[88,6]])add('junglewood',u,v);for(const [u,v] of [[36,16],[60,8],[72,32],[48,-2],[18,-4]])add('tropfiber',u,v);
+    for(const [u,v] of [[52,24],[84,16],[-20,-30],[-56,32]])add('medherb',u,v);for(const [u,v] of [[64,28],[-6,-79],[100,-4]])add('rareflower',u,v);
+    for(const [u,v] of [[58,-44],[92,-58],[44,-52],[10,-32]])add('ancientstone',u,v);for(const [u,v] of [[44,22],[70,14],[26,6],[-14,-10],[-50,60]])add('wildfruit',u,v);
+    for(const [u,v] of [[20,-56],[-40,-62],[-50,-84],[-24,-80]])add('mountainstone',u,v);for(const [u,v] of [[-14,-90],[34,-66]])add('raremineral',u,v);for(const [u,v] of [[0,-58],[-104,-82]])add('ancientrock',u,v);
+    for(const [u,v] of [[-30,-56],[10,-86],[-56,-70]])add('tropherb',u,v);for(const [u,v] of [[48,74],[70,82],[88,76]])add('aquaplant',u,v,{boat:true});add('aquaplant',54,85);for(const [u,v] of [[-40,98],[0,99]])add('pearlshell',u,v);
+    for(const n of N){const B=new Batch(0.12),G2=new Batch(0.1),R=RES[n.type];n.y=n.boat?0:groundAt(n.x,n.z);const t=n.type;
+      if(t==='junglewood'){for(let k=0;k<3;k++)B.box(0,0.18+k*0.26,(k-1)*0.12,1.4,0.28,0.28,k%2?'#6a4226':R.col,0.3*k);G2.box(0,0.95,0,0.14,0.14,0.14,'#fff0c0');}
+      else if(t==='ancientstone'||t==='mountainstone'||t==='ancientrock'){B.box(0,0.3,0,0.9,0.6,0.8,R.col,rng()*3);B.box(0.2,0.7,0.1,0.5,0.3,0.5,shade(R.col,1.12),rng()*3);if(t==='ancientstone')B.box(0,0.32,0.41,0.4,0.3,0.04,'#7fe8c8');G2.box(0,0.98,0,0.14,0.14,0.14,'#ffffff');}
+      else if(t==='raremineral'){for(let k=0;k<4;k++){const a=k*1.6,hh=0.6+rng()*0.9;B.box(Math.cos(a)*0.3,hh/2,Math.sin(a)*0.3,0.3,hh,0.3,R.col,a,(rng()-0.5)*0.6,(rng()-0.5)*0.6);}G2.box(0,0.5,0,0.2,0.7,0.2,'#ffffff');}
+      else if(t==='pearlshell'){B.box(0,0.14,0,0.7,0.28,0.6,R.col,rng()*3);B.box(0,0.3,0,0.5,0.1,0.42,'#e8d0f0',rng()*3);G2.box(0,0.38,0,0.18,0.18,0.18,'#ffffff');}
+      else if(t==='wildfruit'){B.box(0,0.4,0,0.14,0.8,0.14,'#5a3a22');for(let k=0;k<5;k++){const a=k*1.25;B.box(Math.cos(a)*0.3,0.8,Math.sin(a)*0.3,0.6,0.3,0.6,'#3f9a3a',a);G2.box(Math.cos(a+0.5)*0.32,0.55,Math.sin(a+0.5)*0.32,0.2,0.2,0.2,pick(['#ff9a3a','#ffd24a','#e0402a'],rng));}}
+      else if(t==='tropfiber'){for(let k=0;k<6;k++)B.box((k-2.5)*0.12,0.5,0,0.08,1.0,0.08,'#b8c86a',0,0,(k-2.5)*0.1);B.box(0,0.45,0,0.7,0.1,0.14,'#8a6a3a');G2.box(0,1.05,0,0.14,0.14,0.14,'#fff0c0');}
+      else if(t==='aquaplant'){for(let k=0;k<4;k++)B.box(Math.cos(k*1.6)*0.4,0.06,Math.sin(k*1.6)*0.4,0.6,0.08,0.5,'#5ab88a',k);G2.box(0,0.18,0,0.22,0.18,0.22,'#d8fff0');}
+      else{const c=t==='rareflower'?'#e05ad0':t==='medherb'?'#4fae5a':'#7ac84a';for(let k=0;k<5;k++){const a=k*1.25;B.box(Math.cos(a)*0.22,0.22,Math.sin(a)*0.22,0.12,0.44,0.12,'#3a8a4a',a,0.3);G2.box(Math.cos(a)*0.3,0.5,Math.sin(a)*0.3,0.18,0.18,0.18,c);}if(t==='rareflower')G2.box(0,0.7,0,0.26,0.26,0.26,'#ffd0f8');}
+      const g=new THREE.Group();g.add(B.mesh());const gm=G2.mesh(MAT.glow,false);g.add(gm);g.position.set(n.x,n.y,n.z);g.visible=false;scene.add(g);n.g=g;n.glow=gm;}},
+  taken(n){return G.stats.resDay&&G.stats.resDay[n.id]===G.day;},
+  pos(){return G.mode==='boat'?Boat.pos:Player.pos;},
+  found(id){return !!G.flags['dn_'+id];},
+  nearestNode(f){const p=this.pos();let b=null,bd=1e9;for(const n of this.nodes){if(!f(n)||this.taken(n))continue;const d=Math.hypot(n.x-p.x,n.z-p.z);if(d<bd){bd=d;b=n;}}return b;},
+  nearestDig(){const p=this.pos();let b=null,bd=1e9;for(const d of D_DIGS){if(G.stats.ddig&&G.stats.ddig[d.id]===G.day)continue;const w=dpt(d.u,d.v),dd=Math.hypot(w.x-p.x,w.z-p.z)+(G.flags['dn_first_'+d.id]?60:0);if(dd<bd){bd=dd;b=w;}}return b;},
+  nextPillar(){const s=G.stats.dsym||[];for(let i=0;i<4;i++)if(s[i]!==D_SOLUTION[i]){const p=DINOFX.pillars[i];return {x:p.x,z:p.z};}return dpt(D_TEMPLE_GATE.u,D_TEMPLE_GATE.v+1.5);},
+  discover(id){if(this.found(id))return;const L=DINOLOC.find(l=>l.id===id);G.flags['dn_'+id]=true;Level.add(25);FogMap.reveal(L.o.x,L.o.z,L.r+30);
+    UI.banner('Dino Island · '+L.n+'. '+L.name,L.desc);Audio.fanfare(2);Ach.check();if(DINOLOC.every(l=>this.found(l.id)))setTimeout(()=>UI.toast('You found every place on Dino Island!','gold'),3600);Save.write();},
+  mood(){if(!started||this.k<0.4)return null;const p=this.pos(),u=p.x-DCX,v=p.z-DCZ;if(G.mode==='boat')return 'sea';if(v>55&&u<30)return 'village';if(ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru,D_VALLEY.rv)<1.1)return 'valley';
+    if(ell(u,v,D_RUINS.u,D_RUINS.v,D_RUINS.ru,D_RUINS.rv)<1.1||(p.y>16))return 'ruins';return 'jungle';},
+  update(dt){if(!this.ready)return;this.t+=dt;const cx=camera.position.x,cz=camera.position.z,pp=started?this.pos():camera.position;
+    const dd=Math.hypot(pp.x-DCX,pp.z-DCZ);this.k=clamp((175-dd)/40,0,1);this.region=inDinoBox(pp.x,pp.z)&&dd<165;const near=(p,m)=>Math.abs(p.x-cx)<m&&Math.abs(p.z-cz)<m,night=Env.night||0;
+    if(this.k>0.2){// fireflies and glowing insects in the jungle at night, sparks from the camp fire, the odd bird call by day
+      if(night>0.5&&Math.random()<dt*10){const x=cx+rand(-18,18),z=cz+rand(-18,18);if(qHeightAt(x,z)>=0.5)Particles.spawn(x,groundAt(x,z)+rand(0.4,2.8),z,rand(-0.3,0.3),rand(-0.1,0.3),rand(-0.3,0.3),Math.random()<0.7?'#e8ff8a':'#b8ffb0',0.1,rand(1.6,3),0);}
+      for(const f of DINOFX.fire)if(near(f,50)&&Math.random()<dt*14)Particles.spawn(f.x+rand(-0.3,0.3),f.y,f.z+rand(-0.3,0.3),rand(-0.2,0.2),rand(1,2),rand(-0.2,0.2),Math.random()<0.5?'#ffb040':'#ff6a20',0.1,rand(0.5,1),0);
+      this.birdT=(this.birdT||2)-dt;if(this.birdT<=0){this.birdT=rand(3,8);if(G.mode==='walk'&&!Fishing.busy()){const f=night>0.5?rand(2600,3400):rand(1500,2600);if(night>0.5){for(let i=0;i<3;i++)Audio.tone(f,0.05,{type:'square',vol:0.015,when:i*0.09});}else{Audio.tone(f,0.12,{type:'sine',vol:0.03,slide:f*0.4});Audio.tone(f*1.2,0.1,{type:'sine',vol:0.025,when:0.16,slide:-f*0.3});}}}}
+    // the gate sinking into the ground
+    if(this.gateAnim!==undefined){const g=DINOFX.gate;this.gateAnim=Math.min(1,this.gateAnim+dt*0.4);g.mesh.position.y=g.y-this.gateAnim*4.6;if(this.gateAnim>=1){g.mesh.visible=false;delete this.gateAnim;}Cam.shake=0.06;}
+    for(const s of this.sym||[])s.faces.forEach(f=>{if(f.visible)f.rotation.y=Math.sin(this.t*0.5)*0.05;});
+    // the quest arrow
+    {const M=this.mark,t=this.questTarget();if(!t||this.tour){M.g.visible=false;M.beam.visible=false;}else{const far=Math.hypot(camera.position.x-t.x,camera.position.z-t.z),sc=clamp(far/18,1,9),pd=Math.hypot(pp.x-t.x,pp.z-t.z),y0=Math.max(t.y,0);
+        M.g.visible=pd>2.2;M.g.scale.setScalar(sc);M.g.position.set(t.x,y0+(t.y>0.5?3.4:4)+sc*0.6+Math.sin(this.t*3)*0.25,t.z);M.g.rotation.y=this.t*1.5;
+        M.beam.visible=pd>28;if(M.beam.visible){M.beam.position.set(t.x,y0+35,t.z);M.beam.material.opacity=0.2+0.1*Math.sin(this.t*2.4);}}}
+    for(const n of this.nodes){const vis=near(n,180)&&!this.taken(n);n.g.visible=vis;if(vis){if(n.boat)n.g.position.y=waveH(n.x,n.z,Time.t)*0.9;n.glow.scale.setScalar(1+0.18*Math.sin(this.t*3+n.x));}}
+    if(!started)return;const p=pp;
+    if(this.tour){this.tour.t-=dt;Cam.yaw+=dt*0.22;if(this.tour.t<=0)this.tourNext();}
+    else if(G.flags.dino&&!G.flags.dn_intro&&Math.hypot(p.x-dpt(-14,100).x,p.z-dpt(-14,100).z)<80&&!uiBlocking()&&!Fishing.busy()){this.introT=(this.introT||0)+dt;if(this.introT>2.5)this.intro();}
+    if(G.flags.dino&&this.region){for(const L of DINOLOC){const d=Math.hypot(p.x-L.o.x,p.z-L.o.z);if(d<L.r*0.75&&!this.found(L.id))this.discover(L.id);}
+      const pu=p.x-DCX,pv=p.z-DCZ;
+      if(G.mode==='walk'&&Math.hypot(pu-D_TOP.u,pv-D_TOP.v)<9&&p.y>30){if(!this._atTop){this._atTop=true;UI.banner('Summit Viewpoint','The whole of Dino Island lies below you.');Cam.orbitT=6;Audio.fanfare(3);Quest.event('dsummit');if(!G.flags.dn_summit){G.flags.dn_summit=true;Level.add(40);Ach.check();Save.write();}}}else if(Math.hypot(pu-D_TOP.u,pv-D_TOP.v)>14)this._atTop=false;
+      if(G.mode==='walk'&&Math.hypot(pu-D_GATEWAY.u,pv-D_GATEWAY.v)<4){if(!this._gate){this._gate=true;Quest.event('druinsIn');}}else this._gate=false;
+      if(G.mode==='walk'&&G.flags.dn_boots&&!Buffs.has('swift'))Buffs.add('swift',30);}
+    this.hudT=(this.hudT||0)-dt;if(this.hudT<=0){this.hudT=0.5;DinoQ.hud();}},
+  env(K,P,RG){},
+  prompts(out){if(Boat.sinking||!this.ready||!this.region)return;const p=this.pos(),near=(o,r)=>o?Math.hypot(p.x-o.x,p.z-o.z)-r:99;
+    if(G.mode==='boat'){if(Math.abs(Boat.speed)>3)return;for(const n of this.nodes){if(!n.boat||this.taken(n))continue;const d=near(n,0);if(d<5)out.push({d,label:'Collect '+RES[n.type].name,fn:()=>this.collect(n)});}return;}
+    if(G.mode!=='walk')return;
+    for(const n of this.nodes){if(n.boat||this.taken(n))continue;const d=near(n,0);if(d<2.3&&Math.abs(p.y-n.y)<2.5)out.push({d,label:'Collect '+RES[n.type].name,fn:()=>this.collect(n)});}
+    const at=(o,r,label,fn,dd=0)=>{if(!o)return;const d=near(o,0);if(d<r)out.push({d:d+dd,label,fn});};
+    for(const b of D_BLD){if(!b.name)continue;at(b.door,2.3,b.id==='house'?'Go inside your Beach Hut':'Enter the '+b.name,()=>this.enter(b.id));}
+    at(dpt(D_BOARD.u,D_BOARD.v+1),2.6,'Read the Dino Island quest board',()=>UI.openPanel('dinoquests'));
+    at(DINOFX.farm,4.2,'Tend your farm plots',()=>{if(typeof farmOpen==='function'&&farmOpen())UI.openPanel('farm');else UI.toast('Finish the farm quest on the Starting Island first, then you can tend your plots from here.');},1.2);
+    for(const d of D_DIGS){const w=dpt(d.u,d.v);at(w,2.4,d.cliff?'Chip fossils out of the cliff':'Dig for fossils',()=>this.dig(d));}
+    if(DINOFX.skeleton){at(DINOFX.skeleton.mid,6.5,'Examine the giant skeleton',()=>this.examine(),1);at(DINOFX.skeleton.head,4,'Look at the great skull',()=>this.examine(),1);}
+    at(DINOFX.bigSkull,4.5,'Look at the buried skull',()=>Dialog.open(null,['A skull as big as your boat, buried to the eyes in red sand.','Its teeth are as long as your arm. Whatever it was, it did not eat fruit.'],null,'Buried Skull','Fossil Valley'));
+    at(DINOFX.display,2.4,'Look at the finds on the table',()=>this.openJournal());
+    at(DINOFX.monument,3.6,'Read the monument',()=>this.readClue());
+    for(const pl of DINOFX.pillars||[])at(pl,2.4,'Turn the symbol pillar ('+D_SYMBOLS[(G.stats.dsym||[])[pl.i]||0]+')',()=>this.turnPillar(pl.i));
+    if(G.flags.dn_gate){at(DINOFX.relic,2.4,G.flags.dn_relic?'Look at the empty pedestal':'Take the relic from the pedestal',()=>this.takeRelic());}else at({x:DINOFX.gate.x,z:DINOFX.gate.z+1.6},3,'Look at the sealed gate',()=>this.gateInfo());
+    at(DINOFX.templeChest,2.4,'Open the temple chest',()=>G.flags.dn_gate?this.chest('temple',[700,150,300],['ancientstone','prehistoricrelic'],3,'the Forgotten Temple'):null);
+    at(DINOFX.topChest,2.4,'Open the summit chest',()=>this.chest('top',[600,120,260],['raremineral','ancientrock'],2,'the summit'));
+    at(DINOFX.clearChest,2.4,'Open the chest in the clearing',()=>this.chest('clear',[400,90,200],['junglewood','medherb','wildfruit'],2,'the Hidden Clearing'));
+    at(DINOFX.hiddenChest,2.4,'Open the chest on the hidden islet',()=>this.chest('hidden',[500,90,220],['aquaplant','pearlshell'],2,'the hidden islet'));
+    at(DINOFX.turtleChest,2.4,'Open the chest on Turtle Islet',()=>this.chest('turtle',[450,90,220],['ancientrock','pearlshell'],2,'Turtle Islet'));
+    at(DINOFX.scope,2.2,'Look through the telescope',()=>{Cam.orbitT=7;UI.toast('You can see the beach village, the bones in the valley and the temple roof. Far to the north is the Starting Island.','good');});
+    at(DINOFX.view,3,'Look out over Fossil Valley',()=>{Cam.orbitT=6;UI.toast('The giant skeleton lies right below you, as long as a ship.','good');});
+    at(DINOFX.passView,2.6,'Sit and watch the sea',()=>{Cam.orbitT=6;G.stamina=100;UI.bars&&UI.bars();UI.toast('Waves boom against the cliffs far below. Stamina restored.','good');});},
+  enter(id){if(id==='tackle'){UI.snowHost='Fishing Shop · Lani';UI.openPanel('tackle');}else if(id==='store'){UI.snowHost='General Store · Mosi';UI.openPanel('shop');}
+    else UI.openPanel({market:'dinomarket',grill:'dinogrill',house:'dinohouse',storage:'snowres',museum:'dinomuseum'}[id]);},
+  collect(n){if(this.taken(n))return;const R=RES[n.type];G.res[n.type]=(G.res[n.type]||0)+1;(G.stats.resDay||(G.stats.resDay={}))[n.id]=G.day;G.stats.gathered=(G.stats.gathered||0)+1;G.stats.dgathered=(G.stats.dgathered||0)+1;n.g.visible=false;
+    Audio.tone(1320,0.12,{type:'sine',vol:0.08});Audio.tone(1760,0.18,{type:'sine',vol:0.06,when:0.08});for(let i=0;i<10;i++)Particles.spawn(n.x,n.y+0.5,n.z,rand(-1.5,1.5),rand(1.5,3),rand(-1.5,1.5),R.col,0.12,0.7);
+    UI.toast('+1 '+R.name,'good');Quest.event('res',n.type);Ach.check();Save.write();},
+  // digging: the first dig at each spot gives its set find, after that one random find a day
+  dig(d){if(!G.flags.dn_brush){Dialog.open(null,['You scrape at the ground with your fingers, but the rock is too hard.','You need proper tools. Kai in the beach village hands out Explorer\'s Brushes to anyone who asks.'],null,'Dig site',d.where);return;}
+    if(G.stats.ddig[d.id]===G.day){UI.toast('You already dug here today. Come back tomorrow, the wind uncovers new bones every night.','warn');return;}if(this.digging)return;
+    if(G.stamina<8){UI.toast('You are too tired to dig. Eat or rest first.','warn');return;}this.digging=true;G.stamina-=8;UI.bars&&UI.bars();const w=dpt(d.u,d.v),y=groundAt(w.x,w.z);
+    let n=0;const iv=setInterval(()=>{n++;Audio.noiseHit&&Audio.noiseHit(0.05,{freq:1800,type:'bandpass',vol:0.05});for(let i=0;i<6;i++)Particles.spawn(w.x+rand(-0.6,0.6),y+0.2,w.z+rand(-0.6,0.6),rand(-1,1),rand(1,2),rand(-1,1),d.cliff?'#c8643a':'#e8b07a',0.12,0.6);if(n>=5){clearInterval(iv);this.digDone(d);}},280);},
+  digDone(d){this.digging=false;G.stats.ddig[d.id]=G.day;const first=!G.flags['dn_first_'+d.id];let k;
+    if(first){k=d.first;G.flags['dn_first_'+d.id]=true;}else{const W=Object.assign({},DIG_W,G.flags.dn_finebrush?{fossilskull:7,prehistoricrelic:2}:{}),tot=Object.values(W).reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(const [kk,w] of Object.entries(W)){r-=w;if(r<=0){k=kk;break;}}k=k||'dinotooth';}
+    const newKind=!G.stats.dfos[k];G.res[k]=(G.res[k]||0)+1;G.stats.dfos[k]=(G.stats.dfos[k]||0)+1;G.stats.dfound=(G.stats.dfound||0)+1;const c=Math.round(rand(10,40));G.coins+=c;UI.coins();
+    Audio.fanfare(newKind?2:1);UI.banner(newKind?'New fossil: '+RES[k].name:'You found a '+RES[k].name,RES[k].desc+(newKind?' · added to your Fossil Journal':''));Level.add(newKind?25:8);
+    Quest.event('dfossil',{kind:k,spot:d.id,first});Ach.check();Save.write();},
+  examine(){Dialog.open(NPC.get('ivy')||null,['It runs right across the valley: neck, spine, a cage of ribs you could walk through, a tail that disappears into the sand.','"A long-neck," says Dr. Ivy, "and the biggest anyone has ever found. The rock around it is millions of years old, but the bones are almost all there."','"We are still digging. Every marker you see is a place where the sand gives up something new. Help yourself, and tell me what you find."'],
+      [{label:'Amazing',cls:'gold',fn:()=>{Dialog.close();if(!G.flags.dn_skel){G.flags.dn_skel=true;Level.add(30);}Quest.event('skeleton');Save.write();}}],'Giant Skeleton','Fossil Valley');},
+  openJournal(){UI.openPanel('dinojournal');},
+  readClue(){Dialog.open(null,['Four signs are carved into the monument, one above the other: the Sun, the Moon, a Wave and a Leaf.','Under them, older letters: "The sun rises over the stone west of the temple door, and the moon over the stone to the east. Below them, the wave stands west of the stairs and the leaf east of them."'],
+      [{label:'Remember it',cls:'gold',fn:()=>{Dialog.close();if(!G.flags.dn_clue){G.flags.dn_clue=true;Level.add(15);UI.toast('Now set the symbol pillars at the Forgotten Temple in the Ancient Ruins.','good');DinoQ.hud(true);Save.write();}}}],'Forgotten Courtyard','Central Plateau');},
+  showSymbols(){const s=G.stats.dsym;this.sym.forEach((p,i)=>p.faces.forEach((f,j)=>f.visible=j===s[i]));},
+  turnPillar(i){if(G.flags.dn_gate){UI.toast('The symbols are set. The gate is open.');return;}const s=G.stats.dsym;s[i]=(s[i]+1)%4;this.showSymbols();Audio.tone(220,0.25,{type:'triangle',vol:0.08,slide:-40});Cam.shake=0.04;
+    if(s.every((v,k)=>v===D_SOLUTION[k])){G.flags.dn_gate=true;this.openGate(false);UI.banner('The gate opens!','Stone grinds on stone as the temple gate sinks into the ground.');Audio.fanfare(3);Level.add(50);Ach.check();}Save.write();},
+  openGate(instant){const g=DINOFX.gate;for(const c of g.cols){const k=CIRCCOL.indexOf(c);if(k>=0)CIRCCOL.splice(k,1);}if(instant){g.mesh.visible=false;}else this.gateAnim=0;},
+  gateInfo(){Dialog.open(null,['A heavy stone gate seals the top of the temple stairs. Four signs are carved on it in a row: Sun, Moon, Wave, Leaf.',G.flags.dn_clue?'The pillars below must show the signs the monument spoke of.':'There must be a clue somewhere. People say the plateau in the middle of the island was the heart of the old civilisation.'],null,'Forgotten Temple','Sealed gate');},
+  takeRelic(){if(G.flags.dn_relic){UI.toast('Only a ring in the dust is left where the relic stood.');return;}G.flags.dn_relic=true;G.res.prehistoricrelic=(G.res.prehistoricrelic||0)+1;G.stats.dfos.prehistoricrelic=(G.stats.dfos.prehistoricrelic||0)+1;
+    Dialog.open(null,['A bone charm carved with the same four signs sits on the pedestal, glowing faintly green.','It must be thousands of years old. Whoever lived here knew about the bones in the valley, and treasured them.'],[{label:'Take it',cls:'gold',fn:()=>{Dialog.close();Audio.fanfare(3);Quest.event('dtemple');Quest.event('dfossil',{kind:'prehistoricrelic',spot:'temple'});Save.write();}}],'Rare Prehistoric Relic','Forgotten Temple');},
+  chest(key,[first,lo,hi],res,pearls,where){const f='dn_c_'+key,isFirst=!G.flags[f];if(!isFirst&&G.stats['dc_'+key]===G.day){UI.toast('The chest is empty. Come back tomorrow.','warn');return;}
+    G.flags[f]=true;G.stats['dc_'+key]=G.day;const c=isFirst?first:Math.round(rand(lo,hi)),r=pick(res,Math.random),n=isFirst?2:1;G.coins+=c;G.res[r]=(G.res[r]||0)+n;UI.coins();Audio.fanfare(isFirst?2:1);
+    if(isFirst&&pearls)Pearls.add(pearls,where);G.stats.treasure=(G.stats.treasure||0)+1;UI.toast(`Treasure! ${c} coins and ${n} ${RES[r].name}.`,'gold');Ach.check();Save.write();},
+  donate(k){if(G.flags['dn_don_'+k]||!(G.res[k]>0))return;G.res[k]--;G.flags['dn_don_'+k]=true;G.coins+=150;UI.coins();Level.add(30);const y=this.yard.find(q=>q.k===k);if(y)y.m.visible=true;
+    UI.toast(RES[k].name+' donated. Professor Odell puts it on show in the museum yard. +150 coins','gold');Audio.fanfare(1);Quest.event('donate',k);Ach.check();Save.write();},
+  story(){Dialog.open(NPC.get('odell')||null,['Sit, sit. Now that every kind of fossil is here, I can finally tell the whole story.','Long before people, this island was a green plain by a warm sea. Giants walked here: long-necks in herds, and hunters with teeth like daggers. When they died, the river buried them in red sand, and the sand turned to stone.',
+      'Thousands of years ago, a people came by canoe. They found the bones in the valley and believed the giants were the island\'s first guardians. They carved the Sun, the Moon, the Wave and the Leaf, and built the temple to keep a relic of the old world safe.',
+      'Then the people left. Nobody knows why. The jungle swallowed their city, and the island waited. Until you came along with a brush and a fishing rod.','Thank you, explorer. This museum is as much yours as mine now.'],
+      [{label:'Thank you, Professor',cls:'gold',fn:()=>{Dialog.close();if(!G.flags.dn_story){G.flags.dn_story=true;}Quest.event('dstory');Save.write();}}],'Professor Odell','The story of the forgotten island');},
+  moorAt(id){const s=SHORES.find(k=>k.id===id);if(!s)return;Boat.pos.set(s.boat.x,0,s.boat.z);Boat.yaw=s.yaw;Boat.speed=0;},
+  fade(fn,msg){$('#fade').classList.add('on');setTimeout(()=>{fn();Cam.target.copy(G.mode==='boat'?Boat.pos:Player.pos);setTimeout(()=>{$('#fade').classList.remove('on');if(msg)UI.toast(msg,'good');},250);},650);},
+  travel(id){if(Fishing.busy()){UI.toast('Finish fishing first.','warn');return;}UI.closePanel();const s=SHORES.find(k=>k.id===id);if(!s)return;if(!G.flags.boat){UI.toast('You need a boat to sail around Dino Island.','warn');return;}
+    this.fade(()=>{this.moorAt(s.id);if(G.mode!=='boat'){Player.pos.set(s.boat.x,1,s.boat.z);Boat.enter(true);}G.time=(G.time+0.4)%24;},'You sailed to '+s.name+'.');},
+  dockFor(x,z){const u=x-DCX,v=z-DCZ;const near=(id,du,dv,r)=>Math.hypot(u-du,v-dv)<r?id:null;
+    const id=near('d_turtle',D_TURTLE.u,D_TURTLE.v,20)||near('d_hidden',D_HIDDEN.u,D_HIDDEN.v,10)||(ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1.1?'d_mangrove':null)
+      ||(ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru+6,D_VALLEY.rv+6)<1?'d_valley':null)||(u>40&&v<-10?'d_cove':null)||(u>85&&v>-10?'d_mangrove':null)||(u<-30&&v<-40?'d_valley':null)||'d_village';
+    return DSHORES.find(s=>s.id===id)||null;},
+  questTarget(map){if(!this.ready||!started||!G.flags.dino||Snowy.region||Blossom.region)return null;const q=DinoQ.cur(),t0=q.at&&q.at();if(!t0)return null;if(!this.region&&!map)return null;
+    if(!map&&G.mode==='boat'&&walkable(t0.x,t0.z)){const s=this.dockFor(t0.x,t0.z);if(s)return {x:s.boat.x,y:0,z:s.boat.z,dock:s};}
+    return {x:t0.x,y:walkable(t0.x,t0.z)?groundAt(t0.x,t0.z):0,z:t0.z};},
+  mini(g,cx,cz,view,W,sx,sz){if(!this.ready)return;const k=W/view,M=DINOMAP;if(cx+view/2<M.x0||cx-view/2>M.x1||cz+view/2<M.z0||cz-view/2>M.z1)return;
+    if(!M.mini){if(!this._miniQ){this._miniQ=true;setTimeout(()=>buildDinoMapBase(true),80);}return;}
+    const x0=Math.max(M.x0,cx-view/2),x1=Math.min(M.x1,cx+view/2),z0=Math.max(M.z0,cz-view/2),z1=Math.min(M.z1,cz+view/2);if(x1<=x0||z1<=z0)return;
+    g.imageSmoothingEnabled=true;g.drawImage(M.mini,(x0-M.x0)*M.k,(z0-M.z0)*M.k,(x1-x0)*M.k,(z1-z0)*M.k,sx(x0),sz(z0),(x1-x0)*k,(z1-z0)*k);g.imageSmoothingEnabled=false;
+    if(!G.flags.dino)return;if(!this._icons){this._icons=DINO_ICONS().filter(i=>['dock','shop','quest','fossil','ruins','view','special'].includes(i[0])).map(i=>[i[0],i[1],i[2]]);}
+    for(const [kind,x,z] of this._icons){const X=sx(x),Z=sz(z);if(X<7||Z<7||X>W-7||Z>W-7)continue;drawDinoIcon(g,kind,X,Z,kind==='dock'?5.6:4.8);}},
+  drawTarget(g,sx,sz,W,full){if(full&&(!this.region||!G.flags.dino))return;const t=full?(DinoQ.cur().at&&DinoQ.cur().at()):this.questTarget(true);if(!t||!G.flags.dino||Snowy.region||Blossom.region)return;let X=sx(t.x),Z=sz(t.z);const R=W/2-10,dx=X-W/2,dz=Z-W/2,l=Math.hypot(dx,dz);
+    if(!full&&!this.region)return;if(!full&&l>R){X=W/2+dx/l*R;Z=W/2+dz/l*R;}if(full&&(X<0||Z<0||X>W||Z>W))return;g.fillStyle='#ffb03a';g.strokeStyle='#6a3a08';g.lineWidth=2;g.beginPath();
+    for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,r=i%2?3.5:(full?8:7);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();},
+  // Kai's welcome and the tour of the village
+  intro(replay){G.flags.dn_intro=true;this.introT=0;if(G.mode==='boat')Boat.speed=0;const kai=NPC.get('kai');
+    Dialog.open(kai,['Ahoy! Welcome to Dino Island! I\'m Kai, I keep an eye on visitors and point them the right way.','Tie up at the end of the main pier and press E to go ashore. There are docks all round the island: Fossil Valley in the west, the ruins cove in the north-east, Mangrove Bay in the south-east and little Turtle Islet.',
+      'The village has everything: Lani\'s Fishing Shop, Mosi\'s General Store, Mama Tula\'s Beach Grill, Old Rua at the Fish Market and Pita at the Boat Works on the water.','And the Island Museum. Professor Odell will want to see every fossil you find, and there are a LOT of bones on this island.',
+      'Come and find me by the plaza when you\'re ashore. Want me to show you around first?'],
+      [{label:'Show me around',cls:'gold',fn:()=>{Dialog.close();this.startTour();}},{label:"I'll explore myself",fn:()=>{Dialog.close();this.afterIntro();}}],'Kai',replay?'Welcome back':'Coastal Beach · Island Guide');Save.write();},
+  startTour(){const st=[],b=id=>D_BLD.find(k=>k.id===id);const at=(p,title,sub,d)=>st.push({x:p.x,z:p.z,y:Math.max(1.6,groundAt(p.x,p.z)),title,sub,d:d||14});
+    at(SHORES.find(s=>s.id==='d_village').foot,'Main Pier','Tie up at the end of the pier and press E to go ashore',20);
+    at(b('market'),'Fish Market · Old Rua','Sell fish and resources');at(b('tackle'),'Fishing Shop · Lani','Rods, reels, lines, hooks and bait');at(b('store'),'General Store · Mosi','Bait, seeds and supplies');
+    at(b('grill'),'Beach Grill · Mama Tula','Island food that gives you buffs');at(dpt(D_WORKS.u,D_WORKS.v+10),'Boat Works · Pita','Boats, upgrades and explorer gear');at(b('museum'),'Island Museum · Professor Odell','Donate fossils and hear the island\'s story');
+    at(b('house'),'Your Beach Hut','Sleep, rest and open your cooler');at(dpt(D_BOARD.u,D_BOARD.v),'Quest Board','Dino Island quests, one after another');at(dpt(D_DIGS[0].u,D_DIGS[0].v),'Jungle Entrance','The path into the jungle starts here',20);
+    this.tour={i:-1,t:0,stops:st,dist:Cam.dist,pitch:Cam.pitch};const sk=document.createElement('button');sk.className='btn plain sm';sk.id='tourSkip';sk.textContent='Skip tour';sk.style.cssText='position:absolute;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;';
+    sk.onclick=()=>this.endTour();$('#hud').append(sk);this.tourNext();},
+  tourNext(){const T=this.tour;if(!T)return;T.i++;if(T.i>=T.stops.length){this.endTour();return;}const s=T.stops[T.i];this.tourPt=new V3(s.x,s.y+1.2,s.z);Cam.dist=s.d+2;Cam.pitch=0.72;T.t=3.8;UI.banner(s.title,s.sub);Audio.tone(880,0.12,{type:'sine',vol:0.06});},
+  endTour(){const T=this.tour;if(!T)return;this.tour=null;this.tourPt=null;Cam.dist=T.dist;Cam.pitch=T.pitch;const sk=$('#tourSkip');if(sk)sk.remove();this.afterIntro();},
+  afterIntro(){DinoQ.hud(true);UI.banner('Dino Island quest',DinoQ.cur().title+' · '+DinoQ.cur().text.split('.')[0]);setTimeout(()=>UI.toast('Tip: open the Dino Island chart from your world map (M). The amber arrow always shows your next Dino Island goal.','good'),3600);Save.write();},
+  talk(n){const id=n.d.id,q=DinoQ.cur();
+    if(!G.flags['dn_met_'+id]&&DINO_INTRO[id]){G.flags['dn_met_'+id]=true;Dialog.open(n,DINO_INTRO[id],[{label:'Nice to meet you!',cls:'gold',fn:()=>{Dialog.close();if(id==='kai'&&!G.flags.dn_brush){G.flags.dn_brush=true;UI.toast("Kai gave you an Explorer's Brush. You can dig for fossils now.",'gold');}Quest.event('dmeet',id);Save.write();}}]);return;}
+    const say=(pages,opts)=>Dialog.open(n,pages,opts),bye={label:'Bye',fn:()=>Dialog.close()};if(id==='kai'&&!G.flags.dn_brush){G.flags.dn_brush=true;UI.toast("Kai gave you an Explorer's Brush.",'gold');}Quest.event('dmeet',id);
+    if(id==='kai')say(['Current job on the board: '+q.title+'. '+q.text,'Need directions? The amber arrow shows the way, and the chart in your world map shows every dock.'],[{label:'Quest board',fn:()=>{Dialog.close();UI.openPanel('dinoquests');}},{label:'Island chart',fn:()=>{Dialog.close();UI.openPanel('dinomap');}},bye]);
+    else if(id==='lani')say(['Mangrove jacks love squid at dusk. River fish want worms. And out past the reef, the big boys want something with a bit of meat on it.'],[{label:'Fishing Shop',fn:()=>{Dialog.close();UI.snowHost='Fishing Shop · Lani';UI.openPanel('tackle');}},bye]);
+    else if(id==='mosi')say(['Bait, seeds, the usual. And yes, I sell fruit too, but the jungle gives it away for free.'],[{label:'General Store',fn:()=>{Dialog.close();UI.snowHost='General Store · Mosi';UI.openPanel('shop');}},bye]);
+    else if(id==='tula')say(['Sit down, you look hungry! Fish on the grill, fruit from the jungle, a bit of chilli. Bring me what you find.'],[{label:'Beach Grill',fn:()=>{Dialog.close();UI.openPanel('dinogrill');}},bye]);
+    else if(id==='rua')say(['Hmph. Let me see what you caught. Ah, not bad, not bad.'],[{label:'Fish Market',fn:()=>{Dialog.close();UI.openPanel('dinomarket');}},bye]);
+    else if(id==='pita')say(['Pita, Boat Works. Hulls, sails, upgrades, and a few things for explorers.'],[{label:'Boat Works',fn:()=>{Dialog.close();UI.openPanel('dinoworks');}},bye]);
+    else if(id==='odell')say([D_FOSSILS.every(k=>G.flags['dn_don_'+k])?'Every kind of fossil, here in my museum! Come, I promised you a story.':'Bring me one of every kind of fossil. When the collection is complete, I can tell you the whole story of this island.'],
+      [{label:'Museum',fn:()=>{Dialog.close();UI.openPanel('dinomuseum');}},bye]);
+    else if(id==='ivy')say(['Every marker in this valley gives up a fossil a day. The cliffs too, if you chip carefully.','Your Fossil Journal shows what you have found so far. Rare finds like skulls take patience.'],[{label:'Fossil Journal',fn:()=>{Dialog.close();UI.openPanel('dinojournal');}},bye]);
+    else if(id==='bram')say(['Mind the ribs, they are fragile! Well, they are stone. But still.'],null);
+    else if(id==='manu')say(['Barramundi come in with the evening tide. The mud crabs come out at night. And the archerfish, they will spit at you if you stand too close!'],null);
+    else if(id==='tiko')say([G.flags.dn_gate?'You opened the temple?! Nobody has done that in a thousand years! Probably!':'There\'s a stone monument on the plateau with funny pictures on it. I bet it\'s a secret code.'],null);}
+};
+const DINO_CRAFTS=[
+  {id:'boots',name:'Explorer Boots',flag:'dn_boots',need:{junglewood:2,tropfiber:3,medherb:1},coins:300,desc:'Light, grippy boots. You walk and run faster everywhere on Dino Island.',fn:()=>{G.flags.dn_boots=true;}},
+  {id:'brush',name:'Fine Fossil Brush',flag:'dn_finebrush',need:{junglewood:1,tropfiber:2,ancientstone:1},coins:250,desc:'Rare fossils turn up more often when you dig.',fn:()=>{G.flags.dn_finebrush=true;}},
+  {id:'chart',name:'Explorer\'s Chart',flag:'dn_chart',need:{tropfiber:2,ancientrock:1},coins:200,desc:'Clears the mist from the Dino Island chart and marks every resource on it.',fn:()=>{G.flags.dn_chart=true;for(const L of DINOLOC)FogMap.reveal(L.o.x,L.o.z,L.r+30);}},
+  {id:'lure',name:'Bone Legend Lure',need:{ancientrock:1,fossilrib:1,raremineral:1},coins:0,desc:'A lure carved from fossil bone. Legends bite on it. You can build this again.',fn:()=>{G.bait.legend=(G.bait.legend||0)+1;}},
+  {id:'squid',name:'Squid bait pack',need:{aquaplant:2},coins:60,desc:'Ten strips of squid for the big ones offshore. You can build this again.',fn:()=>{G.bait.squid=(G.bait.squid||0)+10;}}];
+/* ---------- Dino Island music: a bright marimba village tune, jungle drums, the wide valley and the old ruins ---------- */
+const D_CH=[{r:41,t:[65,69,72],arp:[77,79,81,84]},{r:38,t:[62,65,69],arp:[74,77,81,84]},{r:36,t:[60,64,67],arp:[72,76,79,84]},{r:43,t:[67,71,74],arp:[79,83,86,88]}];
+const D_MEL=[[[0,84,2],[2,81,2],[4,79,2],[6,81,2],[8,84,4],[12,86,4]],[[0,81,2],[2,77,2],[4,81,4],[8,79,8]],[[0,79,2],[2,84,2],[4,83,2],[6,81,2],[8,79,4],[12,76,4]],[[0,83,4],[4,86,2],[6,84,2],[8,83,8]]];
+function dinoMusicStep(M,t,s,bar){let mood=null;try{mood=Dino.mood();}catch(e){}if(!mood)return false;const S=EX_S,ch=D_CH[bar%4],bi=bar%8;
+  if(mood==='village'){if(s===0)M.pad(t,ch.t,S*16,0.7);if(s%4===0)M.bass(t,ch.r,S*2,0.55);if(s%2===0)M.steel(t,ch.arp[(s>>1)%4],S*1.5,0.42);if(bi>=2)for(const [st,m] of D_MEL[bar%4])if(st===s)M.marimba(t,m,0.75);}
+  else if(mood==='jungle'){if(s===0)M.pad(t,ch.t,S*16,0.85);if(s%4===0||s%8===3)M.bass(t,ch.r-12,S*1.5,0.5);if(s%4===2)M.marimba(t,ch.arp[(s>>2)%4],0.4);if(bi%4===3)for(const [st,m] of D_MEL[bar%4])if(st===s)M.marimba(t,m,0.55);}
+  else if(mood==='valley'){if(s===0){M.pad(t,ch.t.map(m=>m-12),S*16,0.9);M.v('sine',mf(ch.r-12),t,S*15,0.16);}if(s%8===4)M.steel(t,ch.arp[bar%4],S*4,0.35);}
+  else if(mood==='ruins'){if(s===0){M.pad(t,ch.t,S*16,0.8);M.v('sine',mf(ch.r-12),t,S*15,0.14);}if(s%4===0)M.v('sine',mf(ch.arp[(s>>2)%4]),t,S*3,0.04,{rev:0.9});}
+  else{if(s===0){M.pad(t,ch.t,S*16,1.0);M.v('sine',mf(ch.r),t,S*14,0.14);}if(s%4===2&&Math.random()<0.7)M.steel(t,ch.arp[(s>>2)%4],S*3,0.4);}
+  return true;}
+const DINO_INTRO={
+  kai:['There you are! Kai, island guide. Here, take this: an Explorer\'s Brush. Every visitor gets one.','There\'s fossil everywhere on this island. In fact, this morning I saw something glinting right where the path goes into the jungle, north of the village. Go and dig it up!'],
+  lani:['Lani, Fishing Shop. Rods, reels, line, hooks and bait.','The beach, the mangroves, the jungle river, the mountain stream, the reef off the ruins and the deep water: six different waters, six kinds of fish.'],
+  mosi:['Mosi, General Store. Bait and seeds, mostly.','The little farm up the slope is yours to use, if you have your farming licence from the Starting Island.'],
+  tula:['Mama Tula! Welcome to the Beach Grill.','Fish skewers, coconut curry, fruit bowls. Each one gives you a little something extra for the day.'],
+  rua:['Old Rua. Fish Market. I buy fish. And the odd strange thing you find in the jungle.','Do not bring me bones. Bones go to the professor at the museum.'],
+  pita:['Pita! I run the Boat Works on the water.','Upgrades for your boat, and some kit for explorers: boots, a better brush, a proper chart of the island.'],
+  odell:['Ah, a visitor! Professor Odell, curator of the Island Museum.','Every kind of fossil you donate goes on show in the yard outside. Bring me all nine kinds and I will tell you the true story of this island.'],
+  ivy:['Dr. Ivy, field palaeontologist. Welcome to the dig!','We found the big long-neck last year. Look around, but please do not sit on the ribs.'],
+  bram:['Hi! Bram, I am Dr. Ivy\'s assistant. Mostly I carry things.','If you dig at the markers, check your Fossil Journal afterwards. It is fun to fill it in.'],
+  manu:['Manu. I fish the mangroves. Have done all my life.','The boardwalks go from islet to islet. Walk them slowly and you will see more life than anywhere else on the island.'],
+  tiko:['I\'m Tiko! I know every path on this island. Well, nearly every path.','Did you know there are giant bones in the valley? A WHOLE skeleton. I\'ve touched it. Twice.']};
+
+/* ---------- the explorer's chart of Dino Island ---------- */
+const DINOMAP={x0:DCX-138,z0:DCZ-140,x1:DCX+152,z1:DCZ+150,W:900,base:null};DINOMAP.k=DINOMAP.W/(DINOMAP.x1-DINOMAP.x0);DINOMAP.H=Math.round((DINOMAP.z1-DINOMAP.z0)*DINOMAP.k);
+const dmx=x=>(x-DINOMAP.x0)*DINOMAP.k,dmz=z=>(z-DINOMAP.z0)*DINOMAP.k;
+function buildDinoMapBase(mini){const {W,H,k}=DINOMAP,S=2,cw=Math.ceil(W/S),ch=Math.ceil(H/S),c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  const hs=new Float32Array((cw+2)*(ch+2)),wx=i=>DINOMAP.x0+(i-0.5)*S/k,wz=j=>DINOMAP.z0+(j-0.5)*S/k;for(let j=0;j<ch+2;j++)for(let i=0;i<cw+2;i++)hs[j*(cw+2)+i]=rawHeight(wx(i),wz(j));
+  const img=g.createImageData(cw,ch),d=img.data,mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+  const shallow=mini?[95,214,232]:[150,232,228],mid=mini?[40,150,215]:[60,190,212],deep=mini?[27,103,178]:[26,110,180];
+  const LC={valley:[226,150,96],beach:[246,224,170],village:[150,206,104],jungle:[72,150,62],plateau:[160,190,120],high:[150,170,128],high2:[170,176,150],ruins:[190,180,150],temple:[200,190,160],mangrove:[120,140,84],turtle:[150,200,110],rock:[150,146,136]};
+  for(let j=0;j<ch;j++)for(let i=0;i<cw;i++){const h=hs[(j+1)*(cw+2)+i+1],x=wx(i+1),z=wz(j+1),u=x-DCX,v=z-DCZ;let col;
+    if(h<0.5){const dep=Math.max(0,-h);col=mix(mix(shallow,mid,clamp((dep-0.4)/2.6,0,1)),deep,clamp((dep-3.2)/5,0,1));
+      if(ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru,D_MANG.rv)<1)col=mix(col,[120,200,170],0.4);
+      const nb=Math.max(hs[(j+1)*(cw+2)+i],hs[(j+1)*(cw+2)+i+2],hs[j*(cw+2)+i+1],hs[(j+2)*(cw+2)+i+1]);if(nb>=0.5)col=mix(col,[255,255,255],0.55);
+      if(!mini&&(i*7+j*3)%31===0)col=mix(col,[255,255,255],0.14);}
+    else{const kk=dKind(u,v,h),dx=hs[(j+1)*(cw+2)+i+2]-hs[(j+1)*(cw+2)+i],dz=hs[(j+2)*(cw+2)+i+1]-hs[j*(cw+2)+i+1],steep=Math.hypot(dx,dz);
+      let base=kk.startsWith('ramp_')?[214,196,160]:(LC[kk]||[120,180,90]);if(dPathD(u,v)<1.6)base=[222,200,156];if(steep>3.5)base=kk==='valley'||ell(u,v,D_VALLEY.u,D_VALLEY.v,D_VALLEY.ru+14,D_VALLEY.rv+14)<1?[196,104,62]:[136,132,122];
+      if((kk==='high'||kk==='high2'||kk==='plateau')&&steep<2)base=mix(base,[255,255,255],clamp((h-12)/40,0,0.25));
+      const lit=clamp(1+(-dx-dz)*0.05,0.6,1.22);col=base.map(q=>Math.min(255,q*lit));}
+    const q=(j*cw+i)*4;d[q]=col[0];d[q+1]=col[1];d[q+2]=col[2];d[q+3]=255;}
+  const tmp=document.createElement('canvas');tmp.width=cw;tmp.height=ch;tmp.getContext('2d').putImageData(img,0,0);g.imageSmoothingEnabled=true;g.drawImage(tmp,0,0,W,H);
+  // trees: the jungle canopy, palms and mangroves
+  for(const [x,z] of TREES){if(x<DINOMAP.x0||x>DINOMAP.x1||z<DINOMAP.z0||z>DINOMAP.z1)continue;const X=dmx(x),Z=dmz(z),u=x-DCX,v=z-DCZ,mg=ell(u,v,D_MANG.u,D_MANG.v,D_MANG.ru+4,D_MANG.rv+4)<1;
+    g.fillStyle=mg?'#3a7a3a':'#2f7a34';g.beginPath();g.arc(X,Z,mini?2.6:3.4,0,TAU);g.fill();g.fillStyle=mg?'#5a9a4a':'#4fa846';g.beginPath();g.arc(X-0.8,Z-1,mini?1.4:1.9,0,TAU);g.fill();}
+  // piers, boardwalks and bridges
+  g.strokeStyle='#8a5a2e';g.lineCap='butt';for(const dk of DINO_DECKS){g.lineWidth=Math.max(2.5,dk.hw*2*k);g.beginPath();g.moveTo(dmx(dk.x),dmz(dk.z));g.lineTo(dmx(dk.x+dk.ux*dk.len),dmz(dk.z+dk.uz*dk.len));g.stroke();}
+  // the giant skeleton, bone white across the valley
+  if(DINOFX.skeleton){const s=D_SKEL,cs=Math.cos(s.ry),sn=Math.sin(s.ry),P=a=>dpt(s.u+a*cs,s.v-a*sn);g.strokeStyle='#fff8e8';g.lineWidth=3;g.beginPath();for(let a=-26;a<=22;a+=2){const p=P(a);a===-26?g.moveTo(dmx(p.x),dmz(p.z)):g.lineTo(dmx(p.x),dmz(p.z));}g.stroke();
+    g.lineWidth=1.6;for(let a=-4;a<=8;a+=1.5){const p=P(a);g.beginPath();g.moveTo(dmx(p.x+sn*3.4),dmz(p.z+cs*3.4));g.lineTo(dmx(p.x-sn*3.4),dmz(p.z-cs*3.4));g.stroke();}}
+  // roofs, the temple and waterfalls
+  for(const b of D_BLD){const w=b.w*k,dd=b.d*k;g.fillStyle='#d8b46a';g.fillRect(dmx(b.x)-w/2,dmz(b.z)-dd/2,w,dd);g.fillStyle='rgba(120,80,30,.45)';g.fillRect(dmx(b.x)-w/2,dmz(b.z)-1,w,2);}
+  {const t=dpt(D_TEMPLE.u,D_TEMPLE.v-4),w=13*k;g.fillStyle='#b8b098';g.fillRect(dmx(t.x)-w/2,dmz(t.z)-w/2,w,w);g.fillStyle='#8a8270';g.fillRect(dmx(t.x)-w/4,dmz(t.z)-w/4,w/2,w/2);}
+  for(const f of DINOFX.falls){g.fillStyle='#ffffff';g.beginPath();g.arc(dmx(f.x),dmz(f.z),4,0,TAU);g.fill();g.fillStyle='#8fdcf4';g.beginPath();g.arc(dmx(f.x),dmz(f.z),2.2,0,TAU);g.fill();}
+  if(mini){g.globalCompositeOperation='destination-out';const F=34;for(const [x0,y0,x1,y1,rx,ry,rw,rh] of [[0,0,F,0,0,0,F,H],[W,0,W-F,0,W-F,0,F,H],[0,0,0,F,0,0,W,F],[0,H,0,H-F,0,H-F,W,F]]){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(rx,ry,rw,rh);}
+    g.globalCompositeOperation='source-over';DINOMAP.mini=c;return;}
+  const vg=g.createRadialGradient(W/2,H/2,H*0.38,W/2,H/2,H*0.9);vg.addColorStop(0,'rgba(255,255,255,0)');vg.addColorStop(1,'rgba(250,226,180,0.55)');g.fillStyle=vg;g.fillRect(0,0,W,H);DINOMAP.base=c;}
+const DINO_LABEL={beach:[0,34],jungle:[10,-6],plateau:[0,-4],valley:[-6,-30],high:[0,-36],ruins:[6,-28],pass:[-36,0],mangrove:[8,34]};
+// icons for the chart: [kind, x, z, place]
+const DINO_ICONS=()=>{const o=[],P=(kind,u,v,loc)=>{const p=dpt(u,v);o.push([kind,p.x,p.z,loc]);};
+  P('village',-20,78,'beach');P('quest',D_BOARD.u,D_BOARD.v,'beach');for(const b of D_BLD)if(['market','tackle','grill','store'].includes(b.id))P('shop',b.u,b.v,'beach');P('shop',D_WORKS.u,D_WORKS.v+10,'beach');P('special',-25,66,'beach');
+  for(const d of D_DIGS)P('fossil',d.u,d.v,d.u>-40&&d.v>30?'beach':d.v<-60?'high':'valley');
+  P('ruins',D_GATEWAY.u,D_GATEWAY.v,'ruins');P('ruins',D_TEMPLE.u,D_TEMPLE.v-4,'ruins');P('ruins',D_COURT.u,D_COURT.v,'plateau');P('view',D_TOP.u,D_TOP.v,'high');P('view',D_VIEW.u,D_VIEW.v,'plateau');P('view',103,14,'pass');
+  P('treasure',D_TOP.u-4,D_TOP.v+2.5,'high');P('treasure',D_CLEARING.u,D_CLEARING.v,'jungle');P('treasure',D_HIDDEN.u,D_HIDDEN.v,'mangrove');P('treasure',D_TURTLE.u-1.6,D_TURTLE.v-1,'valley');
+  P('fish',-30,112,'beach');P('fish',60,74,'mangrove');P('fish',16,13,'jungle');P('fish',60,20,'jungle');P('fish',-42,-88,'high');P('fish',112,-60,'ruins');P('fish',-120,20,'valley');
+  {const b=BOSSES.find(k=>k.id==='ironjaw');if(b)o.push(['boss',b.x,b.z,'pass']);}
+  for(const s of DSHORES){const loc={d_village:'beach',d_valley:'valley',d_mangrove:'mangrove',d_hidden:'mangrove',d_cove:'ruins',d_turtle:'valley'}[s.id];o.push(['dock',s.foot.x,s.foot.z,loc]);}return o;};
+function drawDinoIcon(g,kind,X,Y,r=10){if(!['fossil','ruins','view','treasure'].includes(kind)){drawSnowIcon(g,kind,X,Y,r);return;}
+  const C={fossil:'#c8643a',ruins:'#7a7a6a',view:'#2f8a6a',treasure:'#c89a2a'};g.save();g.translate(X,Y);g.fillStyle=C[kind];g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();g.stroke();g.fillStyle='#fff';g.strokeStyle='#fff';const s=r/10;
+  if(kind==='fossil'){g.lineWidth=2.2*s;g.beginPath();g.moveTo(-5*s,5*s);g.lineTo(5*s,-5*s);g.stroke();for(const [a,b] of [[-5,5],[5,-5]]){g.beginPath();g.arc((a-1.2)*s,(b+1.2)*s,1.8*s,0,TAU);g.fill();g.beginPath();g.arc((a+1.2)*s,(b-1.2)*s,1.8*s,0,TAU);g.fill();}}
+  else if(kind==='ruins'){for(const a of [-4,0,4])g.fillRect((a-1.2)*s,-3*s,2.4*s,7*s);g.fillRect(-6*s,-5*s,12*s,2*s);}
+  else if(kind==='view'){g.beginPath();g.ellipse(0,0,6*s,3.6*s,0,0,TAU);g.fill();g.fillStyle=C.view;g.beginPath();g.arc(0,0,2*s,0,TAU);g.fill();}
+  else{g.fillRect(-5*s,-2*s,10*s,6*s);g.fillStyle=C.treasure;g.fillRect(-1*s,0,2*s,2.5*s);g.fillStyle='#fff';g.beginPath();g.arc(0,-2*s,5*s,Math.PI,0);g.fill();}
+  g.restore();}
+function drawDinoMap(g){if(!DINOMAP.base)buildDinoMapBase();const {W,H}=DINOMAP;g.clearRect(0,0,W,H);g.drawImage(DINOMAP.base,0,0);
+  // mist over places you have not found yet
+  for(const L of DINOLOC){if(Dino.found(L.id))continue;const X=dmx(L.o.x),Z=dmz(L.o.z),R=(L.r+14)*DINOMAP.k;const fg=g.createRadialGradient(X,Z,R*0.2,X,Z,R);fg.addColorStop(0,'rgba(250,244,232,.97)');fg.addColorStop(0.72,'rgba(250,244,232,.9)');fg.addColorStop(1,'rgba(250,244,232,0)');g.fillStyle=fg;g.beginPath();g.arc(X,Z,R,0,TAU);g.fill();}
+  if(G.flags.dn_chart)for(const n of Dino.nodes){if(Dino.taken(n))continue;g.fillStyle=RES[n.type].col;g.strokeStyle='#5a3a10';g.lineWidth=1.5;g.beginPath();g.arc(dmx(n.x),dmz(n.z),4,0,TAU);g.fill();g.stroke();}
+  for(const [kind,x,z,loc] of DINO_ICONS()){if(!Dino.found(loc))continue;if(kind==='boss'&&G.trophies.includes('ironjaw'))continue;drawDinoIcon(g,kind,dmx(x),dmz(z),kind==='village'?11:kind==='dock'?7.5:kind==='fossil'?7:9);}
+  {const q=DinoQ.cur(),t=G.flags.dino&&q.at&&q.at();if(t&&inDinoBox(t.x,t.z)){const X=dmx(t.x),Z=dmz(t.z);g.fillStyle='#ffd24a';g.strokeStyle='#6a3a08';g.lineWidth=2;g.beginPath();for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2+Time.t*0.6,r=i%2?5:11;g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();}}
+  for(const L of DINOLOC){const ok=Dino.found(L.id),X=dmx(L.o.x),Z=dmz(L.o.z),[ox,oy]=DINO_LABEL[L.id],lx=clamp(X+ox,100,W-100),ly=clamp(Z+oy,110,H-20);
+    g.font='900 15px Nunito, sans-serif';const title=ok?L.name:'???',tw=g.measureText(title).width+46;g.fillStyle=ok?'rgba(255,250,236,.96)':'rgba(240,234,224,.92)';g.strokeStyle=ok?'#8a4a1a':'#a89a88';g.lineWidth=2.5;rrect(g,lx-tw/2,ly-13,tw,26,13);g.fill();g.stroke();
+    g.fillStyle=ok?'#c8642a':'#9a8a78';g.beginPath();g.arc(lx-tw/2+14,ly,10,0,TAU);g.fill();g.fillStyle='#fff';g.textAlign='center';g.font='900 13px Nunito, sans-serif';g.fillText(String(L.n),lx-tw/2+14,ly+4.5);
+    g.fillStyle=ok?'#3a2210':'#7a6a5a';g.font='900 15px Nunito, sans-serif';g.textAlign='left';g.fillText(title,lx-tw/2+29,ly+5);}
+  {g.save();g.fillStyle='#6a4a26';rrect(g,10,14,312,92,14);g.fill();g.fillStyle='#a36c3b';rrect(g,16,20,300,80,10);g.fill();g.strokeStyle='#4a2a10';g.lineWidth=3;rrect(g,10,14,312,92,14);g.stroke();
+    g.textAlign='center';g.font='900 34px Nunito, sans-serif';g.lineWidth=7;g.strokeStyle='#5a2a08';g.strokeText('DINO ISLAND',166,58);const gr=g.createLinearGradient(0,30,0,62);gr.addColorStop(0,'#ffe8a0');gr.addColorStop(1,'#ff9a3a');g.fillStyle=gr;g.fillText('DINO ISLAND',166,58);
+    g.font='800 12px Nunito, sans-serif';g.fillStyle='#fff3dc';g.fillText('A FORGOTTEN ERA · '+DINOLOC.filter(l=>Dino.found(l.id)).length+' of '+DINOLOC.length+' places found',166,84);g.restore();}
+  {const items=[['village','Village'],['dock','Dock'],['shop','Shop'],['quest','Quest'],['fish','Fishing spot'],['fossil','Fossil site'],['ruins','Ruins'],['view','Viewpoint'],['treasure','Treasure'],['boss','Legend']];
+    const lw=148,lx=W-lw-12,ly=12,lh=items.length*18+14;g.fillStyle='rgba(255,248,236,.96)';rrect(g,lx,ly,lw,lh,10);g.fill();g.strokeStyle='#8a4a1a';g.lineWidth=2.5;g.stroke();
+    g.textAlign='left';g.font='800 12px Nunito, sans-serif';items.forEach(([kd,t],i)=>{drawDinoIcon(g,kd,lx+16,ly+16+i*18,7);g.fillStyle='#3a2210';g.fillText(t,lx+30,ly+20+i*18);});}
+  for(const r of Net.others()){if(!inDinoBox(r.x,r.z))continue;const X=dmx(r.x),Z=dmz(r.z);g.fillStyle=r.p.c;g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(X,Z,7,0,TAU);g.fill();g.stroke();}
+  const p=G.mode==='boat'?Boat.pos:Player.pos;if(p.x>DINOMAP.x0&&p.x<DINOMAP.x1&&p.z>DINOMAP.z0&&p.z<DINOMAP.z1){const hy=G.mode==='boat'?Boat.yaw:Player.yaw;g.save();g.translate(dmx(p.x),dmz(p.z));g.rotate(-hy+Math.PI);
+    g.fillStyle='#ffd24a';g.strokeStyle='#1d1d1d';g.lineWidth=2.5;g.beginPath();g.moveTo(0,-12);g.lineTo(9,9);g.lineTo(0,4);g.lineTo(-9,9);g.closePath();g.fill();g.stroke();g.restore();}
+  else{g.fillStyle='rgba(90,50,10,.88)';rrect(g,W-236,H-34,222,24,8);g.fill();g.fillStyle='#fff';g.font='800 12px Nunito, sans-serif';g.textAlign='center';g.fillText('The Starting Island is north of here ↑',W-125,H-17);}}
+
 /* ---------- Blossom Islands decoration blocks: plants, rocks, statues, stalls, beach finds and seabed life ---------- */
 const gy=(x,z)=>groundAt(x,z);
 const ROCKC=['#9a8f86','#a89d92','#8c8178'],DARKC=['#4a4458','#544c64','#3e3a4c'];
@@ -4174,6 +5073,7 @@ function buildWorld(){
   buildP4World();
   buildSnowySeas();
   buildBlossomIslands();
+  buildDinoIsland();
   buildClouds();
 }
 /* ---------- far islands: Sunny Shores (reef) and the Snowy Seas (snow) ---------- */
@@ -4937,7 +5837,7 @@ const Save={
     // saves from an older island layout: put the player and skiff somewhere valid
     if(Boat.hits(Boat.pos.x,Boat.pos.z,Boat.yaw)){Boat.moor();}
     if(!s.inBoat){const p=Player.pos;if(!walkable(p.x,p.z)||blocked(p.x,p.z)||Math.abs(groundAt(p.x,p.z)-p.y)>1.5)Player.reset();else{p.y=groundAt(p.x,p.z);Player.visY=p.y;}}
-    if(s.inBoat)Boat.enter(true);G.res=s.res||{};if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();if(typeof Blossom!=='undefined'&&Blossom.ready)Blossom.sync();}
+    if(s.inBoat)Boat.enter(true);G.res=s.res||{};if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();if(typeof Blossom!=='undefined'&&Blossom.ready)Blossom.sync();if(typeof Dino!=='undefined'&&Dino.ready)Dino.sync();}
 };
 
 /* =====================================================================
@@ -5222,7 +6122,7 @@ const Boat={pos:new V3(MOOR.x,0,MOOR.z),yaw:0,speed:0,steer:0,roll:0,pitch:0,y:0
 };
 function discoverIsle(key){const I=ISLES[key].o;G.flags[key]=true;Level.add(60);FogMap.reveal(I.x,I.z,I.r+50);
   UI.banner(key==='deep'?'You found the Mystic Deep!':'Island discovered!',I.name+' · '+ISLES[key].sub);Audio.fanfare(3);Quest.event('discover',key);Save.write();}
-function zone4(x,z){if(Math.hypot(x-DEEP.x,z-DEEP.z)<DEEP.r)return 'deep';for(const [k,r] of [['volcano',VOLCANO.r+50],['dino',DINO.r+48],['ruins',RUINS.r+50],['blossom',BLOSSOM.r+50]]){const I=ISLES[k].o;if(Math.hypot(x-I.x,z-I.z)<r)return k;}return null;}
+function zone4(x,z){if(Math.hypot(x-DEEP.x,z-DEEP.z)<DEEP.r)return 'deep';for(const [k,r] of [['volcano',VOLCANO.r+50],['ruins',RUINS.r+50],['blossom',BLOSSOM.r+50]]){const I=ISLES[k].o;if(Math.hypot(x-I.x,z-I.z)<r)return k;}return null;}
 function discoverSpot(){
   G.flags.spot=true;FogMap.reveal(SPOT.x,SPOT.z,50);UI.banner('New fishing spot!',SPOT.name+' · rare reef fish live here');
   Audio.fanfare(2);Quest.event('discover');Save.write();
@@ -5293,7 +6193,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
     UI.toast('Face the water to cast. The end of the dock is a good spot.','warn');return false;},
   cancelCharge(){if(this.state==='charge'){this.state='idle';this.pose=null;UI.fishHud(null);this.rodVis(false);}},
   rodVis(v){Player.rod.g.visible=v;},
-  zoneAt(x,z){if(Math.hypot(x-SPOT.x,z-SPOT.z)<SPOT.r)return 'shallows';if(Math.hypot(x-SUNNY.x,z-SUNNY.z)<SUNNY.r+34)return 'reef';{const sz=snowZone(x,z);if(sz)return sz;}{const bz=blosZone(x,z);if(bz)return bz;}const z4=zone4(x,z);if(z4)return z4;if(G.mode==='boat'&&Math.hypot(x,z)>62)return 'open';return 'shore';},
+  zoneAt(x,z){if(Math.hypot(x-SPOT.x,z-SPOT.z)<SPOT.r)return 'shallows';if(Math.hypot(x-SUNNY.x,z-SUNNY.z)<SUNNY.r+34)return 'reef';{const sz=snowZone(x,z);if(sz)return sz;}{const bz=blosZone(x,z);if(bz)return bz;}{const dz=dinoZone(x,z);if(dz)return dz;}const z4=zone4(x,z);if(z4)return z4;if(G.mode==='boat'&&Math.hypot(x,z)>62)return 'open';return 'shore';},
   roll(){
     const sel=G.baitSel,bait=BAITS[sel],deep=this.deepDrop,firstEver=G.totalCaught===0,sonar=G.mode==='boat'&&Boat.has('sonar');
     const zz=this.zone,bsub=zz!=='blossom'&&BLOSZ.includes(zz)&&!zz.startsWith('grotb'),pw=BLOSZ.includes(zz)&&Blossom.petalWind(),sub=zz!=='frozen'&&SNOWZ.includes(zz)&&!zz.startsWith('cave'),au=SNOWZ.includes(zz)&&Snowy.aurora(),bliz=SNOWZ.includes(zz)&&Env.P&&Env.P.key==='storm',sch=Snowy.school&&G.mode==='boat'&&Math.hypot(Boat.pos.x-Snowy.school.x,Boat.pos.z-Snowy.school.z)<12;
@@ -5316,7 +6216,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
       if(!b.foot&&(G.mode!=='boat'||Boat.spec().tier<b.tier)){this.reset();UI.toast(`The ${FISH[b.id].name} would drag this boat under. You need a Tier ${b.tier} boat.`,'warn');return;}
       this.boss=b;this.wait=rand(3.5,5.5);this.nibT=99;UI.fishHint('Something enormous is circling your lure…','warn');Cam.shake=0.25;Audio.roar(0.4);return;}
     if(b&&!this._bossHint){this._bossHint=true;setTimeout(()=>this._bossHint=false,20000);UI.toast(`Something enormous circles below… it ignores your ${BAITS[G.baitSel].name.toLowerCase()}. Bring a Legend Lure.`,'warn');}
-    if(G.deep&&G.mode==='boat'&&Boat.has('winch')){if(['shore','shallows','reef'].includes(this.zone)||BLOSZ.includes(this.zone))UI.toast('Too shallow here for a deep drop.','warn');
+    if(G.deep&&G.mode==='boat'&&Boat.has('winch')){if(['shore','shallows','reef','dbeach','dmangrove','driver','dstream'].includes(this.zone)||BLOSZ.includes(this.zone))UI.toast('Too shallow here for a deep drop.','warn');
       else{this.deepDrop=true;this.dropM=this.zone==='deep'?rand(600,1400):rand(200,600);this.wait+=2.6;this.nibT=4;UI.fishHint('Dropping the line…','');}}},
   toggleDeep(){if(G.mode!=='boat'||!Boat.has('winch')){UI.toast('You need a boat with a deep-drop winch (Captain Rosa sells them).','warn');return;}
     if(this.busy())return;G.deep=!G.deep;UI.depth();Audio.click();UI.toast(G.deep?'Deep drop ON: your line sinks hundreds of metres down.':'Deep drop off: fishing near the surface.');},
@@ -5342,7 +6242,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
           this.state='fly';this.t=0;this.pose='cast';this.flyFrom=tip.clone();Audio.whoosh();UI.fishHud('wait');}
         break;}
       case 'fly':{
-        const k=Math.min(1,t/0.6);const wy=waveH(this.target.x,this.target.z,Time.t);
+        const k=Math.min(1,t/0.6);const wy=fishSurfY(this.target.x,this.target.z,Time.t);
         this.bob.set(lerp(this.flyFrom.x,this.target.x,k),lerp(this.flyFrom.y,wy,k)+Math.sin(Math.PI*k)*3,lerp(this.flyFrom.z,this.target.z,k));
         this.bobMesh.visible=true;this.bobMesh.position.copy(this.bob);
         if(k>=1){this.state='wait';this.t=0;this.pose='hold';Particles.splash(this.target.x,this.target.z,8,0.6);Audio.plop();
@@ -5353,7 +6253,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
       case 'wait':{
         let dip=0;this.nibT-=dt;if(this.nibT<0){this.nibT=rand(0.9,2);if(t<this.wait-0.6){this.nib=0.25;Audio.plip();}}
         if(this.nib>0){this.nib-=dt;dip=Math.sin(this.nib*25)*0.08;}
-        const wy=waveH(this.target.x,this.target.z,Time.t);this.bob.set(this.target.x,wy+0.02-dip-(this.deepDrop?Math.min(t,2.6)*1.5:0),this.target.z);this.bobMesh.position.copy(this.bob);
+        const wy=fishSurfY(this.target.x,this.target.z,Time.t);this.bob.set(this.target.x,wy+0.02-dip-(this.deepDrop?Math.min(t,2.6)*1.5:0),this.target.z);this.bobMesh.position.copy(this.bob);
         if(this.deepDrop&&t<3)UI.fishHint(t<2.6?'Dropping… '+Math.round(t/2.6*this.dropM)+' m':'Waiting at '+Math.round(this.dropM)+' m…','');
         this.bobMesh.rotation.z=Math.sin(Time.t*2)*0.15;
         const mv=Input.axis().l>0.4&&G.mode==='walk';
@@ -5363,7 +6263,7 @@ const Fishing={state:'idle',pose:null,t:0,power:0,pdir:1,dir:new V3(0,0,1),origi
           UI.fishHint('Hook it! Press F now','warn');}
         break;}
       case 'bite':{
-        const wy=waveH(this.target.x,this.target.z,Time.t);this.bob.set(this.target.x,wy-0.25-Math.sin(t*30)*0.05,this.target.z);this.bobMesh.position.copy(this.bob);
+        const wy=fishSurfY(this.target.x,this.target.z,Time.t);this.bob.set(this.target.x,wy-0.25-Math.sin(t*30)*0.05,this.target.z);this.bobMesh.position.copy(this.bob);
         if(Input.fishPressed){UI.bang(false);this.startFight();break;}
         if(t>(this.boss?1.5:0.95-this.fish.difficulty*0.05+(GEAR.hook[G.gear.hook].win||0))){UI.bang(false);this.fail(this.boss?'The legend spat out the lure and vanished into the deep.':'It stole your bait!');}
         break;}
@@ -5566,6 +6466,12 @@ const ACHS=[
   ['blosgather','Flower Picker','Gather 30 resources in the Blossom Islands',()=>(G.stats.bgathered||0)>=30,3],
   ['spiritdepths','Spirit Depths','Reach B4 of the Spirit Grotto',()=>!!G.flags.bl_g4,4],
   ['bloshero','Friend of the Blossom Islands','Finish every Blossom Islands quest',()=>(G.stats.bqI||0)>=BQUESTS.length-1,8],
+  ['dinoexp','Island Explorer','Discover all eight places on Dino Island',()=>DINOLOC.every(l=>G.flags['dn_'+l.id]),5],
+  ['fossilhunter','Fossil Hunter','Find every kind of fossil on Dino Island',()=>D_FOSSILS.every(k=>(G.stats.dfos||{})[k]),5],
+  ['templegate','Keeper of the Symbols','Open the gate of the Forgotten Temple',()=>!!G.flags.dn_gate,3],
+  ['dinosummit','Top of the Island','Reach the summit of the Mountain Highlands',()=>!!G.flags.dn_summit,2],
+  ['curator','Friend of the Museum','Donate every kind of fossil to the Island Museum',()=>D_FOSSILS.every(k=>G.flags['dn_don_'+k]),5],
+  ['dinohero','Explorer of Dino Island','Finish every Dino Island quest',()=>(G.stats.dqI||0)>=DQUESTS.length-1,8],
   ['manor',"Captain's Manor",'Upgrade your house to level 5',()=>G.house>=5,5],
   ['mega','Admiral','Own the Mega Boat',()=>!!G.boats.mega,5],
   ['style','Dressed to Sail','Buy a new outfit or boat paint',()=>(G.stats.style||0)>=1,1]
@@ -5686,6 +6592,18 @@ const NPCS=[
     {id:'aoi',name:'Aoi',role:'Bamboo Isle',home:[BAMBOO.x-7.4,BAMBOO.z+12],r:1.0,blos:true,pal:{skin:'#f0c29a',hair:'#3a2214',shirt:'#8ac85a',vest:'#3f9a4a',shorts:'#5b4a3a',boots:'#4a3020',hat:'#e0c070'}},
     {id:'umi',name:'Umi',role:'Atoll Diver',home:[CORAL.x+1.6,CORAL.z-1.6],r:0,blos:true,pal:{skin:'#c98a62',hair:'#1d1d24',shirt:'#2f9ab8',vest:'#1f6a88',shorts:'#1f6a88',boots:'#c98a62',messy:true}},
     {id:'goro',name:'Old Goro',role:'Eastern Isles',home:[ISLETS[0].x+2.5,ISLETS[0].z+6.6],r:0,fisher:true,blos:true,pal:{skin:'#d9a07a',hair:'#dcdcdc',shirt:'#9ec3d9',vest:'#5a6a4a',shorts:'#3b3f4a',boots:'#3b2a20',hat:'#e0c070',beard:'#e8e8e8'}});}
+{const bd=id=>D_BLD.find(b=>b.id===id).door,P=(u,v)=>{const p=dpt(u,v);return [p.x,p.z];};
+  NPCS.push({id:'kai',name:'Kai',role:'Island Guide',home:P(D_PLAZA.u+2.5,D_PLAZA.v-1.5),r:1.5,dino:true,pal:{skin:'#b8784a',hair:'#1d1d1d',shirt:'#f2a83a',vest:'#2f9ab8',shorts:'#3b4a5a',boots:'#6b4424',hat:'#e0c070'}},
+    {id:'lani',name:'Lani',role:'Fishing Shop',home:[bd('tackle').x,bd('tackle').z],r:1.0,dino:true,pal:{skin:'#c8885a',hair:'#2a1a10',shirt:'#5ac8e8',vest:'#2f6fc0',shorts:'#3b3f4a',boots:'#4a3020',bun:true,scarf:'#ff8a5a'}},
+    {id:'mosi',name:'Mosi',role:'General Store',home:[bd('store').x,bd('store').z],r:1.0,dino:true,pal:{skin:'#a86a40',hair:'#1d1d1d',shirt:'#f4f1ea',vest:'#3a8a5a',shorts:'#5b4a3a',boots:'#4a3020',cap:'#e0503f'}},
+    {id:'tula',name:'Mama Tula',role:'Beach Grill',home:[bd('grill').x,bd('grill').z],r:1.0,dino:true,pal:{skin:'#9a5a32',hair:'#2a1a10',shirt:'#e0503f',vest:'#f2cf3f',shorts:'#6a4a7a',boots:'#6b4424',bun:true,apron:'#f4ecd8'}},
+    {id:'rua',name:'Old Rua',role:'Fish Market',home:[bd('market').x,bd('market').z],r:1.0,dino:true,pal:{skin:'#b8784a',hair:'#dcdcdc',shirt:'#9ec3d9',vest:'#5a6a4a',shorts:'#3b3f4a',boots:'#3b2a20',beard:'#e8e8e8'}},
+    {id:'pita',name:'Pita',role:'Boat Works',home:P(D_WORKS.u-1.5,D_WORKS.v),r:0.8,dino:true,pal:{skin:'#a86a40',hair:'#2a1a10',shirt:'#8a5a3a',vest:'#3a3f46',shorts:'#3b3f4a',boots:'#3b2a20',cap:'#2f9ab8',belt:'#6b4224'}},
+    {id:'odell',name:'Professor Odell',role:'Island Museum',home:[D_BLD.find(b=>b.id==='museum').door.x,D_BLD.find(b=>b.id==='museum').door.z+1.4],r:1.2,dino:true,pal:{skin:'#e8b890',hair:'#c8c8c8',shirt:'#f4ecd8',vest:'#8a6a3a',shorts:'#6a5a3a',boots:'#4a3020',hat:'#c8a870',beard:'#d8d8d8'}},
+    {id:'ivy',name:'Dr. Ivy',role:'Fossil Valley',home:P(D_CAMP.u+1,D_CAMP.v-1),r:2,dino:true,pal:{skin:'#f0c29a',hair:'#8a4a2a',shirt:'#e8dcb0',vest:'#8a7a4a',shorts:'#6a5a3a',boots:'#4a3020',hat:'#d8c08a',bun:true}},
+    {id:'bram',name:'Bram',role:'Excavation Site',home:P(D_SKEL.u+6,D_SKEL.v+6),r:2,dino:true,pal:{skin:'#e7b089',hair:'#c89a3a',shirt:'#f4f1ea',vest:'#3a6a8a',shorts:'#5b4a3a',boots:'#4a3020',cap:'#e0c070',messy:true}},
+    {id:'manu',name:'Manu',role:'Mangrove Bay',home:P(D_HUTS[0][0]+1,D_HUTS[0][1]+3.4),r:0,fisher:true,dino:true,pal:{skin:'#9a5a32',hair:'#1d1d1d',shirt:'#5aa84a',vest:'#3a6a3a',shorts:'#3b3f4a',boots:'#9a5a32',hat:'#e0c070'}},
+    {id:'tiko',name:'Tiko',role:'Village Kid',home:P(D_PLAZA.u-4,D_PLAZA.v+3),r:3,scale:0.85,dino:true,pal:{skin:'#b8784a',hair:'#1d1d1d',shirt:'#f2cf3f',vest:'#f2cf3f',shorts:'#e0503f',boots:'#6b4424',messy:true}});}
 const NPC={list:[],
   init(){NPCS.forEach((d,i)=>{const c=buildCharacter(d.pal,20+i);if(d.scale)c.root.scale.setScalar(d.scale);scene.add(c.root);
     const n={d,c,pos:new V3(d.home[0],0,d.home[1]),yaw:0,tgt:null,idleT:rand(1,4),state:'idle'};n.pos.y=groundAt(n.pos.x,n.pos.z);
@@ -5889,7 +6807,7 @@ const QUESTS=[
   {id:'lavacatch',title:'Hot Catch',text:'Catch a fish in the volcanic waters around Volcano Isles.',target:()=>new V3(VOLCANO.x,0,VOLCANO.z),on:(t,d)=>t==='catch'&&d.zone==='volcano',reward:()=>{G.coins+=120;UI.coins();}},
   {id:'blossom',title:'Petals on the Water',text:'Sail far to the west, to the calm lagoons of the Blossom Islands.',target:()=>new V3(BSHORES[0].boat.x,0,BSHORES[0].boat.z),on:(t,d)=>t==='discover'&&d==='blossom',enter:()=>!!G.flags.blossom},
   {id:'koi',title:'Koi Pond',text:'Catch a Koi at the Blossom Islands. Koi love Bread Balls from Nana Pia. The Moon Pond and Bamboo Isle are full of them.',target:()=>G.mode==='boat'?new V3(BSHORES.find(s=>s.id==='b_bamboo').boat.x,0,BSHORES.find(s=>s.id==='b_bamboo').boat.z):new V3(BPOND.x,0,BPOND.z),on:(t,d)=>t==='catch'&&['koi','ogonkoi','showakoi'].includes(d.id),reward:()=>{G.coins+=150;UI.coins();}},
-  {id:'dino',title:'Living Fossils',text:'Sail far to the south, where giant bones stick out of the sea at Dino Reef.',target:()=>new V3(DINO.x,0,DINO.z),on:(t,d)=>t==='discover'&&d==='dino',enter:()=>!!G.flags.dino},
+  {id:'dino',title:'Living Fossils',text:'Sail south to Dino Island and tie up at the main pier of the beach village on its south shore.',target:()=>new V3(DSHORES[0].boat.x,0,DSHORES[0].boat.z),on:(t,d)=>t==='discover'&&d==='dino',enter:()=>!!G.flags.dino},
   {id:'ruins',title:'The Sunken Temple',text:'Find the Ancient Ruins far to the north, past a forest of stone pillars.',target:()=>new V3(RUINS.x,0,RUINS.z),on:(t,d)=>t==='discover'&&d==='ruins',enter:()=>!!G.flags.ruins},
   {id:'legend',title:'Legend of the Sea',text:'Catch any Legendary fish. The Legends tab in the Fishdex shows where they live.',target:()=>null,on:(t,d)=>t==='catch'&&FISH[d.id].rarity==='legendary',enter:()=>Object.keys(G.dex).some(id=>FISH[id]&&FISH[id].rarity==='legendary'),reward:()=>{G.coins+=300;UI.coins();}},
   {id:'offshore',title:'Going Offshore',text:"Buy the Offshore Cruiser at Rosa's shipyard. It rides out the monster swells of the Mystic Deep and has a deep-drop winch.",target:npcPos('rosa'),on:(t,d)=>t==='buyBoat'&&BOATS[d].tier>=5,enter:()=>Object.keys(G.boats).some(k=>BOATS[k].tier>=5)},
@@ -5984,7 +6902,7 @@ function talk(n){
     if(!phase4()){Dialog.open(n,["Professor Nami, marine biologist. I'm here to catalogue every creature in this ocean.","Discover 25 species and come find me. I'll have a job for someone with your talent."]);return;}
     const first=Quest.cur().id==='nami';const got=Object.keys(G.dex).length;
     const lines=first?["You must be the fisher everyone talks about! I'm Professor Nami. I'm mapping every creature in this ocean, more than three hundred species.",
-      "Five wild biomes lie beyond Sunny Shores and the Snowy Seas: Volcano Isles to the north-east, the Ancient Ruins in the north, the Blossom Islands to the west, Dino Reef in the south, and the dark Mystic Deep far to the south-east.",
+      "Five wild biomes lie beyond Sunny Shores and the Snowy Seas: Volcano Isles to the north-east, the Ancient Ruins in the north, the Blossom Islands to the west, Dino Island in the south, and the dark Mystic Deep far to the south-east.",
       "Every biome hides a legend, and every 25 species you log earns a reward from me. Nana Pia now stocks Squid Strips, Bread Balls, Glow Jigs and Legend Lures, and Marlo has monster tackle."]
       :[Quest.cur().id==='boss'?'Bosses only bite on a Legend Lure, cast right into their whirlpool. They fight in three phases, so keep your line in the green and let go when they rage!':
         Quest.cur().id==='deepdrop'?'Down in the abyss it is pitch black. Glow Jigs attract the deep-sea fish, and a winch lets you drop hundreds of metres.':
@@ -6015,7 +6933,7 @@ function interactions(){
     if(!Boat.sinking&&Boat.nearDock()&&Math.abs(Boat.speed)<3)out.push({d:0,label:'Step onto the dock',fn:()=>Boat.exit()});
     else if(!Boat.sinking&&Boat.has('base')&&Math.abs(Boat.speed)<1&&Boat.startT<=0)out.push({d:1,label:'Mobile base: sleep and cook',fn:()=>UI.openPanel('base')});
   }
-  Snowy.prompts(out);Blossom.prompts(out);
+  Snowy.prompts(out);Blossom.prompts(out);Dino.prompts(out);
   out.sort((a,b)=>a.d-b.d);return out;
 }
 
@@ -6175,7 +7093,7 @@ const Music={c:null,track:'explore',
   /* ---------- sequencing ---------- */
   exStep(t){
     const s=this.step%16,bar=Math.floor(this.step/16);
-    if(snowMusicStep(this,t,s,bar)||blosMusicStep(this,t,s,bar))return;
+    if(snowMusicStep(this,t,s,bar)||blosMusicStep(this,t,s,bar)||dinoMusicStep(this,t,s,bar))return;
     if(s===0&&bar>0&&bar%8===0)this.seqI=this.seqI+1>=EX_SEQ.length?1:this.seqI+1;
     if(s===0)this.sea=started&&G.mode==='boat'&&Math.hypot(Player.pos.x,Player.pos.z)>95;
     const sec=EX_SEQ[this.seqI],L=this.sea?OCEAN_L[bar%2]:EX_L[sec],bi=bar%8,ch=EX_CH[bi],S=EX_S;
@@ -6318,15 +7236,15 @@ const UI={
     setTimeout(()=>{card.hidden=false;$('#ccOk').focus();},r.rank>=4?3500:650);},
   closeCatch(){$('#catchCard').hidden=true;if(Fishing.state==='caught')Fishing.finish();canvas.focus();},
   openPanel(kind){this.panelKind=kind;const b=$('#pBody');b.innerHTML='';
-    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players Online',wardrobe:'Wardrobe',achievements:'Achievements',snowmap:'Snowy Seas Map',snowmarket:'Fish Market · Old Sven',snowquests:'Snowy Seas Quest Board',snowkitchen:'Snow Kitchen · Ingrid',snowcabin:'Your Winter Cabin',snowres:'Storage Warehouse',snowworkshop:'Boat Workshop · Bjorn',blosmap:'Blossom Islands Chart',blosmarket:'Fish Market · Elder Hana',blosquests:'Blossom Islands Quest Board',bloskitchen:'Blossom Kitchen · Chef Taro',blostea:'Tea House · Yuki',bloshouse:'Your Blossom House',blosworks:'Boat Works · Daichi',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
+    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players Online',wardrobe:'Wardrobe',achievements:'Achievements',snowmap:'Snowy Seas Map',snowmarket:'Fish Market · Old Sven',snowquests:'Snowy Seas Quest Board',snowkitchen:'Snow Kitchen · Ingrid',snowcabin:'Your Winter Cabin',snowres:'Storage Warehouse',snowworkshop:'Boat Workshop · Bjorn',blosmap:'Blossom Islands Chart',blosmarket:'Fish Market · Elder Hana',blosquests:'Blossom Islands Quest Board',bloskitchen:'Blossom Kitchen · Chef Taro',blostea:'Tea House · Yuki',bloshouse:'Your Blossom House',blosworks:'Boat Works · Daichi',dinomap:'Dino Island Chart',dinoquests:'Dino Island Quest Board',dinomarket:'Fish Market · Old Rua',dinogrill:'Beach Grill · Mama Tula',dinohouse:'Your Beach Hut',dinoworks:'Boat Works · Pita',dinojournal:'Fossil Journal',dinomuseum:'Island Museum · Professor Odell',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
     $('#pTitle').textContent=(this.snowHost&&['tackle','shop','sell','dishes','shipyard'].includes(kind)?this.snowHost:titles[kind]);if(!['tackle','shop','sell','dishes','shipyard'].includes(kind))this.snowHost=null;this['panel_'+kind](b);$('#panelWrap').hidden=false;$('#pClose').focus();},
   closePanel(){this.snowHost=null;if(this.cookGame&&!this.cookGame.done){this.cookStop();}$('#panelWrap').hidden=true;this.panelKind=null;this.cookGame=null;clearInterval(this.farmTimer);canvas.focus();},
   togglePanel(k){if(!$('#panelWrap').hidden&&this.panelKind===k)this.closePanel();else if(!Fishing.busy()||k==='help'||k==='sound')this.openPanel(k);},
   fishCanvas(f,w,h,locked){const c=document.createElement('canvas');c.width=w;c.height=h;drawFishIcon(c,f,locked);return c;},
   panel_dex(b){{const ab=document.createElement('button');ab.className='btn sm plain';ab.style.float='right';ab.textContent='Achievements';ab.onclick=()=>this.openPanel('achievements');b.append(ab);}
-    const TABS=[['all','All'],['shore','Starting Island'],['open','Open sea'],['shallows','Coral Shallows'],['reef','Sunny Shores'],['frozen','Snowy Seas'],['volcano','Volcano Isles'],['dino','Dino Reef'],['ruins','Ancient Ruins'],['blossom','Blossom Islands'],['deep','Mystic Deep'],['legend','Legends']];
+    const TABS=[['all','All'],['shore','Starting Island'],['open','Open sea'],['shallows','Coral Shallows'],['reef','Sunny Shores'],['frozen','Snowy Seas'],['volcano','Volcano Isles'],['dino','Dino Island'],['ruins','Ancient Ruins'],['blossom','Blossom Islands'],['deep','Mystic Deep'],['legend','Legends']];
     const tab=this.dexTab||'all',rar=this.dexRar||'all',own=!!this.dexOwn;
-    const inTab=(f,t)=>t==='all'||(t==='legend'?RARITY[f.rarity].rank>=4:t==='frozen'?f.zones.some(z=>SNOWZ.includes(z)):t==='blossom'?f.zones.some(z=>BLOSZ.includes(z)):f.zones.includes(t));
+    const inTab=(f,t)=>t==='all'||(t==='legend'?RARITY[f.rarity].rank>=4:t==='frozen'?f.zones.some(z=>SNOWZ.includes(z)):t==='blossom'?f.zones.some(z=>BLOSZ.includes(z)):t==='dino'?f.zones.some(z=>DINOZ.includes(z)):f.zones.includes(t));
     const got=Object.keys(G.dex).filter(id=>FISH[id]).length,total=FISH_DB.length,legends=Object.keys(G.dex).filter(id=>FISH[id]&&FISH[id].rarity==='legendary').length;
     b.insertAdjacentHTML('beforeend',`<p style="margin:0 0 6px"><b>${got} of ${total}</b> species logged in the Fish Encyclopedia. Catch a species once to unlock its entry.</p><div class="dexProg"><i style="width:${got/total*100}%"></i></div>
       <div class="dexStats"><span>Fish caught <b>${G.totalCaught}</b></span><span>Legends <b>${legends}</b></span><span>Bosses beaten <b>${G.trophies.length} / ${BOSSES.length}</b></span></div>`);
@@ -6543,9 +7461,9 @@ const UI={
       r.insertAdjacentHTML('beforeend',`<div class="rmain"><div class="rname">${bt.name} <span class="pill" style="background:#8a5a2e">Tier ${bt.tier}</span></div><div class="rsub">${bt.desc}</div><div class="rsub">Speed ${bt.speed} · Hull ${bt.hull} · Fuel ${bt.fuel}${bt.cooler?' · +'+bt.cooler+' cooler':''}</div></div><div class="rval">${own?'':bt.price+'c'}</div>`);
       const btn=document.createElement('button');
       if(cur){btn.className='btn sm plain';btn.textContent='Sailing';btn.disabled=true;}
-      else if(own){btn.className='btn sm';btn.textContent='Use';btn.disabled=G.mode==='boat';btn.onclick=()=>{Boat.setType(id);(this.snowHost?Snowy.moorAt(Blossom.region?'b_village':'village'):Boat.moor());Audio.click();this.toast(bt.name+' is moored at the dock.','good');Save.write();this.openPanel('shipyard');};}
+      else if(own){btn.className='btn sm';btn.textContent='Use';btn.disabled=G.mode==='boat';btn.onclick=()=>{Boat.setType(id);(this.snowHost?Snowy.moorAt(Dino.region?'d_village':Blossom.region?'b_village':'village'):Boat.moor());Audio.click();this.toast(bt.name+' is moored at the dock.','good');Save.write();this.openPanel('shipyard');};}
       else{btn.className='btn sm gold';btn.textContent='Buy';btn.disabled=G.coins<bt.price||G.mode==='boat';
-        btn.onclick=()=>{if(G.coins<bt.price)return;G.coins-=bt.price;G.boats[id]=UP0();Boat.setType(id);(this.snowHost?Snowy.moorAt(Blossom.region?'b_village':'village'):Boat.moor());this.coins();Audio.fanfare(3);
+        btn.onclick=()=>{if(G.coins<bt.price)return;G.coins-=bt.price;G.boats[id]=UP0();Boat.setType(id);(this.snowHost?Snowy.moorAt(Dino.region?'d_village':Blossom.region?'b_village':'village'):Boat.moor());this.coins();Audio.fanfare(3);
           UI.banner('New boat!',bt.name+' is moored at the dock');Quest.event('buyBoat',id);Save.write();this.openPanel('shipyard');};}
       r.append(btn);rows.append(r);}
     b.append(rows);
@@ -6622,7 +7540,8 @@ const UI={
   panel_map(b){const c=document.createElement('canvas');c.width=560;c.height=560;c.className='mapCanvas';b.append(c);drawMap(c.getContext('2d'),560,true);
     b.insertAdjacentHTML('beforeend',`<div class="legend"><span><i style="background:#ffd24a;border-radius:50%"></i>Quest</span><span><i style="background:#fff;border:2px solid #222;border-radius:50%"></i>You</span><span><i style="background:#9c5c2c"></i>Skiff</span><span><i style="background:#d8e6ee"></i>Unexplored</span><span><i style="background:#5fd6e8"></i>Shallows</span><span><i style="background:#8a5a2e;border:2px solid #ffd24a"></i>Treasure</span><span><i style="background:#ff8a2a;border-radius:50%"></i>Feeding frenzy</span><span><i style="background:#e0407a;border-radius:50%"></i>Boss whirlpool</span></div>`);
     if(G.flags.frozen){const sb=document.createElement('button');sb.className='btn gold';sb.style.margin='10px auto 0';sb.style.display='block';sb.textContent='Open the Snowy Seas map';sb.onclick=()=>this.openPanel('snowmap');b.append(sb);}
-    if(G.flags.blossom){const bb=document.createElement('button');bb.className='btn gold';bb.style.margin='10px auto 0';bb.style.display='block';bb.textContent='Open the Blossom Islands chart';bb.onclick=()=>this.openPanel('blosmap');b.append(bb);}},
+    if(G.flags.blossom){const bb=document.createElement('button');bb.className='btn gold';bb.style.margin='10px auto 0';bb.style.display='block';bb.textContent='Open the Blossom Islands chart';bb.onclick=()=>this.openPanel('blosmap');b.append(bb);}
+    if(G.flags.dino){const db=document.createElement('button');db.className='btn gold';db.style.margin='10px auto 0';db.style.display='block';db.textContent='Open the Dino Island chart';db.onclick=()=>this.openPanel('dinomap');b.append(db);}},
   panel_snowmap(b){const c=document.createElement('canvas');c.width=SNOWMAP.W;c.height=SNOWMAP.H;c.className='mapCanvas snowMap';b.append(c);const g=c.getContext('2d');drawSnowMap(g);
     clearInterval(this.farmTimer);this.farmTimer=setInterval(()=>{if(this.panelKind==='snowmap')drawSnowMap(g);},900);
     const grid=document.createElement('div');grid.className='snowCards';
@@ -6735,6 +7654,66 @@ const UI={
       if(!own){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Build';bt.disabled=!ok;bt.onclick=()=>{G.coins-=(c.coins||0);for(const [k,n] of Object.entries(c.need))G.res[k]-=n;c.fn();this.coins();UI.gear();Audio.fanfare(2);this.toast(c.name+' ready!','good');Save.write();this.openPanel('blosworks');};r.append(bt);}
       rows.append(r);}
     b.append(rows);const x=document.createElement('button');x.className='btn plain';x.textContent='Boats and upgrades (shipyard)';x.onclick=()=>{this.snowHost='Boat Works · Daichi';this.openPanel('shipyard');};b.append(x);},
+  panel_dinomap(b){const c=document.createElement('canvas');c.width=DINOMAP.W;c.height=DINOMAP.H;c.className='mapCanvas snowMap';b.append(c);const g=c.getContext('2d');drawDinoMap(g);
+    clearInterval(this.farmTimer);this.farmTimer=setInterval(()=>{if(this.panelKind==='dinomap')drawDinoMap(g);},900);
+    const grid=document.createElement('div');grid.className='snowCards dinoCards';
+    const card=(title,body,found,thumb,act)=>{const d=document.createElement('div');d.className='snowCard'+(found?'':' locked');d.innerHTML=`<div class="scH">${title}</div>`;if(thumb)d.append(thumb);
+      const s=document.createElement('div');s.className='scB';s.innerHTML=body;d.append(s);if(act){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent=act[0];bt.onclick=act[1];s.append(bt);}grid.append(d);};
+    const thumb=o=>{const t=document.createElement('canvas');t.width=200;t.height=110;const tg=t.getContext('2d'),X=dmx(o.x),Z=dmz(o.z);tg.drawImage(DINOMAP.base,X-100,Z-55,200,110,0,0,200,110);t.className='scT';return t;};
+    const fishOf=z=>{const fl=FISH_DB.filter(f=>f.zones.includes(z)&&f.rarity!=='mythic');const got=fl.filter(f=>G.dex[f.id]);return `${got.length}/${fl.length} fish logged`+(got.length?': '+got.slice(0,4).map(f=>f.name).join(', ')+(got.length>4?'…':''):'');};
+    const SH={beach:'d_village',jungle:'d_village',plateau:'d_village',valley:'d_valley',high:'d_valley',ruins:'d_cove',pass:'d_cove',mangrove:'d_mangrove'};
+    for(const L of DINOLOC){const ok=Dino.found(L.id);card(L.n+'. '+(ok?L.name:'???'),ok?`<p>${L.desc}</p><p class="scS">${L.spots.join(' · ')}</p><p class="scF">🐟 ${fishOf(L.zone)}</p><p class="scF">🌿 ${L.res.map(k=>RES[k].name).join(', ')}</p>`:'<p>Not discovered yet. Explore Dino Island to find it.</p>',ok,ok?thumb(L.o):null,
+        ok&&G.flags.boat?['Sail to the nearest dock',()=>Dino.travel(SH[L.id])]:null);}
+    b.append(grid);
+    if(G.flags.boat){const acts=document.createElement('div');acts.className='snowActs';acts.insertAdjacentHTML('beforeend','<span style="align-self:center;font-weight:800">Docks:</span>');
+      for(const s of DSHORES){if(s.id==='d_hidden'&&!Dino.found('mangrove'))continue;const x=document.createElement('button');x.className='btn sm plain';x.textContent=s.name.replace(/^the /,'');x.onclick=()=>Dino.travel(s.id);acts.append(x);}b.append(acts);}},
+  panel_dinoquests(b){const cur=DinoQ.i();b.insertAdjacentHTML('beforeend','<p>Jobs pinned up by Kai and the villagers. Finish them in order to uncover the story of the island.</p>');const rows=document.createElement('div');rows.className='rows';
+    DQUESTS.forEach((q,i)=>{if(q.id==='done'&&cur<i)return;const st=i<cur?'done':i===cur?'cur':'lock';const r=document.createElement('div');r.className='row'+(st==='cur'?' eq':'');
+      const rw=q.rw?[q.rw.coins?q.rw.coins+' coins':'',q.rw.pearls?q.rw.pearls+' pearls':'',q.rw.recipe?'a recipe':'',q.rw.decor?'a decoration':'',q.rw.swift?'Explorer Boots':''].filter(Boolean).join(' · '):'';
+      let pr='';if(st==='cur'){if(q.need)pr=` <small>${G.stats.dqN||0}/${q.need}</small>`;if(q.prog){const [a,m]=q.prog();pr=` <small>${Math.min(a,m)}/${m}</small>`;}}
+      r.innerHTML=`<i class="swatch" style="background:${st==='done'?'#5cc04b':st==='cur'?'#ffb03a':'#c8b890'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900">${st==='done'?'✓':i+1}</i><div class="rmain"><div class="rname">${st==='lock'?'???':q.title}${pr}</div><div class="rsub">${st==='lock'?'Finish the quests above first.':q.text}</div></div><div class="rval">${st==='lock'?'':rw}</div>`;rows.append(r);});
+    b.append(rows);const rp=document.createElement('button');rp.className='btn plain';rp.style.marginTop='10px';rp.textContent="Hear Kai's welcome again";rp.onclick=()=>{this.closePanel();Dino.intro(true);};b.append(rp);},
+  panel_dinomarket(b){b.insertAdjacentHTML('beforeend','<p><b>Old Rua:</b> "Fish here. Jungle things there. Bones? Take them to the professor."</p>');const acts=document.createElement('div');acts.className='snowActs';
+    const btn=(t,cls,fn)=>{const x=document.createElement('button');x.className='btn '+cls;x.textContent=t;x.onclick=fn;acts.append(x);};
+    btn('Sell fish','gold',()=>{this.snowHost='Fish Market · Old Rua';this.openPanel('sell');});btn('Island chart','',()=>this.openPanel('dinomap'));btn('Quest board','',()=>this.openPanel('dinoquests'));btn('Fossil Journal','',()=>this.openPanel('dinojournal'));
+    b.append(acts);b.insertAdjacentHTML('beforeend','<h3>Sell resources</h3>');this.resRows(b,true);},
+  panel_dinogrill(b){b.insertAdjacentHTML('beforeend','<p><b>Mama Tula:</b> "Sit, sit! What will it be today?"</p>');
+    const meals=[['Grilled Fish Skewers',80,{wildfruit:1},'Full health and stamina',()=>{G.hp=100;G.stamina=100;}],
+      ['Tropical Fruit Bowl',90,{wildfruit:2},'Light Feet for 6 min: you walk and run faster',()=>{G.stamina=100;Buffs.add('swift',360);}],
+      ['Herbal Island Tea',70,{medherb:1},'Full health and Lucky for 3 min',()=>{G.hp=100;Buffs.add('luck',180);}]];
+    if(G.flags.dn_rec_skewers)meals.push(['Jungle Fruit Skewers',140,{wildfruit:1,medherb:1},'Strong for 5 min and Energized for 5 min',()=>{G.stamina=100;Buffs.add('strength',300);Buffs.add('stamina',300);}]);
+    if(G.flags.dn_rec_curry)meals.push(['Coconut Fish Curry',220,{aquaplant:1,tropherb:1},'Lucky and Quick Reel for 6 min',()=>{G.hp=100;G.stamina=100;Buffs.add('luck',360);Buffs.add('reel',360);}]);
+    this.blosMeals(b,'dinogrill',meals);const lock=[!G.flags.dn_rec_skewers?'Jungle Fruit Skewers (quest "Into the Jungle")':'',!G.flags.dn_rec_curry?'Coconut Fish Curry (quest "Life in the Mangroves")':''].filter(Boolean);
+    if(lock.length)b.insertAdjacentHTML('beforeend',`<p style="margin-top:10px"><b>Recipes still to learn:</b> ${lock.join(', ')}.</p>`);
+    const x=document.createElement('button');x.className='btn plain';x.textContent='Sell your dishes to Mama Tula';x.onclick=()=>{this.snowHost='Beach Grill · Mama Tula';this.openPanel('dishes');};b.append(x);},
+  panel_dinohouse(b){const nightish=G.time>=17||G.time<5,dec=Object.keys(D_DECOR).filter(k=>G.flags['dn_dec_'+k]).map(k=>D_DECOR[k]);
+    b.insertAdjacentHTML('beforeend',`<p>A palm-thatched hut a few steps from the sand. Your base on Dino Island.</p><p><b>On your shelf:</b> ${dec.length?dec.join(', '):'nothing yet. Quests on Dino Island give you decorations to put here.'}</p>`);
+    const acts=document.createElement('div');acts.className='snowActs';const sl=document.createElement('button');sl.className='btn gold';sl.textContent=nightish?'Sleep until morning':'Nap until evening';
+    sl.onclick=()=>{this.closePanel();$('#fade').classList.add('on');setTimeout(()=>{if(nightish){if(G.time>=17)G.day++;G.time=6;}else G.time=18.2;G.hp=100;G.stamina=100;
+      if(Math.random()<0.6)Env.setWeather(Env.pickWeather(),true);Save.write();UI.clock();$('#fade').classList.remove('on');UI.banner(nightish?'Good morning, explorer!':'Evening on Dino Island','Day '+G.day+' · rested'+(nightish?'':'. The village torches are being lit'));},900);};acts.append(sl);
+    const bag=document.createElement('button');bag.className='btn';bag.textContent='Open your cooler';bag.onclick=()=>this.openPanel('bag');acts.append(bag);
+    const st=document.createElement('button');st.className='btn';st.textContent='Storage';st.onclick=()=>this.openPanel('snowres');acts.append(st);
+    const jr=document.createElement('button');jr.className='btn';jr.textContent='Fossil Journal';jr.onclick=()=>this.openPanel('dinojournal');acts.append(jr);b.append(acts);},
+  panel_dinoworks(b){b.insertAdjacentHTML('beforeend','<p><b>Pita:</b> "Wood from the jungle, fibre, a bit of stone. Bring them and I will build."</p>');const rows=document.createElement('div');rows.className='rows';
+    for(const c of DINO_CRAFTS){const own=c.flag&&G.flags[c.flag];const ok=!own&&G.coins>=(c.coins||0)&&Object.entries(c.need).every(([k,n])=>(G.res[k]||0)>=n);const r=document.createElement('div');r.className='row'+(own?' eq':'');
+      r.innerHTML=`<div class="rmain"><div class="rname">${c.name}${own?' <small>Owned</small>':''}</div><div class="rsub">${c.desc}<br>Needs ${Object.entries(c.need).map(([k,n])=>`${n} ${RES[k].name} (${G.res[k]||0})`).join(', ')}${c.coins?' + '+c.coins+' coins':''}</div></div>`;
+      if(!own){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Build';bt.disabled=!ok;bt.onclick=()=>{G.coins-=(c.coins||0);for(const [k,n] of Object.entries(c.need))G.res[k]-=n;c.fn();this.coins();UI.gear();Audio.fanfare(2);this.toast(c.name+' ready!','good');Save.write();this.openPanel('dinoworks');};r.append(bt);}rows.append(r);}
+    b.append(rows);const x=document.createElement('button');x.className='btn plain';x.textContent='Boats and upgrades (shipyard)';x.onclick=()=>{this.snowHost='Boat Works · Pita';this.openPanel('shipyard');};b.append(x);},
+  panel_dinojournal(b){const fos=G.stats.dfos||{},n=D_FOSSILS.filter(k=>fos[k]).length;
+    b.insertAdjacentHTML('beforeend',`<p>Every fossil you dig up on Dino Island is recorded here. <b>${n} of ${D_FOSSILS.length}</b> kinds found${G.flags.dn_brush?'':'. Ask Kai in the village for an Explorer\'s Brush to start digging'}.</p><div class="dexProg"><i style="width:${n/D_FOSSILS.length*100}%"></i></div>`);
+    const grid=document.createElement('div');grid.className='dexGrid';grid.style.marginTop='10px';
+    for(const k of D_FOSSILS){const R=RES[k],got=fos[k]||0,d=document.createElement('div');d.className='dexCard';d.style.cursor='default';
+      const hint=D_DIGS.filter(s=>s.first===k).map(s=>s.where)[0]||(k==='prehistoricrelic'?'the Forgotten Temple':'any dig site');
+      d.innerHTML=`<div style="height:46px;display:flex;align-items:center;justify-content:center"><span style="display:inline-block;width:34px;height:${k==='fossilrib'?14:26}px;border-radius:${k==='ancientshell'?'50%':'8px'};background:${got?R.col:'#c8bca8'};box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)"></span></div>
+        <div class="dn">${got?R.name:'???'}</div><div class="dno">${got?`Found ${got} · ${G.res[k]||0} in your bag${G.flags['dn_don_'+k]?' · donated ✓':''}`:'Try '+hint}</div>${got?`<div class="dno" style="margin-top:4px">${R.desc}</div>`:''}`;grid.append(d);}
+    b.append(grid);const today=D_DIGS.filter(d=>G.stats.ddig&&G.stats.ddig[d.id]===G.day).length;b.insertAdjacentHTML('beforeend',`<p style="margin-top:10px">Dig sites used today: ${today} of ${D_DIGS.length}. Every site gives one find a day. The first dig at each site always turns up something special.</p>`);},
+  panel_dinomuseum(b){const all=D_FOSSILS.every(k=>G.flags['dn_don_'+k]);b.insertAdjacentHTML('beforeend',`<p><b>Professor Odell:</b> "${all?'The collection is complete! Every kind, on show for the whole island.':'Each kind of fossil you donate goes on show in the yard, and I pay a finder\'s fee of 150 coins.'}"</p>`);
+    const rows=document.createElement('div');rows.className='rows';for(const k of D_FOSSILS){const R=RES[k],don=G.flags['dn_don_'+k],have=G.res[k]||0,r=document.createElement('div');r.className='row'+(don?' eq':'');
+      r.innerHTML=`<i class="swatch" style="background:${(G.stats.dfos||{})[k]?R.col:'#c8bca8'}"></i><div class="rmain"><div class="rname">${(G.stats.dfos||{})[k]?R.name:'???'}${don?' <small>On show ✓</small>':''}</div><div class="rsub">${don?R.desc:have?'You have '+have+'.':'Not found yet.'}</div></div>`;
+      if(!don){const bt=document.createElement('button');bt.className='btn sm gold';bt.textContent='Donate';bt.disabled=!have;bt.onclick=()=>{Dino.donate(k);this.openPanel('dinomuseum');};r.append(bt);}rows.append(r);}
+    b.append(rows);const acts=document.createElement('div');acts.className='snowActs';
+    if(all){const s=document.createElement('button');s.className='btn gold';s.textContent=G.flags.dn_story?'Hear the story again':"Hear the island's story";s.onclick=()=>{this.closePanel();Dino.story();};acts.append(s);}
+    const j=document.createElement('button');j.className='btn';j.textContent='Fossil Journal';j.onclick=()=>this.openPanel('dinojournal');acts.append(j);b.append(acts);},
   panel_sound(b){
     const rows=[['master','Master volume','Everything you hear'],['music','Music','Island groove and fishing battle theme'],['sfx','Sound effects','Waves, reels, splashes, engine']];
     b.insertAdjacentHTML('beforeend','<p>Changes apply right away and are remembered on this device.</p>');
@@ -6770,6 +7749,7 @@ const UI={
       <h3 style="margin-top:14px">The fight</h3><p>Reel while the needle sits in the green. Too far right and the line snaps; leave it slack too long and the fish slips off. Surging fish pull harder, so let go of F until they settle, then reel again. Heavy fish load your reel and tire you out faster.</p>
       <h3 style="margin-top:14px">The Snowy Seas</h3><p>Far to the north-west lies Snow Village. Tie up at its pier to go ashore, then walk the trail up the Frozen Peaks, fish from the docks and read the quest board. Sail to Glacier Bay, the Ice Arch, the Hot Springs, the Abandoned Outpost, the Iceberg Fields (mind the drifting ice and currents) and the Sea Caves. Gather sparkling resources for Bjorn's workshop, and follow the quests down four cave levels to the Frost Leviathan. Open the Snowy Seas map from the world map.</p>
       <h3 style="margin-top:14px">The Blossom Islands</h3><p>Far to the west lie nine places around Blossom Village. Every island has its own dock: sail up to it and press E to tie up and walk ashore. Climb the torii trail of Moonview Peak, fish the pools of Petal Falls and the hidden pond of Bamboo Isle, find the gap in the cliffs of the Hidden Lagoon, dive at the Coral Atoll and follow the quests down four levels of the Spirit Grotto. On some afternoons a Petal Wind blows and special fish rise. Open the Blossom Islands chart from the world map.</p>
+      <h3 style="margin-top:14px">Dino Island</h3><p>South of the Starting Island lies Dino Island. Tie up at the main pier of the beach village on its south shore and meet Kai. Explore the jungle, climb to the Central Plateau and the Mountain Highlands, dig for fossils in Fossil Valley with your Explorer's Brush, set the symbol pillars that open the Forgotten Temple, and walk the boardwalks of Mangrove Bay. Donate one of every kind of fossil to the Island Museum to hear the island's story. There are docks at the village, the west beach, the ruins cove, Mangrove Bay and Turtle Islet. Open the Dino Island chart from the world map.</p>
       <h3>Saving</h3><p>Progress saves automatically in this browser after catches, sales and quests, and when you rest at home.</p>`;
     const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:6px';
     const s=document.createElement('button');s.className='btn sm';s.textContent='Save now';s.onclick=()=>{this.toast(Save.write()?'Game saved.':'Saving is unavailable in this browser.',Save.exists()?'good':'warn');};
@@ -6871,7 +7851,7 @@ function drawMap(g,W,full){
   for(let j=0;j<FOG_N;j++)for(let i=0;i<FOG_N;i++){if(G.fog[j*FOG_N+i])continue;const x0=i*20-FOG_H,z0=j*20-FOG_H;
     const X=sx(x0),Z=sz(z0),S=20*k;if(X>W||Z>W||X+S<0||Z+S<0)continue;g.fillStyle='rgba(216,230,238,0.94)';g.fillRect(X-0.5,Z-0.5,S+1,S+1);
     g.fillStyle='rgba(255,255,255,0.5)';g.fillRect(X+S*0.2,Z+S*0.3,S*0.25,S*0.12);g.fillRect(X+S*0.55,Z+S*0.65,S*0.3,S*0.12);}
-  if(!full)Blossom.mini(g,cx,cz,view,W,sx,sz);
+  if(!full){Blossom.mini(g,cx,cz,view,W,sx,sz);Dino.mini(g,cx,cz,view,W,sx,sz);}
   // labels
   if(full){g.font='700 15px Nunito, sans-serif';g.textAlign='center';g.fillStyle='#3a2210';g.strokeStyle='rgba(255,245,226,.9)';g.lineWidth=4;
     const lab=(t,x,z)=>{g.strokeText(t,sx(x),sz(z));g.fillText(t,sx(x),sz(z));};
@@ -6897,7 +7877,7 @@ function drawMap(g,W,full){
     g.fillStyle='#ffd24a';g.strokeStyle='#5a2c05';g.lineWidth=2;g.beginPath();
     for(let i=0;i<10;i++){const a=i/10*TAU-Math.PI/2,r=i%2?4:(full?9:8);g.lineTo(X+Math.cos(a)*r,Z+Math.sin(a)*r);}g.closePath();g.fill();g.stroke();
     if(hid&&full){g.fillStyle='#3a2210';g.font='800 12px Nunito';g.fillText('?',X,Z+22);}}
-  Snowy.drawTarget(g,sx,sz,W,full);Blossom.drawTarget(g,sx,sz,W,full);
+  Snowy.drawTarget(g,sx,sz,W,full);Blossom.drawTarget(g,sx,sz,W,full);Dino.drawTarget(g,sx,sz,W,full);
   // boat
   if(G.mode!=='boat'){g.save();g.translate(sx(Boat.pos.x),sz(Boat.pos.z));g.rotate(-Boat.yaw);g.fillStyle='#9c5c2c';g.strokeStyle='#fff';g.lineWidth=1.5;
     g.beginPath();g.moveTo(0,6);g.lineTo(3,-1);g.lineTo(3,-5);g.lineTo(-3,-5);g.lineTo(-3,-1);g.closePath();g.fill();g.stroke();g.restore();}
@@ -6922,6 +7902,7 @@ const Cam={yaw:Math.PI,pitch:0.42,dist:10,lastDrag:-9,shake:0,zoomT:0,orbitT:0,t
     else tgt=new V3(Player.pos.x,Player.visY+1.55,Player.pos.z);
     if(typeof Snowy!=='undefined'&&Snowy.tourPt)tgt=Snowy.tourPt.clone();
     if(typeof Blossom!=='undefined'&&Blossom.tourPt)tgt=Blossom.tourPt.clone();
+    if(typeof Dino!=='undefined'&&Dino.tourPt)tgt=Dino.tourPt.clone();
     if((Fishing.state==='caught'||Fishing.state==='land')&&G.mode==='walk'&&Time.t-this.lastDrag>1&&!(this.orbitT>0))this.yaw+=angDiff(this.yaw,Player.yaw+0.5)*Math.min(1,dt*2.5);
     if(Fishing.state==='fight'){const fp=Fishing.fishPos();tgt.lerp(new V3(fp.x,tgt.y-0.4,fp.z),0.3);}
     this.target.lerp(tgt,Math.min(1,dt*8));
@@ -6969,7 +7950,7 @@ function setupTouch(){
   hold($('#tJump'),()=>{if(!uiBlocking())Input.jumpPressed=true;});
 }
 
-function newGame(){freshState();if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();if(typeof Blossom!=='undefined'&&Blossom.ready)Blossom.sync();Save.clear();Player.reset();Boat.setType('skiff');Boat.moor();Boat.fuel=100;Boat.hp=100;Boat.repairVisual();FogMap.reveal(0,0,62);}
+function newGame(){freshState();if(typeof Snowy!=='undefined'&&Snowy.aur)Snowy.sync();if(typeof Blossom!=='undefined'&&Blossom.ready)Blossom.sync();if(typeof Dino!=='undefined'&&Dino.ready)Dino.sync();Save.clear();Player.reset();Boat.setType('skiff');Boat.moor();Boat.fuel=100;Boat.hp=100;Boat.repairVisual();FogMap.reveal(0,0,62);}
 function startGame(cont){
   if(document.body.classList.contains('touch')&&!FS.on())FS.toggle(true);
   Audio.init();try{if(localStorage.getItem('oceanbound.muted')==='1'){Audio.setMuted(true);$('#bSound').classList.add('off');}}catch(e){}
@@ -7015,7 +7996,7 @@ function loop(){
     else if(G.mode==='walk'&&!Fishing.busy()&&G.hasRod&&!uiBlocking()){
       const f=Player.forward();let w=false;for(let k=1.5;k<=4;k+=0.5)if(isWater(Player.pos.x+f.x*k,Player.pos.z+f.z*k)){w=true;break;}
       UI.prompt(w?{key:'F',label:'Hold to cast your line'}:null);}
-    else if(G.mode==='boat'&&!Boat.sinking&&!Fishing.busy()&&!uiBlocking()&&Math.abs(Boat.speed)<1.8&&G.hasRod&&Boat.startT<=0)UI.prompt({key:'F',label:Bosses.near(Boat.pos.x,Boat.pos.z)?(G.baitSel==='legend'?'Cast into the whirlpool':'A legend circles here (use a Legend Lure)'):({shallows:'Fish Coral Shallows',reef:'Fish the reef',frozen:'Fish the Snowy Seas',volcano:'Fish the volcanic waters',dino:'Fish Dino Reef',ruins:'Fish the Ancient Ruins',blossom:'Fish the lagoon',deep:G.deep?'Deep drop into the abyss':'Fish the Mystic Deep'})[Fishing.zoneAt(Boat.pos.x,Boat.pos.z)]||'Hold to cast'});
+    else if(G.mode==='boat'&&!Boat.sinking&&!Fishing.busy()&&!uiBlocking()&&Math.abs(Boat.speed)<1.8&&G.hasRod&&Boat.startT<=0)UI.prompt({key:'F',label:Bosses.near(Boat.pos.x,Boat.pos.z)?(G.baitSel==='legend'?'Cast into the whirlpool':'A legend circles here (use a Legend Lure)'):({shallows:'Fish Coral Shallows',reef:'Fish the reef',frozen:'Fish the Snowy Seas',volcano:'Fish the volcanic waters',dino:'Fish the waters of Dino Island',dbeach:'Fish the beach shallows',dmangrove:'Fish Mangrove Bay',driver:'Fish the jungle river',dstream:'Fish the mountain stream',druins:'Fish the ruins reef',ddeep:'Fish the deep water',ruins:'Fish the Ancient Ruins',blossom:'Fish the lagoon',deep:G.deep?'Deep drop into the abyss':'Fish the Mystic Deep'})[Fishing.zoneAt(Boat.pos.x,Boat.pos.z)]||'Hold to cast'});
     else UI.prompt(null);
     Dialog.update(rdt);Farm.update(rdt);Buffs.update(rdt);HouseVis.update(rdt);Treasure.update(rdt);Frenzy.update(rdt);Ach.update(rdt);
     fogT-=rdt;if(fogT<0){fogT=0.5;FogMap.reveal(Player.pos.x,Player.pos.z,G.mode==='boat'?48:34);}
@@ -7038,7 +8019,7 @@ function loop(){
     gl.g.rotation.z=gl.sp>0?0.25:-0.25;const fl=Math.sin(Time.t*7+gl.off*3)*0.5;gl.wings[0].rotation.z=fl;gl.wings[1].rotation.z=-fl;}
   WorldFX.update(rdt);Debris.update(dt);
   for(const c of CLOUDS){c.position.x+=rdt*2;const ox=c.position.x-camera.position.x,oz=c.position.z-camera.position.z;if(ox>320)c.position.x-=640;else if(ox<-320)c.position.x+=640;if(oz>320)c.position.z-=640;else if(oz<-320)c.position.z+=640;}
-  WorldFX4.update(rdt);Snowy.update(rdt);Blossom.update(rdt);Stuck.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
+  WorldFX4.update(rdt);Snowy.update(rdt);Blossom.update(rdt);Dino.update(rdt);Stuck.update(rdt);Bosses.update(rdt);Pad.poll(rdt);Net.update(rdt);
   // sun + water follow the focus point
   const fx=started?Player.pos.x:0,fz=started?Player.pos.z:8;
   sun.position.set(fx+SUN_DIR.x*80,SUN_DIR.y*80,fz+SUN_DIR.z*80);sun.target.position.set(fx,0,fz);
