@@ -1444,10 +1444,10 @@ const canvas=$('#c');
 const QUALITY={high:!(('ontouchstart' in window)||navigator.maxTouchPoints>0)};
 try{const q=localStorage.getItem('oceanbound.gfx');if(q)QUALITY.high=q==='high';}catch(e){}
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,QUALITY.high?2:1.3));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,QUALITY.high?1.5:1.1));
 const lin=h=>new THREE.Color(h).convertSRGBToLinear();
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.type=QUALITY.high?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 const scene=new THREE.Scene();
 const FOG_COL=lin('#b4e0f2');
 scene.background=FOG_COL.clone();
@@ -1457,7 +1457,7 @@ const camera=new THREE.PerspectiveCamera(52,1,0.1,900);
 const hemi=new THREE.HemisphereLight(lin('#cfeaff'),lin('#8a6a48'),0.6);scene.add(hemi);
 const sun=new THREE.DirectionalLight(lin('#ffe6c0'),1.15);
 sun.position.set(60,48,30);sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
+sun.shadow.mapSize.set(QUALITY.high?2048:1024,QUALITY.high?2048:1024);
 const sc=sun.shadow.camera;sc.left=-40;sc.right=40;sc.top=40;sc.bottom=-40;sc.near=1;sc.far=220;
 sun.shadow.bias=-0.0006;sun.shadow.normalBias=0.03;
 scene.add(sun);scene.add(sun.target);
@@ -1533,10 +1533,10 @@ function makeMosaicTex(){
 const MOSAIC=makeMosaicTex();
 const CAUSTIC={value:0};
 const MAT={
-  vox:new THREE.MeshStandardMaterial({vertexColors:true,map:MOSAIC,roughness:0.82,metalness:0}),
+  vox:QUALITY.high?new THREE.MeshStandardMaterial({vertexColors:true,map:MOSAIC,roughness:0.82,metalness:0}):new THREE.MeshLambertMaterial({vertexColors:true,map:MOSAIC}),
   glow:new THREE.MeshBasicMaterial({vertexColors:true,color:new THREE.Color(2.4,2.0,1.5)}),
   cloud:new THREE.MeshLambertMaterial({vertexColors:true,map:MOSAIC}),
-  bed:new THREE.MeshStandardMaterial({vertexColors:true,map:MOSAIC,roughness:0.95,metalness:0}),
+  bed:QUALITY.high?new THREE.MeshStandardMaterial({vertexColors:true,map:MOSAIC,roughness:0.95,metalness:0}):new THREE.MeshLambertMaterial({vertexColors:true,map:MOSAIC}),
 };
 // Seabed: depth tint + animated caustics
 MAT.bed.onBeforeCompile=sh=>{sh.uniforms.uCT=CAUSTIC;
@@ -1553,6 +1553,19 @@ gl_FragColor.rgb+=vec3(0.7,0.95,1.0)*caus(vBedW.xz,uCT)*0.6*(1.0-dd*0.6)*step(vB
 /* ---------- Batch: merge many mosaic boxes into one mesh ---------- */
 const _U=(()=>{const g=new THREE.BoxGeometry(1,1,1).toNonIndexed();return{p:g.attributes.position.array,n:g.attributes.normal.array,uv:g.attributes.uv.array};})();
 const FACE_DIMS=[[2,1],[2,1],[0,2],[0,2],[0,1],[0,1]];
+const CHUNKS=[];
+// far ground is skipped once it is inside the sea haze; checked a few times a second
+const ChunkCull={t:0,tick(){if((this.t++)%4)return;const cx=camera.position.x,cz=camera.position.z,far=(scene.fog?scene.fog.far:420)+6;
+  for(const m of CHUNKS){let c=m.userData.cc;if(!c){const bs=m.geometry.boundingSphere;m.updateMatrixWorld(true);const w=bs.center.clone().applyMatrix4(m.matrixWorld);c=m.userData.cc={x:w.x,z:w.z,r:bs.radius};}
+    m.visible=Math.hypot(cx-c.x,cz-c.z)-c.r<far;}}};
+const FarCull={known:new Set(),list:[],t:0,scanT:0,
+  ok(o){if(o.isLight||o.isCamera||o===water||o===marker||o===Player.model.root||(Boat.model&&o===Boat.model.g))return false;let bad=false;
+    o.traverse(c=>{if(bad)return;if(c.isLine||c.isPoints||c.isInstancedMesh||c.isSprite||c.frustumCulled===false||c.isLight||c===Player.model.root||CHUNKS.includes(c))bad=true;});return !bad;},
+  scan(){for(const o of scene.children){if(this.known.has(o))continue;this.known.add(o);if(!this.ok(o))continue;o.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(o);if(b.isEmpty())continue;
+      const sz=b.getSize(new V3()),r=Math.max(sz.x,sz.z)/2;if(r>30)continue;const c=b.getCenter(new V3()).applyMatrix4(new THREE.Matrix4().copy(o.matrixWorld).invert());this.list.push({o,c,r,on:true});}},
+  tick(){if(!started)return;if((this.t++)%6)return;this.scanT-=1;if(this.scanT<=0){this.scanT=40;this.scan();}
+    const cx=camera.position.x,cz=camera.position.z,lim=QUALITY.high?160:125,w=new V3();
+    for(const e of this.list){w.copy(e.c).applyMatrix4(e.o.matrixWorld);const on=Math.hypot(w.x-cx,w.z-cz)-e.r<lim;if(on!==e.on){e.on=on;e.o.traverse(k=>{k.layers.mask=on?1:0;});}}}};
 class Batch{
   constructor(tile=0.5){this.parts=[];this.tile=tile;}
   box(x,y,z,w,h,d,col,ry=0,rx=0,rz=0,jit=0.07,mask=63){this.parts.push([x,y,z,w,h,d,col,ry,rx,rz,jit,mask]);return this;}
@@ -1591,7 +1604,13 @@ class Batch{
     g.computeBoundingSphere();
     return g;
   }
-  mesh(mat,shadow=true){const me=new THREE.Mesh(this.geometry(),mat||MAT.vox);me.castShadow=shadow;me.receiveShadow=true;return me;}
+  mesh(mat,shadow=true){if(this.parts.length>1500){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of this.parts){if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[2]<z0)z0=p[2];if(p[2]>z1)z1=p[2];}
+      if(Math.max(x1-x0,z1-z0)>70)return this.chunked(mat,shadow,32);}
+    return this.mesh1(mat,shadow);}
+  mesh1(mat,shadow=true){const me=new THREE.Mesh(this.geometry(),mat||MAT.vox);me.castShadow=shadow;me.receiveShadow=true;return me;}
+  // a big batch becomes a group of 32 m chunks, each drawn (and culled) on its own
+  chunked(mat,shadow,size){const map=new Map();for(const p of this.parts){const k=Math.floor(p[0]/size)*8192+Math.floor(p[2]/size);let b=map.get(k);if(!b){b=new Batch(this.tile);map.set(k,b);}b.parts.push(p);}
+    const g=new THREE.Group();for(const b of map.values()){const m=b.mesh1(mat,shadow);g.add(m);CHUNKS.push(m);}return g;}
 }
 
 /* =====================================================================
@@ -6668,7 +6687,7 @@ const NPC={list:[],
         if(walkable(nx,nz)&&!blocked(nx,nz,0.3)&&Math.abs(groundAt(nx,nz)-groundAt(n.pos.x,n.pos.z))<=0.6){n.pos.x=nx;n.pos.z=nz;n.yaw+=angDiff(n.yaw,Math.atan2(dx,dz))*Math.min(1,dt*8);n.state='walk';}else{n.tgt=null;n.idleT=1;}}}
     else{n.state='idle';n.idleT-=dt;if(n.idleT<0&&d.r>0){const a=Math.random()*TAU,r=Math.random()*d.r;n.tgt=[d.home[0]+Math.cos(a)*r,d.home[1]+Math.sin(a)*r];}}
     n.pos.y=lerp(n.pos.y,groundAt(n.pos.x,n.pos.z),Math.min(1,dt*10));
-    n.c.root.position.copy(n.pos);n.c.root.rotation.y=n.yaw;poseChar(n.c,n.state,dt);}}
+    n.c.root.position.copy(n.pos);n.c.root.rotation.y=n.yaw;if(n.c.root.layers.mask)poseChar(n.c,n.state,dt);}}
 };
 
 /* =====================================================================
@@ -8021,7 +8040,7 @@ function startGame(cont){
 
 function waterAhead(){const f=Player.forward();for(let k=1.5;k<=4;k+=0.5)if(isWater(Player.pos.x+f.x*k,Player.pos.z+f.z*k))return true;return false;}
 function castReady(){if(!G.hasRod)return false;return G.mode==='walk'?waterAhead():Math.abs(Boat.speed)<1.8;}
-const PerfAuto={max:renderer.getPixelRatio(),cur:renderer.getPixelRatio(),min:0.75,acc:0,n:0,hold:0,ceil:9,ceilT:0,last:performance.now(),fps:60,
+const PerfAuto={max:Math.min(window.devicePixelRatio||1,QUALITY.high?2:1.5),cur:renderer.getPixelRatio(),min:0.75,acc:0,n:0,hold:0,ceil:9,ceilT:0,last:performance.now(),fps:60,
   tick(){const now=performance.now(),d=now-this.last;this.last=now;if(!started||document.hidden||d>400||window.__noAdapt){this.acc=0;this.n=0;return;}
     this.acc+=d;this.n++;if(this.acc<2500)return;const fps=this.n*1000/this.acc;this.fps=fps;this.acc=0;this.n=0;if(now>this.ceilT)this.ceil=9;this.w=(this.w||0)+1;if(this.w<3)return;
     if(fps>=30)this.low=0;
@@ -8031,7 +8050,7 @@ const PerfAuto={max:renderer.getPixelRatio(),cur:renderer.getPixelRatio(),min:0.
     else if(fps>56&&this.cur<this.max-0.01&&now>this.hold){const nv=Math.min(this.max,this.cur*1.12);if(nv<this.ceil*0.97){this.set(nv);this.hold=now+8000;}}},
   set(v){this.cur=v;renderer.setPixelRatio(v);if(Post.composer&&Post.composer.setPixelRatio)Post.composer.setPixelRatio(v);}};
 function loop(){
-  requestAnimationFrame(loop);PerfAuto.tick();
+  requestAnimationFrame(loop);PerfAuto.tick();ChunkCull.tick();FarCull.tick();
   const rdt=Math.min(0.05,clock.getDelta());const dt=rdt*Time.scale;Time.t+=dt;frame++;
   water.material.uniforms.uTime.value=Time.t;CAUSTIC.value=Time.t;
   if(started){
