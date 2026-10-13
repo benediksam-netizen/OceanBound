@@ -1605,12 +1605,51 @@ class Batch{
     return g;
   }
   mesh(mat,shadow=true){if(!this.done&&mat!==MAT.bed&&this.parts.length>3){this.done=1;let ex=0,mx=0,a=1e9,b=-1e9,c=1e9,e=-1e9;for(const p of this.parts){a=Math.min(a,p[0]);b=Math.max(b,p[0]);c=Math.min(c,p[2]);e=Math.max(e,p[2]);mx=Math.max(mx,Math.abs(p[0]),Math.abs(p[2]));}ex=Math.max(b-a,e-c);
-      if(ex>30||mx>40)Batch.settled=(Batch.settled||0)+this.settle();}
+      if(ex>30||mx>40){Batch.settled=(Batch.settled||0)+this.settle();this.naturalGround();}}
     if(this.parts.length>1500){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of this.parts){if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[2]<z0)z0=p[2];if(p[2]>z1)z1=p[2];}
       if(Math.max(x1-x0,z1-z0)>70)return this.chunked(mat,shadow,32);}
     return this.mesh1(mat,shadow);}
   mesh1(mat,shadow=true){const me=new THREE.Mesh(this.geometry(),mat||MAT.vox);me.castShadow=shadow;me.receiveShadow=true;return me;}
   // a big batch becomes a group of 32 m chunks, each drawn (and culled) on its own
+  // ground colours: the cell-by-cell checker of shades is smoothed into soft patches, with gentle light and dark drifts
+  // across the land, shade under trees and darker ground at the foot of cliffs
+  naturalGround(){const tops=[],key=(x,z)=>Math.round(x*2)*100003+Math.round(z*2);const map=new Map();
+    for(const p of this.parts){const w=p[3],d=p[5],h=p[4];if(!(p[11]&4)||Math.abs(p[8])>0.01||Math.abs(p[9])>0.01)continue;
+      if(!((w===2&&d===2&&(h===0.5))||(Math.abs(w-0.96)<0.01&&Math.abs(d-0.96)<0.01&&Math.abs(h-0.44)<0.01)))continue;
+      if(typeof p[6]!=='string'||p[6][0]!=='#'||p[6].length!==7)continue;const c=new THREE.Color(p[6]);tops.push({p,c,top:p[1]+h/2,s:w});map.set(key(p[0],p[2]),tops[tops.length-1]);}
+    if(tops.length<50)return;
+    let trees=[];try{trees=TREES.concat(BLOSFX.greens);}catch(e){}
+    const TH=new Map();for(const t of trees){const k=Math.floor(t[0]/4)*100003+Math.floor(t[1]/4);let a=TH.get(k);if(!a)TH.set(k,a=[]);a.push(t);}
+    const hash=(i,j)=>{let h=(i*374761393+j*668265263)|0;h=(h^(h>>>13))*1274126177|0;return ((h^(h>>>16))>>>0)/4294967296;};
+    const vn=(x,z)=>{const i=Math.floor(x),j=Math.floor(z),fx=x-i,fz=z-j,sx=fx*fx*(3-2*fx),sz=fz*fz*(3-2*fz);
+      return (hash(i,j)*(1-sx)+hash(i+1,j)*sx)*(1-sz)+(hash(i,j+1)*(1-sx)+hash(i+1,j+1)*sx)*sz;};
+    const out=[],tmp=new THREE.Color(),hsl={};
+    for(const t of tops){const x=t.p[0],z=t.p[2],st=t.s>1?2:0.96;let r=t.c.r,g=t.c.g,b=t.c.b,n=1;
+      // soften against neighbours of a similar colour at the same height (sand stays sand, paths keep their edges)
+      for(const [a,c2] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){const q=map.get(key(x+a*st,z+c2*st));if(!q||Math.abs(q.top-t.top)>0.6)continue;
+        const dr=q.c.r-t.c.r,dg=q.c.g-t.c.g,db=q.c.b-t.c.b;if(dr*dr+dg*dg+db*db>0.012)continue;r+=q.c.r;g+=q.c.g;b+=q.c.b;n++;}
+      tmp.setRGB(r/n,g/n,b/n);tmp.getHSL(hsl);
+      const big=vn(x/23,z/23),small=vn(x/7+31,z/7+17);let L=hsl.l*(0.8+0.3*big+0.1*small),S=hsl.s,H=hsl.h;
+      // greens drift a little towards yellow in the dry patches and deeper in the lush ones
+      const green=H>0.17&&H<0.45&&S>0.2;if(green){H+=(big-0.5)*-0.07+(small-0.5)*0.025;S*=0.84+big*0.16;}
+      // shade under trees
+      let sh=0;const tk0=Math.floor(x/4),tk1=Math.floor(z/4);for(let a=-1;a<=1;a++)for(let c2=-1;c2<=1;c2++)for(const tr of TH.get((tk0+a)*100003+tk1+c2)||[]){const dd=Math.hypot(tr[0]-x,tr[1]-z);if(dd<3.2)sh=Math.max(sh,1-dd/3.2);}
+      L*=1-0.16*sh;
+      // darker ground where a cliff rises right next to it
+      let up=0;for(const [a,c2] of [[1,0],[-1,0],[0,1],[0,-1]]){const q=map.get(key(x+a*st,z+c2*st));if(q&&q.top-t.top>1.2)up=1;}if(up)L*=0.9;
+      tmp.setHSL(H,Math.min(1,S),Math.min(0.95,L));out.push([t.p,'#'+tmp.getHexString(),green,t.top,big]);}
+    const add=[];
+    for(const [p,c,green,top,big] of out){p[6]=c;p[10]=Math.min(p[10],0.03);if(!green)continue;const sides=p[11]&(1|2|16|32),w=p[3],x=p[0],z=p[2];
+      if(sides&&w===2){// a step in the ground: a thin layer of turf over brown earth, not a green block
+        const turf=0.18;p[1]=top-turf/2;p[4]=turf;tmp.setHSL(0.08+big*0.02,0.38,0.27+big*0.06);
+        add.push([x,top-turf-(0.5-turf)/2,z,2,0.5-turf,2,'#'+tmp.getHexString(),0,0,0,0.06,sides]);
+        if(hash(Math.round(x*3),Math.round(z*7))<0.35){// a ragged grass lip hanging over the edge
+          for(const [bit,dx,dz] of [[1,1,0],[2,-1,0],[16,0,1],[32,0,-1]])if(sides&bit){const o=(hash(Math.round(x*11),Math.round(z*5)+bit)-0.5)*1.2;
+            add.push([x+dx*1.02+dz*o,top-0.16,z+dz*1.02+dx*o,dx?0.14:0.7,0.32,dz?0.14:0.7,c,0,0,0,0.05,63]);}}}
+      else if(!sides&&hash(Math.round(x*5),Math.round(z*5))<0.07){// tufts of taller grass
+        for(let k=0;k<3;k++){const hx=hash(Math.round(x*13)+k,Math.round(z*17)),hz=hash(Math.round(z*19)+k,Math.round(x*7)),hh=0.25+hash(k,Math.round(x+z))*0.3;
+          tmp.set(c);tmp.offsetHSL(0,0,0.04*(k-1));add.push([x+(hx-0.5)*1.4,top+hh/2,z+(hz-0.5)*1.4,0.09,hh,0.09,'#'+tmp.getHexString(),hx*3,0,0,0.04,63]);}}}
+    for(const q of add)this.parts.push(q);}
   // props standing on the ground are pushed down to the lowest ground under them, so nothing hangs over a step or an edge
   settle(){let n=0;for(const p of this.parts){const [x,y,z,w,h,d,cc,ry,rx,rz,jit,mask]=p;if(mask!==63||Math.abs(rx)>0.05||Math.abs(rz)>0.05||w*d<0.04||h<0.05)continue;
       const bot=y-h/2,g0=groundAt(x,z);if(g0<0.5||Math.abs(bot-g0)>0.3)continue;const c=Math.cos(ry),s=Math.sin(ry);let gm=g0;
@@ -4823,7 +4862,11 @@ function bench(P,x,y,z,ry=0){const c=Math.cos(ry),s=Math.sin(ry);P.box(x,y+0.42,
 function planter(P,x,y,z,w=1.2){P.box(x,y+0.22,z,w,0.44,0.5,'#8a5a2e');P.box(x,y+0.46,z,w-0.1,0.06,0.42,'#5a3a1e');const fc=['#ff8aa8','#ffd24a','#ffffff','#ff6a5a','#b58cff'];
   for(let i=0;i<Math.round(w/0.3);i++){P.box(x-w/2+0.18+i*0.3,y+0.6,z,0.2,0.2,0.2,i%2?'#5cbf46':fc[(i*3+Math.floor(x))%5]);}}
 function pottedPlant(P,x,y,z){P.box(x,y+0.2,z,0.45,0.4,0.45,'#c8683f');P.box(x,y+0.42,z,0.36,0.06,0.36,'#5a3a1e');for(let i=0;i<5;i++){const a=i/5*TAU;P.box(x+Math.cos(a)*0.2,y+0.7,z+Math.sin(a)*0.2,0.14,0.5,0.14,'#4fae3c',0,Math.cos(a)*0.4,Math.sin(a)*0.4);}}
-function bush(P,x,y,z,s=1,rng=Math.random){const g=['#4fa83c','#5fbf48','#469a36'];P.box(x,y+0.35*s,z,0.95*s,0.7*s,0.95*s,g[0]);P.box(x+0.22*s,y+0.72*s,z-0.1*s,0.62*s,0.42*s,0.62*s,g[1]);P.box(x-0.25*s,y+0.5*s,z+0.2*s,0.5*s,0.5*s,0.5*s,g[2]);
+function bush(P,x,y,z,s=1,rng=Math.random){const g=['#4fa83c','#5fbf48','#469a36','#58b442'],hs=(a,b)=>{let h=(Math.round(x*97+a)*374761393+Math.round(z*89+b)*668265263)|0;h=(h^(h>>>13))*1274126177|0;return ((h^(h>>>16))>>>0)/4294967296;};
+  // a rounded clump of leafy blobs of different sizes instead of one cube
+  P.box(x,y+0.3*s,z,0.9*s,0.6*s,0.9*s,g[0],hs(1,2)*3);
+  for(let k=0;k<4;k++){const a=k/4*TAU+hs(k,3)*1.2,d=(0.25+hs(k,4)*0.2)*s,w=(0.45+hs(k,5)*0.3)*s;P.box(x+Math.cos(a)*d,y+(0.25+hs(k,6)*0.35)*s+w*0.3,z+Math.sin(a)*d,w,w*0.85,w,g[(k+1)%4],hs(k,7)*3);}
+  P.box(x+(hs(8,1)-0.5)*0.2*s,y+0.78*s,z+(hs(9,1)-0.5)*0.2*s,0.5*s,0.36*s,0.5*s,g[1],hs(10,1)*3);
   if(rng()<0.5)for(let i=0;i<3;i++)P.box(x+(rng()-0.5)*0.8*s,y+(0.5+rng()*0.4)*s,z+(rng()-0.5)*0.8*s,0.16,0.16,0.16,['#ff8aa8','#ffd24a','#ffffff'][i]);}
 function flowers(P,x,y,z,rng){for(let i=0;i<5;i++){const ox=(rng()-0.5)*1.4,oz=(rng()-0.5)*1.4,fc=['#ffffff','#ffd24a','#ff8aa8','#b58cff','#ff6a5a'][(rng()*5)|0];P.box(x+ox,y+0.14,z+oz,0.06,0.28,0.06,'#3f8a2c');P.box(x+ox,y+0.3,z+oz,0.18,0.12,0.18,fc);}}
 function bananaTree(P,x,y,z,rng){let py=y;for(let i=0;i<4;i++){P.box(x,py+0.35,z,0.42,0.7,0.42,i%2?'#6f8f3a':'#7e9f45');py+=0.7;}
