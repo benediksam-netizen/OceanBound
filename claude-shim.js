@@ -44,6 +44,7 @@
   const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws";
 
   let ws = null, connected = false, myPeer = null, myUid = null, myPresence = {}, backoff = 500;
+  let spec = null, roomNow = null, gen = 0; // where to play: null = single player
   const others = new Map(); // peer -> {peer, by, presence, updatedAt}
   const peerSubs = new Set(), connSubs = new Set(), topicSubs = new Map(), uidWaiters = [];
   const pending = new Map(); let reqId = 1; const queue = [];
@@ -66,13 +67,22 @@
   function setConn(c) { if (c === connected) return; connected = c; for (const f of connSubs) { try { f(c); } catch (e) {} } }
   function sendRaw(o) { if (ws && ws.readyState === 1) { ws.send(JSON.stringify(o)); return true; } return false; }
 
+  let waiting = null; // the promise of a connect() call
   function connect() {
-    try { ws = new WebSocket(WS_URL); } catch (e) { setTimeout(connect, backoff); return; }
-    ws.onopen = () => { backoff = 500; ws.send(JSON.stringify({ t: "hello", token: TOKEN, presence: myPresence })); };
+    if (!spec) return; const my = gen;
+    try { ws = new WebSocket(WS_URL); } catch (e) { setTimeout(() => my === gen && connect(), backoff); return; }
+    const sock = ws;
+    ws.onopen = () => { backoff = 500; sock.send(JSON.stringify({ t: "hello", token: TOKEN, presence: myPresence, room: spec })); };
     ws.onmessage = ev => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       const now = Date.now();
+      if (sock !== ws) return;
+      if (m.t === "denied") { const w = waiting; waiting = null; spec = null; gen++; try { sock.close(); } catch (e) {} ws = null; if (w) w.reject({ code: m.reason || "denied" }); return; }
       if (m.t === "welcome") {
+        roomNow = m.room || null; if (roomNow && roomNow.kind === "private") spec = { mode: "private", code: roomNow.code };
+        else if (roomNow) spec = { mode: "public", id: roomNow.id };
+        try { LS && LS.setItem("oceanbound.server", JSON.stringify(spec)); } catch (e) {}
+        if (waiting) { const w = waiting; waiting = null; w.resolve(roomNow); }
         myPeer = m.peer; myUid = m.uid; others.clear(); first = true;
         for (const p of m.peers) if (p.peer !== myPeer) others.set(p.peer, { ...p, updatedAt: now });
         setConn(true); rebuild([], [], []);
@@ -93,11 +103,31 @@
         m.ok ? r.resolve(m.result) : r.reject({ code: m.code || "upstream_error", message: m.code || "error" });
       }
     };
-    ws.onclose = () => { setConn(false); ws = null; setTimeout(connect, backoff); backoff = Math.min(8000, backoff * 2); };
+    ws.onclose = () => { if (sock !== ws) return; setConn(false); ws = null; if (spec && my === gen) { setTimeout(() => my === gen && connect(), backoff); backoff = Math.min(8000, backoff * 2); } };
     ws.onerror = () => {};
   }
-  connect();
   setInterval(() => sendRaw({ t: "ping" }), 20000);
+  // leave the current server: everybody else disappears from this ocean
+  function leave() {
+    gen++; spec = null; roomNow = null; const old = ws; ws = null; if (old) { try { old.close(); } catch (e) {} }
+    const gone = [...others.values()].map(freezePeer); others.clear(); myPeer = null;
+    setConn(false); if (gone.length) rebuild([], gone, []);
+  }
+  // where to play, used by the title screen and the Players panel
+  window.OB_NET = Object.freeze({
+    servers: () => fetch("/api/servers", { cache: "no-store" }).then(r => r.json()),
+    // s: {mode:"public", id?} | {mode:"private", code} | {mode:"create"}
+    connect(s) {
+      leave(); spec = s; gen++; backoff = 500;
+      return new Promise((resolve, reject) => {
+        waiting = { resolve, reject }; connect();
+        setTimeout(() => { if (waiting && waiting.resolve === resolve) { waiting = null; leave(); reject({ code: "timeout" }); } }, 12000);
+      });
+    },
+    solo() { leave(); try { LS && LS.setItem("oceanbound.server", JSON.stringify({ mode: "solo" })); } catch (e) {} },
+    info: () => roomNow ? Object.assign({}, roomNow, { count: (myPeer ? 1 : 0) + others.size }) : null,
+    last() { try { return JSON.parse(LS.getItem("oceanbound.server")) || null; } catch (e) { return null; } }
+  });
 
   /* ---------- room ---------- */
   const room = Object.freeze({

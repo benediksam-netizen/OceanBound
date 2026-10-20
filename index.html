@@ -474,6 +474,22 @@ body.touch .qlabel{font-size:10.5px;}
 @media (max-width:380px){body.touch .ibtn{width:34px;height:34px;}body.touch .ibtn svg{width:18px;height:18px;}}
 .snowMap{touch-action:pan-x pan-y pinch-zoom;}
 :fullscreen body,:-webkit-full-screen body{background:#000;}
+#title{overflow-y:auto;align-items:safe center;}#title .title-inner{margin:auto;padding-block:12px;}
+.playWhere{width:min(460px,calc(100vw - 32px));background:rgba(40,20,5,.55);border-radius:14px;padding:8px 10px 10px;color:#fff3dc;text-align:left;}
+.pwTabs{display:flex;gap:6px;}.pwTab{flex:1;font:800 13.5px var(--body);border:2px solid #7a5227;background:#f3dcb0;color:var(--ink);border-radius:10px;padding:6px 4px;cursor:pointer;}
+.pwTab.on{background:var(--sea);border-color:var(--sea-edge);color:#fff;}
+.pwBody{margin-top:8px;font-size:13px;}.pwBody p{margin:0 0 6px;line-height:1.35;}
+.pwList{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;}
+.pwSrv{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;font:inherit;border:2px solid rgba(255,220,170,.35);background:rgba(255,248,232,.12);color:#fff3dc;border-radius:10px;padding:5px 9px;cursor:pointer;}
+.pwSrv b{font-size:13.5px;}.pwSrv small{font-size:11.5px;opacity:.85;font-weight:700;}.pwSrv.on{border-color:#ffd24a;background:rgba(255,210,74,.22);}.pwSrv:disabled{opacity:.45;cursor:not-allowed;}
+.pwOpt{display:flex;gap:8px;align-items:flex-start;margin:4px 0;cursor:pointer;}.pwOpt span{display:flex;flex-direction:column;}.pwOpt small{font-size:11.5px;opacity:.85;font-weight:700;}
+.pwCode{font:900 20px/1 var(--display);letter-spacing:4px;text-transform:uppercase;width:100%;box-sizing:border-box;margin-top:6px;border:2px solid #7a5227;border-radius:10px;padding:8px 10px;background:#fff8e8;color:var(--ink);text-align:center;}
+.pwNote{margin-top:8px;font-size:13px;font-weight:800;color:#ffd0b8;}
+.pbody .pwWrap{background:#fff8e8;border-radius:10px;padding:10px;box-shadow:inset 0 0 0 2px rgba(120,80,30,.15);margin-bottom:10px;}
+.pbody .pwWrap .pwSrv{color:var(--ink);background:#fdf3dd;border-color:rgba(120,80,30,.25);}.pbody .pwWrap .pwNote{color:#b3402f;}
+.pwBig{font-family:var(--display);font-size:18px;letter-spacing:2px;color:#9a6408;}
+@media (max-height:760px){#title .logoImg{max-height:26vh;}}
+@media (orientation:landscape) and (max-height:540px){#title .logoImg,body.touch #title .logoImg{max-height:22vh!important;}#subtitle{display:none;}.pwSrv small{display:none;}#title .title-inner{gap:6px;}.playWhere{padding:6px 8px;}.pwBody p{display:none;}.pwList{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}}
 #ver{position:fixed;right:calc(7px + env(safe-area-inset-right,0px));bottom:calc(2px + env(safe-area-inset-bottom,0px));z-index:40;pointer-events:none;font:800 11px/1 Nunito,sans-serif;letter-spacing:.4px;color:#fff;opacity:.75;text-shadow:0 1px 2px rgba(10,40,70,.9),0 0 3px rgba(10,40,70,.6);white-space:nowrap;}
 #blosQ,#dinoQ{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(90,60,30,.25);}
 .dinoL{color:#ffc070!important;}
@@ -497,6 +513,7 @@ body.touch #questCard.blosOn:not(.open) #blosQ{margin-top:0;padding-top:0;border
     <div class="ribbon" id="subtitle">Fishing &amp; Island Adventure</div>
     <label class="nameRow" id="nameRow"><span>Captain name</span><input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false"></label>
     <div class="title-online" id="titleOnline" hidden></div>
+    <div class="playWhere pwWrap" id="playWhere" hidden></div>
     <button class="btn plain sm" id="btnFull" style="margin-top:2px">⛶ Play full screen</button>
     <div class="title-btns">
       <button class="btn gold big" id="btnContinue" hidden>Continue</button>
@@ -7303,16 +7320,22 @@ const UI={
   bossBar(name){const b=$('#bossBar');document.body.classList.toggle('boss',!!name);if(!name){b.hidden=true;return;}b.hidden=false;$('#bbName').textContent=name;$('#bbFill').style.width='100%';this.bossPhase(0);},
   bossPhase(n){$('#bbPhase').textContent=['Phase 1 of 3','Phase 2 of 3: enraged!','Final phase: last stand!'][n]||'';},
   depth(){const b=$('#bDepth');const on=G.mode==='boat'&&Boat.has('winch');b.hidden=!on;if(!on)return;b.classList.toggle('on',!!G.deep);$('#depthText').textContent=G.deep?'Deep drop ON':'Deep drop off';},
-  net(){const on=!!Net.room;const n=Net.others().length+1;$('#netPill').hidden=!on||!started;$('#bChat').hidden=!on;$('#netPill').classList.toggle('off',!Net.connected);
-    $('#netText').textContent=Net.connected?(n===1?'Only you online':n+' players online'):'Connecting…';
-    const t=$('#titleOnline');if(on&&Net.connected){t.hidden=false;t.textContent=n>1?(n-1)+' friend'+(n>2?'s are':' is')+' out on the ocean right now':'Multiplayer is on: friends who open this game join you';}else t.hidden=true;
-    if(this.panelKind==='players')this.openPanel('players');},
+  net(){const on=!!Net.room&&!Net.solo;const n=Net.others().length+1;const inf=NetPick.on()&&window.OB_NET.info();$('#netPill').hidden=!on||!started;$('#bChat').hidden=!on;$('#netPill').classList.toggle('off',!Net.connected);
+    $('#netText').textContent=Net.connected?(inf?(inf.kind==='private'?'Code '+inf.code:inf.name)+' · '+n+(n===1?' sailor':' sailors'):(n===1?'Only you online':n+' players online')):'Connecting…';
+    if(NetPick.on()){$('#netPill').hidden=!started;if(Net.solo){$('#netPill').classList.add('off');$('#netText').textContent='Single player';}}
+    const t=$('#titleOnline');if(NetPick.on())t.hidden=true;else if(on&&Net.connected){t.hidden=false;t.textContent=n>1?(n-1)+' friend'+(n>2?'s are':' is')+' out on the ocean right now':'Multiplayer is on: friends who open this game join you';}else t.hidden=true;
+    if(this.panelKind==='players'&&!$('#pBody .pwTabs'))this.openPanel('players');},
   chatLog(){const f=$('#chatFeed');f.innerHTML='';const now=Date.now();for(const m of Net.chatLog.slice(-5)){if(now-m.at>12000&&$('#chatBox').hidden)continue;const d=document.createElement('div');d.className='cf';
       const b=document.createElement('b');b.textContent=m.n+':';b.style.color=m.me?'#ffd24a':'#8fe8ff';d.append(b,document.createTextNode(m.t));f.append(d);}},
   openChat(){if(!Net.room)return;$('#chatBox').hidden=false;this.chatLog();setTimeout(()=>$('#chatInput').focus(),30);},
   closeChat(){$('#chatBox').hidden=true;$('#chatInput').blur();canvas.focus();this.chatLog();},
   panel_players(b){const others=Net.others();
-    b.insertAdjacentHTML('beforeend',`<p>Everyone who has Oceanbound open plays in the same ocean. You each keep your own save, boats and fish, but you see each other, chat, cheer each other's catches and can sail over to a friend.</p>`);
+    if(NetPick.on()){const inf=window.OB_NET.info(),box=document.createElement('div');box.className='pwWrap';
+      const p=document.createElement('p');p.innerHTML=Net.solo||!inf?'<b>Single player.</b> Nobody else can join your ocean.':inf.kind==='private'?'<b>Private server</b> · code <span class="pwBig"></span> · '+inf.count+' / '+inf.cap+' sailors. Friends choose <b>Private server → Join with a code</b> on the title screen, or here under Change server.':'<b></b> · public server · '+inf.count+' / '+inf.cap+' sailors';
+      if(inf&&!Net.solo){if(inf.kind==='private')p.querySelector('.pwBig').textContent=inf.code;else p.querySelector('b').textContent=inf.name;}
+      box.append(p);const ch=document.createElement('button');ch.className='btn sm';ch.textContent='Change server';const area=document.createElement('div');ch.onclick=()=>{ch.hidden=true;NetPick.render(area,true,()=>this.openPanel('players'));};box.append(ch,area);b.append(box);
+      if(Net.solo){b.insertAdjacentHTML('beforeend','<p style="margin-top:10px">Your save, boats and fish are the same in every mode.</p>');return;}}
+    b.insertAdjacentHTML('beforeend',`<p>'+(NetPick.on()?'Everyone on this server sails the same ocean.':'Everyone who has Oceanbound open plays in the same ocean.')+' You each keep your own save, boats and fish, but you see each other, chat, cheer each other's catches and can sail over to a friend.</p>`);
     const nr=document.createElement('div');nr.className='farmActs';nr.innerHTML='<input id="plName" maxlength="16" style="font:800 15px var(--body);border:2px solid #7a5227;border-radius:9px;padding:6px 10px;background:#fff8e8;">';
     const nb=document.createElement('button');nb.className='btn sm';nb.textContent='Change name';nb.onclick=()=>{Net.setName($('#plName').value);this.toast('You are now '+Net.name+'.','good');this.openPanel('players');};nr.append(nb);b.append(nr);$('#plName').value=Net.name;
     const rows=document.createElement('div');rows.className='rows';rows.style.marginTop='10px';
@@ -7360,7 +7383,7 @@ const UI={
     setTimeout(()=>{card.hidden=false;$('#ccOk').focus();},r.rank>=4?3500:650);},
   closeCatch(){$('#catchCard').hidden=true;if(Fishing.state==='caught')Fishing.finish();canvas.focus();},
   openPanel(kind){this.panelKind=kind;const b=$('#pBody');b.innerHTML='';
-    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players Online',wardrobe:'Wardrobe',achievements:'Achievements',snowmap:'Snowy Seas Map',snowmarket:'Fish Market · Old Sven',snowquests:'Snowy Seas Quest Board',snowkitchen:'Snow Kitchen · Ingrid',snowcabin:'Your Winter Cabin',snowres:'Storage Warehouse',snowworkshop:'Boat Workshop · Bjorn',blosmap:'Blossom Islands Chart',blosmarket:'Fish Market · Elder Hana',blosquests:'Blossom Islands Quest Board',bloskitchen:'Blossom Kitchen · Chef Taro',blostea:'Tea House · Yuki',bloshouse:'Your Blossom House',blosworks:'Boat Works · Daichi',dinomap:'Dino Island Chart',dinoquests:'Dino Island Quest Board',dinomarket:'Fish Market · Old Rua',dinogrill:'Beach Grill · Mama Tula',dinohouse:'Your Beach Hut',dinoworks:'Boat Works · Pita',dinojournal:'Fossil Journal',dinomuseum:'Island Museum · Professor Odell',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
+    const titles={shipyard:"Shipyard · Captain Rosa",farm:'Farm',cook:'Kitchen',dishes:"Sell Dishes · Chef Coco",orders:'Quest Board Orders',home:'Your House',base:'Mobile Base',players:'Players & Servers',wardrobe:'Wardrobe',achievements:'Achievements',snowmap:'Snowy Seas Map',snowmarket:'Fish Market · Old Sven',snowquests:'Snowy Seas Quest Board',snowkitchen:'Snow Kitchen · Ingrid',snowcabin:'Your Winter Cabin',snowres:'Storage Warehouse',snowworkshop:'Boat Workshop · Bjorn',blosmap:'Blossom Islands Chart',blosmarket:'Fish Market · Elder Hana',blosquests:'Blossom Islands Quest Board',bloskitchen:'Blossom Kitchen · Chef Taro',blostea:'Tea House · Yuki',bloshouse:'Your Blossom House',blosworks:'Boat Works · Daichi',dinomap:'Dino Island Chart',dinoquests:'Dino Island Quest Board',dinomarket:'Fish Market · Old Rua',dinogrill:'Beach Grill · Mama Tula',dinohouse:'Your Beach Hut',dinoworks:'Boat Works · Pita',dinojournal:'Fossil Journal',dinomuseum:'Island Museum · Professor Odell',decor:'Garden Decorations',trophies:'Trophy Room',sound:'Sound',dex:'Fishdex',bag:'Bag',map:'World Map',help:'How to Play',sell:'Sell · Nana Pia',shop:'General Store · Nana Pia',tackle:'Tackle · Old Marlo'};
     $('#pTitle').textContent=(this.snowHost&&['tackle','shop','sell','dishes','shipyard'].includes(kind)?this.snowHost:titles[kind]);if(!['tackle','shop','sell','dishes','shipyard'].includes(kind))this.snowHost=null;this['panel_'+kind](b);$('#panelWrap').hidden=false;$('#pClose').focus();},
   closePanel(){this.snowHost=null;if(this.cookGame&&!this.cookGame.done){this.cookStop();}$('#panelWrap').hidden=true;this.panelKind=null;this.cookGame=null;clearInterval(this.farmTimer);canvas.focus();},
   togglePanel(k){if(!$('#panelWrap').hidden&&this.panelKind===k)this.closePanel();else if(!Fishing.busy()||k==='help'||k==='sound')this.openPanel(k);},
@@ -8168,18 +8191,54 @@ const POSES=new Set(['bite','boost','bump','cast','celebrate','charge','fail','h
 const FISH_POSES=new Set(['charge','cast','hold','bite','reel','struggle','celebrate']);
 const NET_COLORS=['#ff8a2a','#36b07e','#e0407a','#8a52dc','#f0c83a','#2fb5d6','#e0503f','#5cc04b'];
 const cleanText=(t,n)=>String(t==null?'':t).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g,'').trim().slice(0,n);
-const Net={room:null,connected:false,myPose:'idle',remotes:new Map(),sendT:0,lastSent:'',chatLog:[],
+// ---- where to play (website only): single player, a public server, or a private server with a code ----
+const NetPick={mode:'public',pub:'',code:'',priv:'create',list:null,busy:false,t:null,
+  on(){return !!window.OB_NET;},
+  load(){const l=window.OB_NET.last();if(!l)return;if(l.mode==='solo')this.mode='solo';else if(l.mode==='private'){this.mode='private';this.priv='join';this.code=l.code||'';}else{this.mode='public';this.pub='';}},
+  spec(){return this.mode==='public'?(this.pub?{mode:'public',id:this.pub}:{mode:'public'}):this.priv==='create'?{mode:'create'}:{mode:'private',code:this.code};},
+  refresh(cb){window.OB_NET.servers().then(r=>{this.list=r.servers||[];cb&&cb();}).catch(()=>{});},
+  // the chooser, used on the title screen and in the Players panel
+  render(el,inGame,onGo){el.innerHTML='';const tabs=document.createElement('div');tabs.className='pwTabs';
+    for(const [m,t] of [['solo','Single player'],['public','Public server'],['private','Private server']]){const b=document.createElement('button');b.type='button';b.textContent=t;b.className='pwTab'+(this.mode===m?' on':'');b.onclick=()=>{this.mode=m;this.render(el,inGame,onGo);};tabs.append(b);}
+    el.append(tabs);const body=document.createElement('div');body.className='pwBody';el.append(body);
+    if(this.mode==='solo')body.innerHTML='<p>Sail on your own. Nobody else can join your ocean.</p>';
+    else if(this.mode==='public'){const p=document.createElement('p');p.textContent='Play with everyone. Each server holds a limited number of sailors so it stays smooth; pick one or let the game choose.';body.append(p);
+      const g=document.createElement('div');g.className='pwList';body.append(g);
+      const draw=()=>{g.innerHTML='';const opts=[{id:'',name:'Best server',sub:'The game picks one with room for you'}].concat((this.list||[]).map(s=>({id:s.id,name:s.name,sub:s.count+' / '+s.cap+' sailors'+(s.count>=s.cap?' · full':''),full:s.count>=s.cap})));
+        for(const o of opts){const b=document.createElement('button');b.type='button';b.className='pwSrv'+(this.pub===o.id?' on':'');b.disabled=!!o.full;b.innerHTML='<b></b><small></small>';b.querySelector('b').textContent=o.name;b.querySelector('small').textContent=o.sub;b.onclick=()=>{this.pub=o.id;draw();};g.append(b);}};
+      draw();this.refresh(draw);clearInterval(this.t);this.t=setInterval(()=>{if(!el.isConnected){clearInterval(this.t);return;}this.refresh(draw);},5000);}
+    else{const mk=(v,t,sub)=>{const l=document.createElement('label');l.className='pwOpt';l.innerHTML='<input type="radio" name="pwPriv"><span><b></b><small></small></span>';const i=l.querySelector('input');i.checked=this.priv===v;i.onchange=()=>{this.priv=v;this.render(el,inGame,onGo);};
+        l.querySelector('b').textContent=t;l.querySelector('small').textContent=sub;return l;};
+      body.append(mk('create','Create a private server','You get a code to share. Only friends with the code can join.'));
+      body.append(mk('join','Join with a code','Type the code a friend gave you.'));
+      if(this.priv==='join'){const inp=document.createElement('input');inp.className='pwCode';inp.maxLength=8;inp.placeholder='CODE';inp.autocomplete='off';inp.spellcheck=false;inp.value=this.code;
+        inp.oninput=()=>{inp.value=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'');this.code=inp.value;};inp.onkeydown=e=>e.stopPropagation();body.append(inp);}}
+    if(inGame){const go=document.createElement('button');go.className='btn gold';go.style.marginTop='10px';go.textContent=this.mode==='solo'?'Play single player':this.mode==='public'?'Join this server':this.priv==='create'?'Create server':'Join';go.onclick=()=>this.go(onGo,go);body.append(go);}
+    const note=document.createElement('div');note.className='pwNote';note.hidden=true;el.append(note);},
+  say(el,t){const n=el&&el.querySelector('.pwNote');if(n){n.hidden=!t;n.textContent=t||'';}},
+  // connect (or not) and then carry on
+  go(then,btn){if(!this.on()){then();return;}if(this.busy)return;const host=btn?btn.closest('.pwWrap')||$('#playWhere'):$('#playWhere');
+    if(this.mode==='solo'){window.OB_NET.solo();Net.setSolo(true);then();return;}
+    if(this.mode==='private'&&this.priv==='join'&&this.code.length<4){this.say(host,'Type the code your friend gave you first.');return;}
+    this.busy=true;this.say(host,'Connecting…');const was=G&&started;
+    window.OB_NET.connect(this.spec()).then(info=>{this.busy=false;this.say(host,'');Net.setSolo(false);then();
+      setTimeout(()=>{if(info.kind==='private')UI.banner('Private server '+info.code,'Share this code with friends. They choose Private server, then Join with a code.');
+        else UI.toast('You joined '+info.name+' ('+info.count+'/'+info.cap+' sailors).','good');},was?200:1600);})
+      .catch(e=>{this.busy=false;const c=e&&e.code;this.say(host,c==='full'?'That server is full. Pick another one, or let the game choose.':c==='not_found'?'No private server has that code. Check the code with your friend (it only exists while someone is playing on it or for 30 minutes after).':c==='busy'?'Too many private servers right now. Try again in a minute.':'Could not reach the server. Try again, or play single player.');});}};
+
+const Net={room:null,connected:false,solo:false,myPose:'idle',remotes:new Map(),sendT:0,lastSent:'',chatLog:[],
   name:(()=>{try{return cleanText(localStorage.getItem('oceanbound.name'),16);}catch(e){return '';}})()||('Sailor '+(100+Math.floor(Math.random()*900))),
   async init(){let room=null;try{if(window.claude&&typeof claude.use==='function')room=await claude.use('room');}catch(e){}
-    if(!room)return;this.room=room;
+    if(!room)return;this.room=room;if(NetPick.on())this.solo=true;
     room.onPeers(ch=>this.onPeers(ch),()=>{});
     room.onConnection(c=>{this.connected=c;UI.net();},()=>{this.connected=false;UI.net();});
     room.on('chat',m=>this.onChat(m),()=>{});room.on('emote',m=>this.onEmote(m),()=>{});room.on('brag',m=>this.onBrag(m),()=>{});
     UI.net();},
+  setSolo(v){this.solo=!!v;if(v){for(const r of this.remotes.values())this.drop(r);this.remotes.clear();this.chatLog=[];}this.lastSent='';UI.net();},
   setName(n){n=cleanText(n,16);if(!n)return;this.name=n;try{localStorage.setItem('oceanbound.name',n);}catch(e){}this.lastSent='';},
   others(){return [...this.remotes.values()].filter(r=>r.p);},
   // ---------- outgoing ----------
-  update(dt){if(!this.room)return;
+  update(dt){if(!this.room||this.solo)return;
     this.sendT-=dt;
     if(started&&this.sendT<=0){this.sendT=0.12;
       const inBoat=G.mode==='boat',P=inBoat?Boat.pos:Player.pos,r2=v=>Math.round(v*100)/100;
@@ -8191,17 +8250,17 @@ const Net={room:null,connected:false,myPose:'idle',remotes:new Map(),sendT:0,las
     for(const r of this.remotes.values())this.animate(r,dt);
     this.tags();},
   hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return h;},
-  say(text){text=cleanText(text,120);if(!text||!this.room)return;this.room.emit('chat',{t:text}).catch(()=>UI.toast('Only people who can edit or contribute to this game can chat here.','warn'));},
-  emote(e){if(!this.room)return;this.room.emit('emote',{e}).catch(()=>{});},
-  brag(c){if(!this.room||!this.connected)return;this.room.emit('brag',{id:c.id,cm:c.cm,kg:c.kg,boss:!!c.boss}).catch(()=>{});},
+  say(text){text=cleanText(text,120);if(!text||!this.room||this.solo)return;this.room.emit('chat',{t:text}).catch(()=>UI.toast('Only people who can edit or contribute to this game can chat here.','warn'));},
+  emote(e){if(!this.room||this.solo)return;this.room.emit('emote',{e}).catch(()=>{});},
+  brag(c){if(!this.room||this.solo||!this.connected)return;this.room.emit('brag',{id:c.id,cm:c.cm,kg:c.kg,boss:!!c.boss}).catch(()=>{});},
   // ---------- incoming (all of it untrusted) ----------
   readPres(pr){if(!pr||pr.v!==1)return null;const num=(v,a,b)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):null;
-    const x=num(pr.x,-700,700),z=num(pr.z,-700,700);if(x===null||z===null)return null;
+    const x=num(pr.x,-2600,2600),z=num(pr.z,-2600,2600);if(x===null||z===null)return null;
     const lk=Array.isArray(pr.lk)?pr.lk:[];
     return {n:cleanText(pr.n,16)||'Sailor',c:/^#[0-9a-f]{6}$/i.test(pr.c)?pr.c:'#ffffff',o:OUTFITS[pr.o]?pr.o:'classic',lv:num(pr.lv,1,99)||1,m:pr.m==='b'?'b':'w',
       x,y:num(pr.y,-5,60)||0,z,r:num(pr.r,-1e4,1e4)||0,s:POSES.has(pr.s)?pr.s:'idle',bt:BOATS[pr.bt]?pr.bt:'skiff',
       lk:[PAINTS[lk[0]]?lk[0]:'classic',SAILCOL[lk[1]]?lk[1]:'blue',SAILCOL[lk[2]]?lk[2]:'blue'],zn:ZONES[pr.zn]?pr.zn:'open',
-      f:Array.isArray(pr.f)&&pr.f.length===2&&pr.f.every(v=>typeof v==='number'&&isFinite(v))?[clamp(pr.f[0],-700,700),clamp(pr.f[1],-700,700)]:null,sk:pr.sk===1};},
+      f:Array.isArray(pr.f)&&pr.f.length===2&&pr.f.every(v=>typeof v==='number'&&isFinite(v))?[clamp(pr.f[0],-2600,2600),clamp(pr.f[1],-2600,2600)]:null,sk:pr.sk===1};},
   onPeers(ch){for(const p of ch.peers){if(p.sameTab)continue;let r=this.remotes.get(p.peer);const pr=this.readPres(p.presence);
       if(!r){r={peer:p.peer,p:null,x:0,y:0,z:0,yaw:0,char:null,boat:null,rod:null,tag:null,bubble:null,bubbleT:0,outfit:null,boatKey:null,seen:false};this.remotes.set(p.peer,r);}
       if(pr){const first=!r.p;r.p=pr;if(first){r.x=pr.x;r.y=pr.y;r.z=pr.z;r.yaw=pr.r;if(started)UI.toast(pr.n+' sailed into your ocean!','good');}}}
@@ -8264,8 +8323,8 @@ const clock=new THREE.Clock();
 const BOOT_T0=performance.now();
 let mm=null,mmCtx=null;
 let newArmed=false;
-$('#btnContinue').onclick=()=>startGame(true);
-$('#btnNew').onclick=()=>{if(Save.exists()&&!newArmed){newArmed=true;$('#newConfirm').hidden=false;return;}startGame(false);};
+$('#btnContinue').onclick=()=>NetPick.go(()=>startGame(true));
+$('#btnNew').onclick=()=>{if(Save.exists()&&!newArmed){newArmed=true;$('#newConfirm').hidden=false;return;}NetPick.go(()=>startGame(false));};
 function boot(){
   const steps=[
     ['Shaping the island',()=>buildWorld()],
@@ -8284,7 +8343,7 @@ function boot(){
 }
 function finishBoot(){
   mm=$('#minimap');mmCtx=mm.getContext('2d');
-  $('#nameInput').value=Net.name;Net.init();
+  $('#nameInput').value=Net.name;Net.init();if(NetPick.on()){NetPick.load();$('#playWhere').hidden=false;NetPick.render($('#playWhere'),false);}
   FogMap.reveal(0,0,62);
   if(Save.exists())$('#btnContinue').hidden=false;
   $('#logo').src=$('#splashLogo').src;

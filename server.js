@@ -136,6 +136,7 @@ function handleMove(req, res, u) {
 const server = http.createServer((req, res) => {
   let u = decodeURIComponent((req.url || "/").split("?")[0]);
   if (u.startsWith("/api/") && handleMove(req, res, u)) return;
+  if (u === "/api/servers") { res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }); res.end(JSON.stringify({ servers: publicRooms().map(roomInfo), privateCap: PRIVATE_CAP })); return; }
   if (u === "/health") { res.writeHead(200, { "content-type": "text/plain" }); res.end("ok"); return; }
   // for search engines: allow everything, and point to the sitemap
   if (u === "/robots.txt") { res.writeHead(200, { "content-type": "text/plain; charset=utf-8" }); res.end(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`); return; }
@@ -152,17 +153,46 @@ const server = http.createServer((req, res) => {
   });
 });
 
-/* ---------------- live multiplayer ---------------- */
+/* ---------------- live multiplayer: public servers and private servers ----------------
+   Players choose where to play on the title screen:
+   - single player: no connection at all
+   - a public server: a few named servers, each with a player cap so nobody lags; when they are all
+     full another one opens by itself
+   - a private server: one player creates it and gets a short code; friends type the code to join */
+const PUBLIC_CAP = Math.max(4, Math.min(60, Number(process.env.PUBLIC_CAP) || 20));
+const PRIVATE_CAP = Math.max(2, Math.min(30, Number(process.env.PRIVATE_CAP) || 10));
+const FILL_TARGET = Math.max(2, Math.min(PUBLIC_CAP, Number(process.env.FILL_TARGET) || 12));
+const PUBLIC_NAMES = ["Coral Bay", "Sunset Reef", "Starfish Cove", "Lagoon Lights"];
+const MAX_PRIVATE = 2000;
+const rooms = new Map(); // room id -> { id, kind, name, code, cap, peers: Map, emptySince }
+function makeRoom(id, kind, name, cap, code) { const r = { id, kind, name, cap, code: code || null, peers: new Map(), emptySince: Date.now(), fixed: false }; rooms.set(id, r); return r; }
+PUBLIC_NAMES.forEach((n, i) => { makeRoom("pub" + (i + 1), "public", n, PUBLIC_CAP).fixed = true; });
+const publicRooms = () => [...rooms.values()].filter(r => r.kind === "public");
+function pickPublic(want) {
+  const list = publicRooms();
+  if (want) { const r = rooms.get(want); if (r && r.kind === "public") return r.peers.size < r.cap ? r : null; }
+  // fill servers up to a comfortable size first, so the ocean is never empty, then spread out
+  let r = list.find(x => x.peers.size < FILL_TARGET);
+  if (!r) r = list.filter(x => x.peers.size < x.cap).sort((a, b) => a.peers.size - b.peers.size)[0];
+  if (!r) { const n = list.length + 1; r = makeRoom("pub" + n, "public", "Open Sea " + n, PUBLIC_CAP); }
+  return r;
+}
+const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function newCode() { for (;;) { let c = ""; const b = crypto.randomBytes(6); for (let i = 0; i < 6; i++) c += CODE_CHARS[b[i] % CODE_CHARS.length]; if (!rooms.has("p-" + c)) return c; } }
+const cleanCode = c => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+// tidy up: empty private servers are kept for 30 minutes (so a host can reload), extra public ones for 5
+setInterval(() => { const now = Date.now(); for (const [id, r] of rooms) if (!r.fixed && !r.peers.size && now - r.emptySince > (r.kind === "private" ? 30 : 5) * 60000) rooms.delete(id); }, 60000).unref();
+const roomInfo = r => ({ id: r.id, kind: r.kind, name: r.name, code: r.code, cap: r.cap, count: r.peers.size });
+
 const wss = new WebSocketServer({ server, path: "/ws", maxPayload: MAX_MSG });
-const peers = new Map(); // peer id -> { ws, uid, presence, updatedAt }
 const newPeerId = () => crypto.randomBytes(8).toString("hex");
 const uidFor = token => "u_" + crypto.createHash("sha256").update("oceanbound|" + token).digest("base64url").slice(0, 22);
 function send(ws, obj) { if (ws.readyState === 1) ws.send(JSON.stringify(obj)); }
-function broadcast(obj, except) { const s = JSON.stringify(obj); for (const [id, p] of peers) if (id !== except && p.ws.readyState === 1) p.ws.send(s); }
+function broadcast(room, obj, except) { const s = JSON.stringify(obj); for (const [id, p] of room.peers) if (id !== except && p.ws.readyState === 1) p.ws.send(s); }
 const peerInfo = (id, p) => ({ peer: id, by: p.uid, presence: p.presence, updatedAt: p.updatedAt });
 
 wss.on("connection", ws => {
-  let me = null, count = 0, windowStart = Date.now();
+  let me = null, room = null, count = 0, windowStart = Date.now();
   ws.on("message", raw => {
     const now = Date.now();
     if (now - windowStart > 1000) { windowStart = now; count = 0; }
@@ -172,26 +202,39 @@ wss.on("connection", ws => {
 
     if (msg.t === "hello") {
       if (me) return;
+      const want = msg.room && typeof msg.room === "object" ? msg.room : { mode: "public" };
+      if (want.mode === "create") {
+        if ([...rooms.values()].filter(r => r.kind === "private").length >= MAX_PRIVATE) { send(ws, { t: "denied", reason: "busy" }); ws.close(); return; }
+        const code = newCode(); room = makeRoom("p-" + code, "private", "Private server " + code, PRIVATE_CAP, code);
+      } else if (want.mode === "private") {
+        const code = cleanCode(want.code); room = code.length >= 4 ? rooms.get("p-" + code) : null;
+        if (!room) { send(ws, { t: "denied", reason: "not_found" }); ws.close(); return; }
+        if (room.peers.size >= room.cap) { send(ws, { t: "denied", reason: "full" }); ws.close(); return; }
+      } else {
+        room = pickPublic(typeof want.id === "string" ? want.id : null);
+        if (!room) { send(ws, { t: "denied", reason: "full" }); ws.close(); return; }
+      }
       const token = typeof msg.token === "string" && /^[A-Za-z0-9_-]{16,80}$/.test(msg.token) ? msg.token : crypto.randomBytes(24).toString("base64url");
       const id = newPeerId(), uid = uidFor(token);
       me = id;
       const presence = msg.presence && typeof msg.presence === "object" ? msg.presence : {};
-      peers.set(id, { ws, uid, presence: Buffer.byteLength(JSON.stringify(presence)) <= MAX_PRESENCE ? presence : {}, updatedAt: now });
-      send(ws, { t: "welcome", peer: id, uid, peers: [...peers].map(([pid, p]) => peerInfo(pid, p)) });
-      broadcast({ t: "join", ...peerInfo(id, peers.get(id)) }, id);
+      room.peers.set(id, { ws, uid, presence: Buffer.byteLength(JSON.stringify(presence)) <= MAX_PRESENCE ? presence : {}, updatedAt: now });
+      send(ws, { t: "welcome", peer: id, uid, room: roomInfo(room), peers: [...room.peers].map(([pid, p]) => peerInfo(pid, p)) });
+      broadcast(room, { t: "join", ...peerInfo(id, room.peers.get(id)) }, id);
       return;
     }
     if (!me) return;
-    const p = peers.get(me);
+    const p = room.peers.get(me);
+    if (!p) return;
 
     if (msg.t === "presence" && msg.presence && typeof msg.presence === "object" && !Array.isArray(msg.presence)) {
       if (Buffer.byteLength(JSON.stringify(msg.presence)) > MAX_PRESENCE) return;
       p.presence = msg.presence; p.updatedAt = now;
-      broadcast({ t: "update", ...peerInfo(me, p) }, me);
+      broadcast(room, { t: "update", ...peerInfo(me, p) }, me);
       return;
     }
     if (msg.t === "emit" && typeof msg.topic === "string" && /^[a-z][a-z0-9_.-]{0,47}$/.test(msg.topic)) {
-      broadcast({ t: "msg", topic: msg.topic, data: msg.data, peer: me, by: p.uid }, me);
+      broadcast(room, { t: "msg", topic: msg.topic, data: msg.data, peer: me, by: p.uid }, me);
       return;
     }
     if (msg.t === "db" && typeof msg.id === "number") {
@@ -199,13 +242,13 @@ wss.on("connection", ws => {
       catch (e) { send(ws, { t: "dbr", id: msg.id, ok: false, code: typeof e === "string" ? e : "upstream_error" }); }
       return;
     }
-    if (msg.t === "ping") send(ws, { t: "pong" });
+    if (msg.t === "ping") send(ws, { t: "pong", count: room.peers.size });
   });
-  ws.on("close", () => { if (me && peers.delete(me)) broadcast({ t: "leave", peer: me }); });
+  ws.on("close", () => { if (me && room && room.peers.delete(me)) { broadcast(room, { t: "leave", peer: me }); if (!room.peers.size) room.emptySince = Date.now(); } });
   ws.on("error", () => {});
 });
 
 // Drop connections that stopped answering.
-setInterval(() => { for (const [id, p] of peers) if (p.ws.readyState > 1) { peers.delete(id); broadcast({ t: "leave", peer: id }); } }, 10000);
+setInterval(() => { for (const room of rooms.values()) for (const [id, p] of room.peers) if (p.ws.readyState > 1) { room.peers.delete(id); broadcast(room, { t: "leave", peer: id }); if (!room.peers.size) room.emptySince = Date.now(); } }, 10000);
 
 server.listen(PORT, () => console.log(`Oceanbound is running on http://localhost:${PORT}`));
