@@ -148,7 +148,7 @@ const server = http.createServer((req, res) => {
   if (!f.startsWith(PUBLIC_DIR)) { res.writeHead(403); res.end(); return; }
   fs.readFile(f, (err, buf) => {
     if (err) { res.writeHead(404, { "content-type": "text/plain" }); res.end("Not found"); return; }
-    res.writeHead(200, { "content-type": TYPES[path.extname(f)] || "application/octet-stream", "cache-control": u === "/index.html" ? "no-cache" : "public, max-age=3600" });
+    res.writeHead(200, { "content-type": TYPES[path.extname(f)] || "application/octet-stream", "cache-control": (u === "/index.html" || u.endsWith(".js")) ? "no-cache" : "public, max-age=3600" });
     res.end(buf);
   });
 });
